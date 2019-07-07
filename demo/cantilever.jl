@@ -1,6 +1,11 @@
-using Random, Distributions, LinearAlgebra, DataFrames
+include("../src/OpenCossan.jl")
 
-nmc = 100000
+using Main.OpenCossan
+using Distributions, DataFrames
+
+import LinearAlgebra.I
+
+nmc = 10000
 
 l = 1.8
 b = 0.12
@@ -15,23 +20,19 @@ corr = Matrix{Float64}(I, 4, 4)
 corr[3,2] = 0.8
 corr[2,3] = 0.8
 
-a = cholesky(corr).L
-z = rand(Normal(), nmc, 4)
-x = cdf.(Normal(), transpose(a * transpose(z)))
+rvset = RandomVariableSet([h, P, rho, E], ["h", "P", "rho", "E"], corr)
 
-samples = DataFrame(b = fill(b, nmc), l = fill(l, nmc))
-samples.h = quantile.(h, x[:, 1])
-samples.P = quantile.(P, x[:, 2])
-samples.rho = quantile.(rho, x[:, 3])
-samples.E = quantile.(E, x[:, 4])
+samples = DataFrame(l = fill(l, nmc), b = fill(b, nmc))
 
-function inertia(df)
+samples = hcat(samples, rand(rvset, nmc))
+
+function inertia(df::DataFrame)
     df.b .* df.h .^ 3 / 12
 end
 
 samples.I = inertia(samples)
 
-function displacement(df)
+function displacement(df::DataFrame)
     (df.rho .* 9.81 .* df.b .* df.h .* df.l .^ 4) ./ (8 .* df.E .* df.I) .+ (df.P .* df.l .^ 3) ./ (3 .* df.E .* df.I)
 end
 
