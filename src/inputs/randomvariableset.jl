@@ -1,10 +1,27 @@
 struct RandomVariableSet
     members::Array{UnivariateDistribution}
     names::Array{String}
-    corr::Matrix{Number}
+    corr::Matrix{Float64}
+
+    function RandomVariableSet(members::Array{Distribution{Univariate, S}},
+        names::Array,
+        corr) where S<:ValueSupport
+
+
+        if (length(members) !== length(names))
+            error("length(members) != length(names)")
+        end
+
+        new(members, names, corr)
+    end
 end
 
-RandomVariableSet(members::Array{UnivariateDistribution}, names::Array{String}) = RandomVariableSet(members, names, Matrix{Float64}(I, 4, 4))
+function RandomVariableSet(members::Array{Distribution{Univariate, S}},
+    names::Array) where S<:ValueSupport
+    corr = Matrix{Float64}(I, length(members), length(members))
+
+    RandomVariableSet(members, names, corr)
+end
 
 function rand(r::RandomVariableSet, n::Int64)
     a = cholesky(r.corr).L

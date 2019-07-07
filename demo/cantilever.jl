@@ -20,11 +20,11 @@ corr = Matrix{Float64}(I, 4, 4)
 corr[3,2] = 0.8
 corr[2,3] = 0.8
 
-rvset = RandomVariableSet([h, P, rho, E], ["h", "P", "rho", "E"], corr)
+rvset = RandomVariableSet([h P rho E], ["h" "P" "rho" "E"], corr)
 
 samples = DataFrame(l = fill(l, nmc), b = fill(b, nmc))
 
-samples = hcat(samples, rand(rvset, nmc))
+samples = [samples rand(rvset, nmc)]
 
 function inertia(df::DataFrame)
     df.b .* df.h .^ 3 / 12
