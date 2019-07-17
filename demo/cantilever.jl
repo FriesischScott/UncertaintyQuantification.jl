@@ -1,6 +1,4 @@
-include("../src/OpenCossan.jl")
 
-using Main.OpenCossan
 using Distributions, DataFrames
 
 import LinearAlgebra.I

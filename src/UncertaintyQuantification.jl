@@ -1,4 +1,4 @@
-module OpenCossan
+module UncertaintyQuantification
 
 using Distributions, LinearAlgebra, DataFrames
 
