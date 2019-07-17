@@ -1,11 +1,11 @@
 struct RandomVariableSet
-    members::Array{UnivariateDistribution}
+    members::Array{<:Sampleable,2}
     names::Array{String}
     corr::Matrix{Float64}
 
-    function RandomVariableSet(members::Array{Distribution{Univariate, S}},
+    function RandomVariableSet(members::Array{<:Sampleable,2},
         names::Array,
-        corr) where S<:ValueSupport
+        corr::Matrix{Float64})
 
 
         if (length(members) !== length(names))
@@ -16,12 +16,15 @@ struct RandomVariableSet
     end
 end
 
-function RandomVariableSet(members::Array{Distribution{Univariate, S}},
-    names::Array) where S<:ValueSupport
-    corr = Matrix{Float64}(I, length(members), length(members))
+# Outer constructor with default value for corr
+( RandomVariableSet(members::Array{<:Sampleable,2}, names::Array,
+    corr = Matrix{Float64}(I, length(members), length(members)))
+    = RandomVariableSet(members,names, corr); )
 
-    RandomVariableSet(members, names, corr)
-end
+# Outer constructor for keyword passing, with default value for corr
+( RandomVariableSet(;members::Array{<:Sampleable,2}, names::Array,
+    corr = Matrix{Float64}(I, length(members), length(members)))
+    = RandomVariableSet(members,names, corr); )
 
 function rand(r::RandomVariableSet, n::Int64)
     a = cholesky(r.corr).L
