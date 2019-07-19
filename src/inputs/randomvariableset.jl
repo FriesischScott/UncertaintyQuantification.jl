@@ -1,9 +1,9 @@
 struct RandomVariableSet
-    members::Array{<:Sampleable,2}
+    members::Array{<:Sampleable{Univariate},2}
     names::Array{String}
     corr::Matrix{<:Number}
 
-    function RandomVariableSet(members::Array{<:Sampleable,2},
+    function RandomVariableSet(members::Array{<:Sampleable{Univariate},2},
         names::Array,
         corr::Matrix{<:Number})
 
@@ -17,12 +17,12 @@ struct RandomVariableSet
 end
 
 # Outer constructor with default value for corr
-( RandomVariableSet(members::Array{<:Sampleable,2}, names::Array,
+( RandomVariableSet(members::Array{<:Sampleable{Univariate},2}, names::Array,
     corr = Matrix{<:Number}(I, length(members), length(members)))
     = RandomVariableSet(members,names, corr); )
 
 # Outer constructor for keyword passing, with default value for corr
-( RandomVariableSet(;members::Array{<:Sampleable,2}, names::Array,
+( RandomVariableSet(;members::Array{<:Sampleable{Univariate},2}, names::Array,
     corr = Matrix{<:Number}(I, length(members), length(members)))
     = RandomVariableSet(members,names, corr); )
 
@@ -34,7 +34,7 @@ function rand(r::RandomVariableSet, n::Int64)
     samples = DataFrame()
 
     for (i, (member, name)) in enumerate(zip(r.members, r.names))
-        samples[ Symbol(name)] = quantile.(member, x[:, i])
+        samples[Symbol(name)] = quantile.(member, x[:, i])
     end
 
     return samples
