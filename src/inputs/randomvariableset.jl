@@ -19,12 +19,12 @@ end
 # Outer constructor with default value for corr
 ( RandomVariableSet(members::Array{<:Sampleable{Univariate},2}, names::Array,
     corr = Matrix{Number}(I, length(members), length(members)))
-    = RandomVariableSet(members,names, corr); )
+    = RandomVariableSet(members, names, corr); )
 
 # Outer constructor for keyword passing, with default value for corr
 ( RandomVariableSet(;members::Array{<:Sampleable{Univariate},2}, names::Array,
     corr = Matrix{Number}(I, length(members), length(members)))
-    = RandomVariableSet(members,names, corr); )
+    = RandomVariableSet(members, names, corr); )
 
 function rand(r::RandomVariableSet, n::Int64)
     a = cholesky(r.corr).L
