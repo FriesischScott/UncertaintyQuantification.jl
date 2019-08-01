@@ -25,21 +25,22 @@ samples = DataFrame(l = fill(l, nmc), b = fill(b, nmc))
 samples = [samples rand(rvset, nmc)]
 
 function inertia(df::DataFrame)
-    df.b .* df.h .^ 3 / 12
+    df.I = df.b .* df.h .^ 3 / 12
+    return df
 end
-
-samples.I = inertia(samples)
 
 function displacement(df::DataFrame)
-    (df.rho .* 9.81 .* df.b .* df.h .* df.l .^ 4) ./ (8 .* df.E .* df.I) .+ (df.P .* df.l .^ 3) ./ (3 .* df.E .* df.I)
+    df.w = (df.rho .* 9.81 .* df.b .* df.h .* df.l .^ 4) ./ (8 .* df.E .* df.I) .+ (df.P .* df.l .^ 3) ./ (3 .* df.E .* df.I)
+    return df
 end
 
-samples.w = displacement(samples)
+function perf(df::DataFrame)
+    return -df.w .+ max_displacement
+end
 
-performance = -samples.w .+ max_displacement
+samples = inertia(samples)
+samples = displacement(samples)
 
-pf = sum(performance .< 0) / nmc
+pf = sum(perf(samples) .< 0) / nmc
 
 println("Probability of failure: ", pf)
-
-
