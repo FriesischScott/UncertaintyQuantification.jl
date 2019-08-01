@@ -1,5 +1,7 @@
 
-using Main.UncertaintyQuantification
+using UncertaintyQuantification
+
+using Distributions
 using Test
 
 rv1 = Normal(0,1);
