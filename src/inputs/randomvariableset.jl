@@ -12,6 +12,10 @@ struct RandomVariableSet
             error("length(members) != length(names)")
         end
 
+        if ((length(members), length(members)) !== size(corr))
+            error("wrong dimension of correlation matrix")
+        end
+
         new(members, names, corr)
     end
 end

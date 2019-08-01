@@ -16,5 +16,6 @@ corr_ = [1 0.8; 0.8 1]
     @test typeof(RandomVariableSet(members = rvs_, names = names_, corr = corr_)) == RandomVariableSet
 
     @test_throws ErrorException("length(members) != length(names)") RandomVariableSet(rvs_, ["Rv1"])
+    @test_throws ErrorException("wrong dimension of correlation matrix") RandomVariableSet(rvs_, names_, [1 0 0; 0 1 0; 0 0 1])
 
 end
