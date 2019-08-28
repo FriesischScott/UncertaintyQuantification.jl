@@ -6,11 +6,13 @@ import Base: rand
 
 export
     # inputs
-    RandomVariableSet
+    RandomVariableSet,
 
     # methods
+    copularand,
     rand
 
 include("inputs/randomvariableset.jl")
+include("util/copula.jl")
 
 end

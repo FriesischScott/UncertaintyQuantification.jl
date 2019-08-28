@@ -31,14 +31,13 @@ end
     = RandomVariableSet(members, names, corr); )
 
 function rand(r::RandomVariableSet, n::Int64)
-    a = cholesky(r.corr).L
-    z = rand(Normal(), n, length(r.members))
-    x = cdf.(Normal(), transpose(a * transpose(z)))
+    # TODO: This needs to use the covariance matrix
+    u = copularand(r.corr, n, length(r.members))
 
     samples = DataFrame()
 
     for (i, (member, name)) in enumerate(zip(r.members, r.names))
-        samples[Symbol(name)] = quantile.(member, x[:, i])
+        samples[Symbol(name)] = quantile.(member, u[:, i])
     end
 
     return samples
