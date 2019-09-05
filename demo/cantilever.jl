@@ -14,7 +14,7 @@ P = LogNormal(log(5000^2 / sqrt(400 + 5000^2)), sqrt(log(400 / 5000^2 + 1)))
 rho = LogNormal(log(600^2 / sqrt(140 + 600^2)), sqrt(log(140 / 600^2 + 1)))
 E = LogNormal(log(10e9^2 / sqrt(1.6e9 + 10e9^2)), sqrt(log(1.6e9 / 10e9^2 + 1)))
 
-corr = Matrix{Float64}(I, 4, 4)
+corr = zeros(4,4) + I
 corr[3,2] = 0.8
 corr[2,3] = 0.8
 
