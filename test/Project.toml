@@ -1,9 +1,5 @@
-name = "UncertaintyQuantification"
-uuid = "7183a548-a887-11e9-15ce-a56ab60bad7a"
-authors = ["Jasper Behrensdorf <behrensdorf@irz.uni-hannover.de>"]
-version = "0.1.0"
-
 [deps]
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
