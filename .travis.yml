@@ -2,4 +2,5 @@ coveralls: true
 
 language: julia
 julia:
+  - 1.1
   - 1.2
