@@ -13,6 +13,8 @@ function probabilityOfFailure(
     end
 
     # Probability of failure
-    sum(performance(samples) .< 0) / sim.n
+    pf = sum(performance(samples) .< 0) / sim.n
+
+    return pf, samples
 
 end
