@@ -1,7 +1,7 @@
 function probabilityOfFailure(
-    models::Array{Model},
+    models::Union{Array{<:AbstractModel}, AbstractModel},
     performance::Function,
-    inputs::Array,
+    inputs::Union{Array{<:AbstractInput}, AbstractInput},
     sim::AbstractSimulation,
 )
 
