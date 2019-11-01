@@ -1,4 +1,4 @@
-struct Model <: AbstractSimulation
+struct Model <: AbstractModel
     func::Function
     name::String
 end
