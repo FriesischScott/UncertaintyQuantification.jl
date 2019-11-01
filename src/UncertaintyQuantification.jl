@@ -7,8 +7,10 @@ import Base: rand
 #import Distributions: Normal, LogNormal
 
 
-abstract type AbstractInput <:Real end
-abstract type AbstractSimulation <:Real end
+abstract type UQtypes end
+abstract type AbstractInput <: UQtypes end
+abstract type AbstractModel <: UQtypes end
+abstract type AbstractSimulation <: UQtypes end
 
 export
     # inputs
