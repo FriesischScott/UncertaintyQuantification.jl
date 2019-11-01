@@ -35,7 +35,7 @@ displacement = Model(
 mc = MonteCarlo(100000)
 max_displacement = 0.01
 
-pf = probabilityOfFailure(
+pf, samples = probabilityOfFailure(
     [inertia, displacement],
     df -> max_displacement .- df.w,
     [l, b, h, E, rvset],
