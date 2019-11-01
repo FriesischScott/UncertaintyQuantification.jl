@@ -1,6 +1,8 @@
 module UncertaintyQuantification
 
-using Distributions, LinearAlgebra, DataFrames
+using LinearAlgebra, Reexport
+
+@reexport using Distributions, DataFrames
 
 import Base: rand
 
