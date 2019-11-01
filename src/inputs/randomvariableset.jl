@@ -1,4 +1,4 @@
-struct RandomVariableSet
+struct RandomVariableSet <: AbstractInput
     members::Array{RandomVariable}
     corr::Matrix{<:Number}
 

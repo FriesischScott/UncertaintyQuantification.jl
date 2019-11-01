@@ -4,6 +4,12 @@ using Distributions, LinearAlgebra, DataFrames
 
 import Base: rand
 
+#import Distributions: Normal, LogNormal
+
+
+abstract type AbstractInput <:Real end
+abstract type AbstractSimulation <:Real end
+
 export
     # inputs
     Parameter,
@@ -19,7 +25,9 @@ export
     rand,
     sample,
 
-    probabilityOfFailure
+    probabilityOfFailure,
+
+    Normal, LogNormal
 
 include("inputs/parameter.jl")
 include("inputs/randomvariable.jl")

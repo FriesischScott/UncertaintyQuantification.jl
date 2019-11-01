@@ -1,4 +1,4 @@
-function sample(inputs::Array, n::Int64)
+function sample(inputs::Array{<:AbstractInput}, n::Int64 = 1)
     samples = DataFrame()
 
     # Parameters
@@ -18,3 +18,5 @@ function sample(inputs::Array, n::Int64)
 
     return samples
 end
+
+sample(inputs::AbstractInput, n::Int64 = 1) = sample([inputs], n)

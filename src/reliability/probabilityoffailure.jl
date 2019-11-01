@@ -2,7 +2,7 @@ function probabilityOfFailure(
     models::Array{Model},
     performance::Function,
     inputs::Array,
-    sim::MonteCarlo,
+    sim::AbstractSimulation,
 )
 
     samples = sample(inputs, sim.n)
