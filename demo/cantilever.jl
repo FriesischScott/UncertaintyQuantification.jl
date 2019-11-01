@@ -1,5 +1,12 @@
+###
+#   Computing the probabilty of failure of the cantilever beam.
+#
+#       Before running you must:
+#       julia:> include("src/UncertaintyQuantification.jl")
+#       julia:> using Main.UncertaintyQuantification
+#
+###
 
-using UncertaintyQuantification, Distributions, DataFrames
 
 l = Parameter(1.8, "l")
 b = Parameter(0.12, "b")
