@@ -1,3 +1,3 @@
-struct MonteCarlo
+struct MonteCarlo <: AbstractSimulation
     n::Int64
 end
