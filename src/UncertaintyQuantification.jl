@@ -1,13 +1,10 @@
 module UncertaintyQuantification
 
-using LinearAlgebra, Reexport
+using LinearAlgebra, DataFrames, Reexport
 
-@reexport using Distributions, DataFrames
+@reexport using Distributions
 
 import Base: rand
-
-#import Distributions: Normal, LogNormal
-
 
 abstract type UQtypes end
 abstract type AbstractInput <: UQtypes end
@@ -29,9 +26,7 @@ export
     rand,
     sample,
 
-    probabilityOfFailure,
-
-    Normal, LogNormal
+    probabilityOfFailure
 
 include("inputs/parameter.jl")
 include("inputs/randomvariable.jl")
