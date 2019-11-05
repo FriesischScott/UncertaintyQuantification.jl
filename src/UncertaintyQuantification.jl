@@ -9,7 +9,6 @@ import Base: rand
 abstract type UQtypes end
 abstract type AbstractInput <: UQtypes end
 abstract type AbstractModel <: UQtypes end
-abstract type AbstractSimulation <: UQtypes end
 
 export
     # inputs
