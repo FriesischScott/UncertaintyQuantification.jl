@@ -10,6 +10,4 @@
 
     @test size(samples) == (10, 4)
     @test names(samples) == [:π, :x, :y, :z]
-
-    @test sample(π, 5) == DataFrame(π = [3.14, 3.14, 3.14, 3.14, 3.14])
 end
