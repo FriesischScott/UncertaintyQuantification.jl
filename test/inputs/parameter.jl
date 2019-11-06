@@ -6,4 +6,5 @@
     @test π.value == 3.14
     @test π.name == "π"
 
+    @test sample(π, 5) == DataFrame(π = [3.14, 3.14, 3.14, 3.14, 3.14])
 end
