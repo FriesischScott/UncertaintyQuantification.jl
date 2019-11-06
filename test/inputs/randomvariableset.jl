@@ -6,26 +6,32 @@ corr_ = [1 0.8; 0.8 1]
 
 @testset "RandomVariableSet" begin
 
-    @test typeof(RandomVariableSet(rvs_)) == RandomVariableSet
-    @test typeof(RandomVariableSet(rvs_, corr_)) == RandomVariableSet
-    @test typeof(RandomVariableSet(members = rvs_)) == RandomVariableSet
-    @test typeof(RandomVariableSet(
-        members = rvs_,
-        corr = corr_,
-    )) == RandomVariableSet
+    @testset "Constructor" begin
+        @test typeof(RandomVariableSet(rvs_)) == RandomVariableSet
+        @test typeof(RandomVariableSet(rvs_, corr_)) == RandomVariableSet
+        @test typeof(RandomVariableSet(members = rvs_)) == RandomVariableSet
+        @test typeof(RandomVariableSet(
+            members = rvs_,
+            corr = corr_,
+        )) == RandomVariableSet
 
-    rvset = RandomVariableSet(rvs_, corr_)
+        rvset = RandomVariableSet(rvs_, corr_)
+        @test rvset.members == rvs_
+        @test rvset.corr == corr_
 
-    @test rvset.members == rvs_
-    @test rvset.corr == corr_
+        rvset = RandomVariableSet(members = rvs_)
+        @test rvset.corr == [1 0; 0 1]
 
-    rvset = RandomVariableSet(members = rvs_)
+        @test_throws ErrorException("wrong dimension of correlation matrix") RandomVariableSet(
+            rvs_,
+            [1 0 0; 0 1 0; 0 0 1],
+        )
 
-    @test rvset.corr == [1 0; 0 1]
+    end
 
-    @test_throws ErrorException("wrong dimension of correlation matrix") RandomVariableSet(
-        rvs_,
-        [1 0 0; 0 1 0; 0 0 1],
-    )
-
+    @testset "rand" begin
+        rvset = RandomVariableSet(rvs_, corr_)
+        @test size(rand(rvset, 10)) == (10, 2)
+        @test size(rand(rvset)) == (1, 2)
+    end
 end
