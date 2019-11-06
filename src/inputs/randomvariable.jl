@@ -3,6 +3,6 @@ struct RandomVariable <: AbstractInput
     name::String
 end
 
-function rand(rv::RandomVariable, n::Int64)
+function rand(rv::RandomVariable, n::Int64 = 1)
     rand(rv.dist, n)
 end
