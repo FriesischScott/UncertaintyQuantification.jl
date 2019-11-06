@@ -8,5 +8,6 @@ function (obj::Model)(df::DataFrame)
 end
 
 function evaluate(m::Model, df::DataFrame)
-    m.func(df)
+    df[!, Symbol(m.name)] = m.func(df)
+    return df
 end

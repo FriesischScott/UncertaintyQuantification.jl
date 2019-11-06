@@ -9,7 +9,7 @@ function probabilityOfFailure(
 
     # Models
     for m in models
-        samples[!, Symbol(m.name)] = evaluate(m, samples)
+        samples = evaluate(m, samples)
     end
 
     # Probability of failure
