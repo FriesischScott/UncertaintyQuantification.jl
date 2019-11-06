@@ -8,6 +8,6 @@
     @test x.dist == dist
     @test x.name == name
 
-    @test size(rand(x)) == (1,)
-    @test size(rand(x, 10)) == (10,)
+    @test size(sample(x)) == (1, 1)
+    @test size(sample(x, 10)) == (10, 1)
 end

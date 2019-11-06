@@ -3,6 +3,6 @@ struct RandomVariable <: AbstractInput
     name::String
 end
 
-function rand(rv::RandomVariable, n::Int64 = 1)
-    rand(rv.dist, n)
+function sample(rv::RandomVariable, n::Int64 = 1)
+    DataFrame(Symbol(rv.name) => rand(rv.dist, n))
 end
