@@ -3,7 +3,7 @@ struct Model <: AbstractModel
     name::String
 end
 
-function (obj :: Model)(df :: DataFrame)
+function (obj::Model)(df::DataFrame)
     obj.func(df)
 end
 

@@ -22,6 +22,7 @@ export
 
     # methods
     copularand,
+    evaluate,
     rand,
     sample,
 
