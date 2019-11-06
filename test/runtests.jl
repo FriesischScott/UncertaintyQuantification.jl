@@ -6,3 +6,5 @@ include("inputs/randomvariableset.jl");
 include("inputs/sample.jl")
 
 include("models/model.jl")
+
+include("simulations/montecarlo.jl")
