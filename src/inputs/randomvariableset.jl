@@ -28,7 +28,7 @@ end
     corr = Matrix{Number}(I, length(members), length(members)),
 ) = RandomVariableSet(members, corr))
 
-function rand(r::RandomVariableSet, n::Int64)
+function rand(r::RandomVariableSet, n::Int64 = 1)
     # TODO: This needs to use the covariance matrix
     u = copularand(r.corr, n, length(r.members))
 
@@ -40,5 +40,3 @@ function rand(r::RandomVariableSet, n::Int64)
 
     return samples
 end
-
-rand(r::RandomVariableSet) = rand(r::RandomVariableSet, 1);
