@@ -1,23 +1,24 @@
 @testset "Probability of Failure" begin
 
     @testset "Monte Carlo" begin
+
         Random.seed!(8128)
 
-        a = RandomVariable(Uniform(1, 10), "a")
-        b = RandomVariable(Normal(2, 1), "b")
+        x = RandomVariable(Uniform(0, 1), "x")
+        y = RandomVariable(Uniform(0, 1), "y")
 
-        model = Model(x -> x.a .^ 2 .+ x.b .^ 3, "y")
+        d = Model(df -> sqrt.(df.x .^ 2 + df.y .^ 2), "d")
 
         pf, _ = probability_of_failure(
-            [model],
-            x -> x.y,
-            [a, b],
-            MonteCarlo(100000)
+            [d],
+            df -> df.d .- 1,
+            [x, y],
+            MonteCarlo(1000000),
         )
 
         Random.seed!()
 
-        @test pf == 3.0e-5
+        @test round(4.0 * pf, digits = 3) == 3.141
     end
 
 end
