@@ -21,7 +21,6 @@ export
     MonteCarlo,
 
     # methods
-    copularand,
     evaluate,
     rand,
     sample,
@@ -38,7 +37,5 @@ include("models/model.jl")
 include("simulations/montecarlo.jl")
 
 include("reliability/probabilityoffailure.jl")
-
-include("util/copula.jl")
 
 end

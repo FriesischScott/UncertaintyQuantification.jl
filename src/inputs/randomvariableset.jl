@@ -29,13 +29,16 @@ end
 ) = RandomVariableSet(members, corr))
 
 function sample(r::RandomVariableSet, n::Int64 = 1)
-    # TODO: This needs to use the covariance matrix
-    u = copularand(r.corr, n, length(r.members))
+    # Sample from the gaussian copula
+    ΦR = MvNormal(r.corr)
+    Φ = Normal()
+
+    u = cdf.(Φ, rand(ΦR, n))
 
     samples = DataFrame()
 
     for (i, rv) in enumerate(r.members)
-        samples[!, Symbol(rv.name)] = quantile.(rv.dist, u[:, i])
+        samples[!, Symbol(rv.name)] = quantile.(rv.dist, u[i, :])
     end
 
     return samples
