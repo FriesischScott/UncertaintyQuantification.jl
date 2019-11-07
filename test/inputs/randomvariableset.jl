@@ -29,7 +29,7 @@ corr_ = [1 0.8; 0.8 1]
 
     end
 
-    @testset "rand" begin
+    @testset "sample" begin
         rvset = RandomVariableSet(rvs_, corr_)
         @test size(sample(rvset, 10)) == (10, 2)
         @test size(sample(rvset)) == (1, 2)
