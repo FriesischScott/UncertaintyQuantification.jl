@@ -4,7 +4,7 @@
     name = "x"
     x = RandomVariable(dist, name)
 
-    @test typeof(x) == RandomVariable
+    @test isa(x, RandomVariable)
     @test x.dist == dist
     @test x.name == name
 

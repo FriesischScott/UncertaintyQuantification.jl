@@ -7,13 +7,13 @@ corr_ = [1 0.8; 0.8 1]
 @testset "RandomVariableSet" begin
 
     @testset "Constructor" begin
-        @test typeof(RandomVariableSet(rvs_)) == RandomVariableSet
-        @test typeof(RandomVariableSet(rvs_, corr_)) == RandomVariableSet
-        @test typeof(RandomVariableSet(members = rvs_)) == RandomVariableSet
-        @test typeof(RandomVariableSet(
+        @test isa(RandomVariableSet(rvs_), RandomVariableSet)
+        @test isa(RandomVariableSet(rvs_, corr_), RandomVariableSet)
+        @test isa(RandomVariableSet(members = rvs_), RandomVariableSet)
+        @test isa(RandomVariableSet(
             members = rvs_,
             corr = corr_,
-        )) == RandomVariableSet
+        ), RandomVariableSet)
 
         rvset = RandomVariableSet(rvs_, corr_)
         @test rvset.members == rvs_
