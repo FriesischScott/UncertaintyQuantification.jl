@@ -1,6 +1,6 @@
 struct RandomVariableSet <: AbstractInput
     members::Array{RandomVariable}
-    corr::Matrix{<:Number}
+    corr::Matrix{<:Real}
 
     function RandomVariableSet(
         members::Array{RandomVariable},
@@ -18,14 +18,14 @@ end
 # Outer constructor with default value for corr
 (RandomVariableSet(
     members::Array{RandomVariable},
-    corr = Matrix{Number}(I, length(members), length(members)),
+    corr = Matrix{Float64}(I(length(members))),
 ) = RandomVariableSet(members, corr))
 
 # Outer constructor for keyword passing, with default value for corr
 (RandomVariableSet(
     ;
     members::Array{RandomVariable},
-    corr = Matrix{Number}(I, length(members), length(members)),
+    corr = Matrix{Float64}(I(length(members))),
 ) = RandomVariableSet(members, corr))
 
 function sample(r::RandomVariableSet, n::Int64 = 1)
