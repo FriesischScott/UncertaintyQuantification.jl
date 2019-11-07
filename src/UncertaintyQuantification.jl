@@ -25,7 +25,7 @@ export
     rand,
     sample,
 
-    probabilityOfFailure
+    probability_of_failure
 
 include("inputs/parameter.jl")
 include("inputs/randomvariable.jl")

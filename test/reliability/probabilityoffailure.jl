@@ -8,7 +8,7 @@
 
         model = Model(x -> x.a .^ 2 .+ x.b .^ 3, "y")
 
-        pf, _ = probabilityOfFailure(
+        pf, _ = probability_of_failure(
             [model],
             x -> x.y,
             [a, b],

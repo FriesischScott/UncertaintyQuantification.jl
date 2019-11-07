@@ -1,4 +1,4 @@
-function probabilityOfFailure(
+function probability_of_failure(
     models::Union{Array{<:AbstractModel}, AbstractModel},
     performance::Function,
     inputs::Union{Array{<:AbstractInput}, AbstractInput},
