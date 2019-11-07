@@ -1,3 +1,3 @@
 function sample(inputs::Array{<:AbstractInput}, n::Int64 = 1)
-    map(i -> sample(i, n), inputs) |> samples -> hcat(samples...)
+    mapreduce(i -> sample(i, n), hcat, inputs)
 end
