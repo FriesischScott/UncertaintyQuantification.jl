@@ -43,3 +43,6 @@ function sample(r::RandomVariableSet, n::Int64 = 1)
 
     return samples
 end
+
+mean(r::RandomVariableSet) = map(x -> Distributions.mean(x.dist), r.members)
+var(r::RandomVariableSet) = map(x -> Distributions.var(x.dist), r.members)

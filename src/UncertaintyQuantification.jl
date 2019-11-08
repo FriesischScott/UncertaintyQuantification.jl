@@ -1,6 +1,6 @@
 module UncertaintyQuantification
 
-using LinearAlgebra, DataFrames, Reexport
+using LinearAlgebra, DataFrames, FiniteDifferences, Reexport
 
 @reexport using Distributions
 
@@ -12,20 +12,23 @@ abstract type AbstractModel <: UQtypes end
 
 export
     # inputs
-    Parameter,
-    RandomVariable,
-    RandomVariableSet,
+      Parameter,
+      RandomVariable,
+      RandomVariableSet,
 
-    Model,
+      Model,
 
-    MonteCarlo,
+      MonteCarlo,
 
     # methods
-    evaluate,
-    rand,
-    sample,
+      evaluate,
+      rand,
+      sample,
+      mean,
+      var,
+      gradient,
 
-    probability_of_failure
+      probability_of_failure
 
 include("inputs/parameter.jl")
 include("inputs/randomvariable.jl")
@@ -33,6 +36,8 @@ include("inputs/randomvariableset.jl")
 include("inputs/sample.jl")
 
 include("models/model.jl")
+
+include("sensitivity/gradient.jl")
 
 include("simulations/montecarlo.jl")
 
