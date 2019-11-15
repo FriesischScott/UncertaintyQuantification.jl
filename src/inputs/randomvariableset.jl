@@ -44,5 +44,27 @@ function sample(r::RandomVariableSet, n::Int64 = 1)
     return samples
 end
 
-mean(r::RandomVariableSet) = map(x -> Distributions.mean(x.dist), r.members)
-var(r::RandomVariableSet) = map(x -> Distributions.var(x.dist), r.members)
+function to_physical_space!(r::RandomVariableSet, x::DataFrame)
+    L = cholesky(r.corr).L
+    correlated_cdf = cdf.(Normal(), Matrix(x[:, names(r)]) * L')
+    for (i, rv) in enumerate(r.members)
+        x[!, Symbol(rv.name)] = quantile.(rv.dist, correlated_cdf[:, i])
+    end
+    return nothing
+end
+
+function to_standard_normal_space!(r::RandomVariableSet, x::DataFrame)
+    for rv in r.members
+        x[!, Symbol(rv.name)] = cdf.(rv.dist, x[:, Symbol(rv.name)])
+    end
+    L = cholesky(r.corr).L
+    uncorrelated_stdnorm = quantile.(Normal(), Matrix(x[:, names(r)])) * inv(L)'
+    for (i, rv) in enumerate(r.members)
+        x[!, Symbol(rv.name)] = uncorrelated_stdnorm[:, i]
+    end
+    return nothing
+end
+
+names(r::RandomVariableSet) = vec(map(x -> Symbol(x.name), r.members))
+
+mean(r::RandomVariableSet) = mean(r.members)

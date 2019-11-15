@@ -1,0 +1,42 @@
+struct LineSampling
+    lines::Int64
+    points::Array{Float64}
+    direction::DataFrame
+end
+
+function sample(inputs::Array{<:AbstractInput}, sim::LineSampling)
+    random_inputs = filter(x -> !isa(x, Parameter), inputs)
+    static_inputs = filter(x -> isa(x, Parameter), inputs)
+
+    n_rv = 0
+
+    for i in random_inputs
+        if isa(i, RandomVariable)
+            n_rv += 1
+        elseif isa(i, RandomVariableSet)
+            n_rv += length(i.members)
+        end
+    end
+
+    α = vec(Matrix(sim.direction))
+    α /= norm(α)
+
+    θ = rand(Normal(), n_rv, sim.lines)
+
+    θ = θ - α * (α' * θ)
+    θ = repeat(θ, outer=[length(sim.points), 1])
+
+    θ = θ[:] + repeat(α * sim.points', outer=[1, sim.lines])[:]
+
+    samples = DataFrame(reshape(θ, n_rv, length(sim.points) * sim.lines)')
+
+    random_names = _random_inputs(inputs)
+
+    names!(samples, random_names)
+
+    samples = hcat(samples, sample(static_inputs, length(sim.points) * sim.lines))
+
+    to_physical_space!(inputs, samples)
+
+    return samples
+end
