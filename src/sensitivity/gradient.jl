@@ -13,7 +13,7 @@ function gradient(
         samples[:, random_names] .= x
 
         for m in models
-            samples = evaluate(m, samples)
+            evaluate!(m, samples)
         end
 
         return samples[:, output][1]
@@ -40,7 +40,7 @@ function gradient_in_standard_normal_space(
         samples[:, random_names] .= x
         to_physical_space!(inputs, samples)
         for m in models
-            samples = evaluate(m, samples)
+            evaluate!(m, samples)
         end
         return samples[:, output][1]
     end

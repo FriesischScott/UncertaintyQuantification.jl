@@ -9,7 +9,7 @@ function probability_of_failure(
 
     # Models
     for m in models
-        samples = evaluate(m, samples)
+        evaluate!(m, samples)
     end
 
     # Probability of failure
@@ -36,7 +36,7 @@ function probability_of_failure(
     samples = sample(inputs, sim)
 
     for m in models
-        samples = evaluate(m, samples)
+        evaluate!(m, samples)
     end
 
     p = reshape(performance(samples), length(sim.points), sim.lines)

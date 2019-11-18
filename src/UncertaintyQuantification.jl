@@ -26,7 +26,7 @@ export
       MonteCarlo,
 
     # methods
-      evaluate,
+      evaluate!,
       rand,
       sample,
       mean,
