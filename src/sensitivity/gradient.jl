@@ -1,19 +1,13 @@
 function gradient(
     models::Array{<:UQModel},
     inputs::Array{<:UQInput},
-    x,
+    x::DataFrame,
     output::Symbol,
 )
 
-    random_names = Vector{Symbol}()
+    samples = copy(x)
 
-    for i in inputs
-        if isa(i, RandomVariable)
-            push!(random_names, Symbol(i.name))
-        elseif isa(i, RandomVariableSet)
-            append!(random_names, map(x -> Symbol(x.name), i.members))
-        end
-    end
+    random_names = _random_inputs(inputs)
 
     function f(x)
         samples = sample(inputs, size(x, 1))
@@ -26,7 +20,10 @@ function gradient(
         return samples[:, output][1]
     end
 
-    grad(central_fdm(2, 1), f, x)
+    g = grad(central_fdm(2, 1), f, x)
+    names!(g, random_names)
+
+    return g
 end
 
 function gradient_in_standard_normal_space(
@@ -52,7 +49,7 @@ function gradient_in_standard_normal_space(
 
     reference = convert(Matrix, samples[:, random_names])
 
-    g = DataFrame(-1 * grad(forward_fdm(2, 1), f, reference))
+    g = DataFrame(grad(forward_fdm(2, 1), f, reference))
     names!(g, random_names)
 
     return g

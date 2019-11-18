@@ -1,12 +1,20 @@
-struct LineSampling
+mutable struct LineSampling
     lines::Int64
-    points::Array{Float64}
+    points::Vector{Float64}
     direction::DataFrame
+
+    function LineSampling(
+        lines::Int64,
+        points::Vector{Float64} = collect(0.5:0.5:5),
+        direction::DataFrame = DataFrame()
+    )
+        new(lines, points, direction)
+    end
 end
 
 function sample(inputs::Array{<:UQInput}, sim::LineSampling)
     random_inputs = filter(i -> isa(i, RandomUQInput), inputs)
-    static_inputs = filter(i -> isa(i, DeterministicUQInput), inputs)
+    deterministic_inputs = filter(i -> isa(i, DeterministicUQInput), inputs)
 
     n_rv = 0
 
@@ -34,7 +42,7 @@ function sample(inputs::Array{<:UQInput}, sim::LineSampling)
 
     names!(samples, random_names)
 
-    samples = hcat(samples, sample(static_inputs, length(sim.points) * sim.lines))
+    samples = hcat(samples, sample(deterministic_inputs, length(sim.points) * sim.lines))
 
     to_physical_space!(inputs, samples)
 

@@ -24,6 +24,15 @@ function probability_of_failure(
     inputs::Union{Array{<:UQInput},UQInput},
     sim::LineSampling,
 )
+
+    if isempty(sim.direction)
+        sim.direction = gradient_in_standard_normal_space(
+        [models..., Model(x -> -1 .* performance(x), "performance")],
+        inputs,
+        mean(inputs),
+        :performance)
+    end
+
     samples = sample(inputs, sim)
 
     for m in models
