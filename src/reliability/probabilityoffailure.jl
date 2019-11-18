@@ -27,7 +27,7 @@ function probability_of_failure(
 
     if isempty(sim.direction)
         sim.direction = gradient_in_standard_normal_space(
-        [models..., Model(x -> -1 .* performance(x), "performance")],
+        [models..., Model(x -> -1 .* performance(x), :performance)],
         inputs,
         mean(inputs),
         :performance)

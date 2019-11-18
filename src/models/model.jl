@@ -1,6 +1,6 @@
 struct Model <: UQModel
     func::Function
-    name::String
+    name::Symbol
 end
 
 function (obj::Model)(df::DataFrame)
@@ -8,6 +8,6 @@ function (obj::Model)(df::DataFrame)
 end
 
 function evaluate(m::Model, df::DataFrame)
-    df[!, Symbol(m.name)] = m.func(df)
+    df[!, m.name] = m.func(df)
     return df
 end
