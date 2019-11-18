@@ -38,7 +38,7 @@ function sample(inputs::Array{<:UQInput}, sim::LineSampling)
 
     samples = DataFrame(reshape(θ, n_rv, length(sim.points) * sim.lines)')
 
-    random_names = _random_inputs(inputs)
+    random_names = names(random_inputs)
 
     names!(samples, random_names)
 

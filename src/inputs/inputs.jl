@@ -16,18 +16,18 @@ function to_standard_normal_space!(inputs::Array{<:UQInput}, x::DataFrame)
     return nothing
 end
 
-function _random_inputs(inputs::Array{<:UQInput})
-    input_names = Vector{Symbol}()
+function names(inputs::Array{<:UQInput})
+    _names = Vector{Symbol}()
 
     for i in inputs
-        if isa(i, RandomVariable)
-            push!(input_names, i.name)
-        elseif isa(i, RandomVariableSet)
-            append!(input_names, names(i))
+        if isa(i, RandomVariableSet)
+            append!(_names, names(i))
+        else
+            push!(_names, i.name)
         end
     end
 
-    return input_names
+    return _names
 end
 
 mean(inputs::Array{<:UQInput}) = mapreduce(mean, hcat, inputs)
