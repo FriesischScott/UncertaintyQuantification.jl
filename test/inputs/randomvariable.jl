@@ -1,7 +1,7 @@
 @testset "RandomVariable" begin
 
     dist = Normal(0, 1)
-    name = "x"
+    name = :x
     x = RandomVariable(dist, name)
 
     @test isa(x, RandomVariable)

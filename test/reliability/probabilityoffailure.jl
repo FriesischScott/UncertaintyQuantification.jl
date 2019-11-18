@@ -4,10 +4,10 @@
 
         Random.seed!(8128)
 
-        x = RandomVariable(Uniform(0, 1), "x")
-        y = RandomVariable(Uniform(0, 1), "y")
+        x = RandomVariable(Uniform(0, 1), :x)
+        y = RandomVariable(Uniform(0, 1), :y)
 
-        d = Model(df -> sqrt.(df.x .^ 2 + df.y .^ 2), "d")
+        d = Model(df -> sqrt.(df.x .^ 2 + df.y .^ 2), :d)
 
         pf, _ = probability_of_failure(
             [d],

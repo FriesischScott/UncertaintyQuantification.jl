@@ -1,5 +1,5 @@
-rv1 = RandomVariable(Normal(0, 1), "Rv1")
-rv2 = RandomVariable(Normal(0, 1), "RV2")
+rv1 = RandomVariable(Normal(0, 1), :Rv1)
+rv2 = RandomVariable(Normal(0, 1), :RV2)
 
 rvs_ = [rv1 rv2]
 corr_ = [1 0.8; 0.8 1]
