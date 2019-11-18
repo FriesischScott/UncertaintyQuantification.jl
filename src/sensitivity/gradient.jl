@@ -1,6 +1,6 @@
 function gradient(
-    models::Array{<:AbstractModel},
-    inputs::Array{<:AbstractInput},
+    models::Array{<:UQModel},
+    inputs::Array{<:UQInput},
     x,
     output::Symbol,
 )
@@ -30,8 +30,8 @@ function gradient(
 end
 
 function gradient_in_standard_normal_space(
-    models::Array{<:AbstractModel},
-    inputs::Array{<:AbstractInput},
+    models::Array{<:UQModel},
+    inputs::Array{<:UQInput},
     x::DataFrame,
     output::Symbol,
 )

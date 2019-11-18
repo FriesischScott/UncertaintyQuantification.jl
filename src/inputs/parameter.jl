@@ -1,4 +1,4 @@
-struct Parameter <: AbstractInput
+struct Parameter <: DeterministicUQInput
     value::Real
     name::String
 end

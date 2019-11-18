@@ -6,9 +6,13 @@ using LinearAlgebra, DataFrames, FiniteDifferences, Dierckx, Reexport
 
 import Base: rand, names
 
-abstract type UQtypes end
-abstract type AbstractInput <: UQtypes end
-abstract type AbstractModel <: UQtypes end
+abstract type UQType end
+
+abstract type UQInput <: UQType end
+abstract type UQModel <: UQType end
+
+abstract type DeterministicUQInput <: UQInput end
+abstract type RandomUQInput <: UQInput end
 
 export
     # inputs

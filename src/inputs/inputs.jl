@@ -1,22 +1,22 @@
-function sample(inputs::Array{<:AbstractInput}, n::Int64 = 1)
+function sample(inputs::Array{<:UQInput}, n::Int64 = 1)
     mapreduce(i -> sample(i, n), hcat, inputs)
 end
 
-function to_physical_space!(inputs::Array{<:AbstractInput}, x::DataFrame)
+function to_physical_space!(inputs::Array{<:UQInput}, x::DataFrame)
     for i in inputs
         to_physical_space!(i, x)
     end
     return nothing
 end
 
-function to_standard_normal_space!(inputs::Array{<:AbstractInput}, x::DataFrame)
+function to_standard_normal_space!(inputs::Array{<:UQInput}, x::DataFrame)
     for i in inputs
         to_standard_normal_space!(i, x)
     end
     return nothing
 end
 
-function _random_inputs(inputs::Array{<:AbstractInput})
+function _random_inputs(inputs::Array{<:UQInput})
     names = Vector{Symbol}()
 
     for i in inputs
@@ -30,4 +30,4 @@ function _random_inputs(inputs::Array{<:AbstractInput})
     return names
 end
 
-mean(inputs::Array{<:AbstractInput}) = mapreduce(mean, hcat, inputs)
+mean(inputs::Array{<:UQInput}) = mapreduce(mean, hcat, inputs)

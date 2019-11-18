@@ -4,9 +4,9 @@ struct LineSampling
     direction::DataFrame
 end
 
-function sample(inputs::Array{<:AbstractInput}, sim::LineSampling)
-    random_inputs = filter(x -> !isa(x, Parameter), inputs)
-    static_inputs = filter(x -> isa(x, Parameter), inputs)
+function sample(inputs::Array{<:UQInput}, sim::LineSampling)
+    random_inputs = filter(i -> isa(i, RandomUQInput), inputs)
+    static_inputs = filter(i -> isa(i, DeterministicUQInput), inputs)
 
     n_rv = 0
 

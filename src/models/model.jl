@@ -1,4 +1,4 @@
-struct Model <: AbstractModel
+struct Model <: UQModel
     func::Function
     name::String
 end

@@ -1,4 +1,4 @@
-struct RandomVariable <: AbstractInput
+struct RandomVariable <: RandomUQInput
     dist::Sampleable{Univariate}
     name::String
 end

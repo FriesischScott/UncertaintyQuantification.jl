@@ -1,4 +1,4 @@
-struct RandomVariableSet <: AbstractInput
+struct RandomVariableSet <: RandomUQInput
     members::Array{RandomVariable}
     corr::Matrix{<:Real}
 

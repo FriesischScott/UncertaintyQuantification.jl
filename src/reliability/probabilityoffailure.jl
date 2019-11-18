@@ -1,7 +1,7 @@
 function probability_of_failure(
-    models::Union{Array{<:AbstractModel},AbstractModel},
+    models::Union{Array{<:UQModel},UQModel},
     performance::Function,
-    inputs::Union{Array{<:AbstractInput},AbstractInput},
+    inputs::Union{Array{<:UQInput},UQInput},
     sim::MonteCarlo,
 )
 
@@ -19,9 +19,9 @@ function probability_of_failure(
 end
 
 function probability_of_failure(
-    models::Union{Array{<:AbstractModel},AbstractModel},
+    models::Union{Array{<:UQModel},UQModel},
     performance::Function,
-    inputs::Union{Array{<:AbstractInput},AbstractInput},
+    inputs::Union{Array{<:UQInput},UQInput},
     sim::LineSampling,
 )
     samples = sample(inputs, sim)
