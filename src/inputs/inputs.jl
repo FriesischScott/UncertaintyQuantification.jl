@@ -20,10 +20,10 @@ function names(inputs::Array{<:UQInput})
     _names = Vector{Symbol}()
 
     for i in inputs
-        if isa(i, RandomVariableSet)
-            append!(_names, names(i))
-        else
+        if i isa Parameter || i isa RandomVariable
             push!(_names, i.name)
+        elseif i isa RandomVariableSet
+            append!(_names, names(i))
         end
     end
 
