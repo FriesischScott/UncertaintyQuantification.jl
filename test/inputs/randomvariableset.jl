@@ -1,4 +1,4 @@
-using Statistics, Random, DataFrames
+using Random, DataFrames
 
 rv1 = RandomVariable(Exponential(1), :x)
 rv2 = RandomVariable(Exponential(1/2), :y)
@@ -51,15 +51,15 @@ corr_ = [1 0.8; 0.8 1]
 
         samples = sample(rvset, 10^5)
 
-        @test isapprox(Statistics.mean(samples.x), 1.0, atol = 0.01)
-        @test isapprox(Statistics.mean(samples.y), 0.5, atol = 0.01)
+        @test isapprox(mean(samples.x), 1.0, atol = 0.01)
+        @test isapprox(mean(samples.y), 0.5, atol = 0.01)
 
         @test round(cor(samples.x, samples.y), digits = 2) == 0.77
 
         to_standard_normal_space!(rvset, samples)
 
-        @test isapprox(abs(Statistics.mean(samples.x)), 0.0, atol = 0.01)
-        @test isapprox(abs(Statistics.mean(samples.y)), 0.0, atol = 0.01)
+        @test isapprox(abs(mean(samples.x)), 0.0, atol = 0.01)
+        @test isapprox(abs(mean(samples.y)), 0.0, atol = 0.01)
 
         @test isapprox(std(samples.x), 1.0, atol = 0.01)
         @test isapprox(std(samples.y), 1.0, atol = 0.01)
@@ -78,8 +78,8 @@ corr_ = [1 0.8; 0.8 1]
 
     to_physical_space!(rvset, samples)
 
-    @test isapprox(Statistics.mean(samples.x), 1.0, atol = 0.01)
-    @test isapprox(Statistics.mean(samples.y), 0.5, atol = 0.01)
+    @test isapprox(mean(samples.x), 1.0, atol = 0.01)
+    @test isapprox(mean(samples.y), 0.5, atol = 0.01)
 
     @test round(cor(samples.x, samples.y), digits = 2) == 0.77
 

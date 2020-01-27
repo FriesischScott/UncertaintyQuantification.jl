@@ -5,6 +5,7 @@ using LinearAlgebra, DataFrames, FiniteDifferences, Dierckx, Reexport
 @reexport using Distributions
 
 import Base: rand, names
+import Statistics: mean
 
 abstract type UQType end
 
