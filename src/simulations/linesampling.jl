@@ -40,7 +40,7 @@ function sample(inputs::Array{<:UQInput}, sim::LineSampling)
 
     random_names = names(random_inputs)
 
-    names!(samples, random_names)
+    rename!(samples, random_names)
 
     if !isempty(deterministic_inputs)
         samples = hcat(samples, sample(deterministic_inputs, length(sim.points) * sim.lines))

@@ -22,7 +22,7 @@ function gradient(
     reference = convert(Array{Float64, 2}, samples[:, random_names])
 
     g = DataFrame(grad(forward_fdm(2, 1), f, reference)[1])
-    names!(g, random_names)
+    rename!(g, random_names)
 
     return g
 end
@@ -50,7 +50,7 @@ function gradient_in_standard_normal_space(
     reference = convert(Array{Float64, 2}, samples[:, random_names])
 
     g = DataFrame(grad(forward_fdm(2, 1), f, reference)[1])
-    names!(g, random_names)
+    rename!(g, random_names)
 
     return g
 end
