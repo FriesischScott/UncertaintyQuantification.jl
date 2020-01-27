@@ -19,7 +19,9 @@ function gradient(
         return samples[:, output][1]
     end
 
-    g = grad(central_fdm(2, 1), f, x)
+    reference = convert(Matrix, samples[:, random_names])
+
+    g = DataFrame(grad(central_fdm(2, 1), f, reference))
     names!(g, random_names)
 
     return g
