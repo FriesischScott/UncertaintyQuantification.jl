@@ -42,7 +42,9 @@ function sample(inputs::Array{<:UQInput}, sim::LineSampling)
 
     names!(samples, random_names)
 
-    samples = hcat(samples, sample(deterministic_inputs, length(sim.points) * sim.lines))
+    if !isempty(deterministic_inputs)
+        samples = hcat(samples, sample(deterministic_inputs, length(sim.points) * sim.lines))
+    end
 
     to_physical_space!(inputs, samples)
 
