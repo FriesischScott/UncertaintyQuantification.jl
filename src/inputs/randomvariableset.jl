@@ -1,4 +1,4 @@
-struct RandomVariableSet <: AbstractInput
+struct RandomVariableSet <: RandomUQInput
     members::Array{RandomVariable}
     corr::Matrix{<:Real}
 
@@ -38,8 +38,33 @@ function sample(r::RandomVariableSet, n::Int64 = 1)
     samples = DataFrame()
 
     for (i, rv) in enumerate(r.members)
-        samples[!, Symbol(rv.name)] = quantile.(rv.dist, u[i, :])
+        samples[!, rv.name] = quantile.(rv.dist, u[i, :])
     end
 
     return samples
 end
+
+function to_physical_space!(r::RandomVariableSet, x::DataFrame)
+    L = cholesky(r.corr).L
+    correlated_cdf = cdf.(Normal(), Matrix(x[:, names(r)]) * L')
+    for (i, rv) in enumerate(r.members)
+        x[!, rv.name] = quantile.(rv.dist, correlated_cdf[:, i])
+    end
+    return nothing
+end
+
+function to_standard_normal_space!(r::RandomVariableSet, x::DataFrame)
+    for rv in r.members
+        x[!, rv.name] = cdf.(rv.dist, x[:, rv.name])
+    end
+    L = cholesky(r.corr).L
+    uncorrelated_stdnorm = quantile.(Normal(), Matrix(x[:, names(r)])) * inv(L)'
+    for (i, rv) in enumerate(r.members)
+        x[!, rv.name] = uncorrelated_stdnorm[:, i]
+    end
+    return nothing
+end
+
+names(r::RandomVariableSet) = vec(map(x -> x.name, r.members))
+
+mean(r::RandomVariableSet) = mean(r.members)

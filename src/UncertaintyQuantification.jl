@@ -1,39 +1,52 @@
 module UncertaintyQuantification
 
-using LinearAlgebra, DataFrames, Reexport
+using LinearAlgebra, DataFrames, FiniteDifferences, Dierckx, Reexport
 
 @reexport using Distributions
 
-import Base: rand
+import Base: rand, names
+import Statistics: mean
 
-abstract type UQtypes end
-abstract type AbstractInput <: UQtypes end
-abstract type AbstractModel <: UQtypes end
+abstract type UQType end
+
+abstract type UQInput <: UQType end
+abstract type UQModel <: UQType end
+
+abstract type DeterministicUQInput <: UQInput end
+abstract type RandomUQInput <: UQInput end
 
 export
     # inputs
-    Parameter,
-    RandomVariable,
-    RandomVariableSet,
+      Parameter,
+      RandomVariable,
+      RandomVariableSet,
 
-    Model,
+      Model,
 
-    MonteCarlo,
+      LineSampling,
+      MonteCarlo,
 
     # methods
-    evaluate,
-    rand,
-    sample,
+      evaluate!,
+      rand,
+      sample,
+      mean,
+      gradient,
+      gradient_in_standard_normal_space,
+      to_standard_normal_space!,
+      to_physical_space!,
+      probability_of_failure
 
-    probability_of_failure
-
+include("inputs/inputs.jl")
 include("inputs/parameter.jl")
 include("inputs/randomvariable.jl")
 include("inputs/randomvariableset.jl")
-include("inputs/sample.jl")
 
 include("models/model.jl")
 
+include("sensitivity/gradient.jl")
+
+include("simulations/linesampling.jl")
 include("simulations/montecarlo.jl")
 
 include("reliability/probabilityoffailure.jl")

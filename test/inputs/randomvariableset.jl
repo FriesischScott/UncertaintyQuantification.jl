@@ -1,5 +1,7 @@
-rv1 = RandomVariable(Normal(0, 1), "Rv1")
-rv2 = RandomVariable(Normal(0, 1), "RV2")
+using Random, DataFrames
+
+rv1 = RandomVariable(Exponential(1), :x)
+rv2 = RandomVariable(Exponential(1/2), :y)
 
 rvs_ = [rv1 rv2]
 corr_ = [1 0.8; 0.8 1]
@@ -10,8 +12,7 @@ corr_ = [1 0.8; 0.8 1]
         @test isa(RandomVariableSet(rvs_), RandomVariableSet)
         @test isa(RandomVariableSet(rvs_, corr_), RandomVariableSet)
         @test isa(RandomVariableSet(members = rvs_), RandomVariableSet)
-        @test isa(RandomVariableSet(
-            members = rvs_,
+        @test isa(RandomVariableSet(members = rvs_,
             corr = corr_,
         ), RandomVariableSet)
 
@@ -22,11 +23,9 @@ corr_ = [1 0.8; 0.8 1]
         rvset = RandomVariableSet(members = rvs_)
         @test rvset.corr == [1 0; 0 1]
 
-        @test_throws ErrorException("wrong dimension of correlation matrix") RandomVariableSet(
-            rvs_,
+        @test_throws ErrorException("wrong dimension of correlation matrix") RandomVariableSet(rvs_,
             [1 0 0; 0 1 0; 0 0 1],
         )
-
     end
 
     @testset "sample" begin
@@ -34,4 +33,57 @@ corr_ = [1 0.8; 0.8 1]
         @test size(sample(rvset, 10)) == (10, 2)
         @test size(sample(rvset)) == (1, 2)
     end
+
+    @testset "names" begin
+        rvset = RandomVariableSet(rvs_, corr_)
+        @test names(rvset) == [:x, :y]
+    end
+
+    @testset "mean" begin
+        rvset = RandomVariableSet(rvs_, corr_)
+        @test mean(rvset) == DataFrame(:x => 1.0, :y => 0.5)
+    end
+
+    @testset "to_standard_normal_space" begin
+        rvset = RandomVariableSet(rvs_, corr_)
+
+        Random.seed!(8128)
+
+        samples = sample(rvset, 10^5)
+
+        @test isapprox(mean(samples.x), 1.0, atol = 0.01)
+        @test isapprox(mean(samples.y), 0.5, atol = 0.01)
+
+        @test round(cor(samples.x, samples.y), digits = 2) == 0.77
+
+        to_standard_normal_space!(rvset, samples)
+
+        @test isapprox(abs(mean(samples.x)), 0.0, atol = 0.01)
+        @test isapprox(abs(mean(samples.y)), 0.0, atol = 0.01)
+
+        @test isapprox(std(samples.x), 1.0, atol = 0.01)
+        @test isapprox(std(samples.y), 1.0, atol = 0.01)
+
+        @test round(abs(cor(samples.x, samples.y)), digits = 2) == 0.0
+
+        Random.seed!()
+    end
+
+    @testset "to_physical_space" begin
+    rvset = RandomVariableSet(rvs_, corr_)
+
+    Random.seed!(8128)
+
+    samples = DataFrame(:x => rand(Normal(), 10^5), :y => rand(Normal(), 10^5))
+
+    to_physical_space!(rvset, samples)
+
+    @test isapprox(mean(samples.x), 1.0, atol = 0.01)
+    @test isapprox(mean(samples.y), 0.5, atol = 0.01)
+
+    @test round(cor(samples.x, samples.y), digits = 2) == 0.77
+
+    Random.seed!()
+end
+
 end

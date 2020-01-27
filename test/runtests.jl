@@ -9,4 +9,6 @@ include("models/model.jl")
 
 include("reliability/probabilityoffailure.jl")
 
+include("sensitivity/gradient.jl")
+
 include("simulations/montecarlo.jl")
