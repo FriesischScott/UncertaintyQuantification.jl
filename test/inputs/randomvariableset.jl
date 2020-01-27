@@ -1,4 +1,4 @@
-using Statistics, Random
+using Statistics, Random, DataFrames
 
 rv1 = RandomVariable(Exponential(1), :x)
 rv2 = RandomVariable(Exponential(1/2), :y)
@@ -68,5 +68,22 @@ corr_ = [1 0.8; 0.8 1]
 
         Random.seed!()
     end
+
+    @testset "to_physical_space" begin
+    rvset = RandomVariableSet(rvs_, corr_)
+
+    Random.seed!(8128)
+
+    samples = DataFrame(:x => rand(Normal(), 10^5), :y => rand(Normal(), 10^5))
+
+    to_physical_space!(rvset, samples)
+
+    @test isapprox(Statistics.mean(samples.x), 1.0, atol = 0.01)
+    @test isapprox(Statistics.mean(samples.y), 0.5, atol = 0.01)
+
+    @test round(cor(samples.x, samples.y), digits = 2) == 0.77
+
+    Random.seed!()
+end
 
 end
