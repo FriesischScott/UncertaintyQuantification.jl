@@ -4,21 +4,42 @@
 
         Random.seed!(8128)
 
-        x = RandomVariable(Uniform(0, 1), :x)
-        y = RandomVariable(Uniform(0, 1), :y)
+        x = RandomVariable(Uniform(0.0, 1.0), :x)
+        y = RandomVariable(Uniform(0.0, 1.0), :y)
 
         d = Model(df -> sqrt.(df.x .^ 2 + df.y .^ 2), :d)
 
         pf, _ = probability_of_failure(
             [d],
-            df -> df.d .- 1,
+            df -> 1 .- df.d,
             [x, y],
             MonteCarlo(1000000),
         )
 
         Random.seed!()
 
-        @test round(4.0 * pf, digits = 3) == 3.141
+        @test round(4.0 * (1 - pf), digits = 3) == 3.141
+    end
+
+    @testset "Line sampling" begin
+
+        Random.seed!(8128)
+
+        x = RandomVariable(Uniform(0.0, 1.0), :x)
+        y = RandomVariable(Uniform(0.0, 1.0), :y)
+
+        d = Model(df -> sqrt.(df.x .^ 2 + df.y .^ 2), :d)
+
+        pf, _ = probability_of_failure(
+            [d],
+            df -> 1 .- df.d,
+            [x, y],
+            LineSampling(100),
+        )
+
+        Random.seed!()
+
+        @test round(4.0 * (1 - pf), digits = 3) == 3.142
     end
 
 end

@@ -36,7 +36,7 @@ displacement = Model(
 max_displacement = 0.01
 
 # Compute probability of failure using standard Monte Carlo
-mc = MonteCarlo(1000000)
+mc = MonteCarlo(10^6)
 
 mc_pf, mc_samples = probability_of_failure(
     [inertia, displacement],
