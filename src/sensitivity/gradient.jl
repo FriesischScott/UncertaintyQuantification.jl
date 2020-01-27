@@ -19,9 +19,9 @@ function gradient(
         return samples[:, output][1]
     end
 
-    reference = convert(Matrix, samples[:, random_names])
+    reference = convert(Array{Float64, 2}, samples[:, random_names])
 
-    g = DataFrame(grad(central_fdm(2, 1), f, reference))
+    g = DataFrame(grad(forward_fdm(2, 1), f, reference)[1])
     names!(g, random_names)
 
     return g
@@ -47,9 +47,9 @@ function gradient_in_standard_normal_space(
         return samples[:, output][1]
     end
 
-    reference = convert(Matrix, samples[:, random_names])
+    reference = convert(Array{Float64, 2}, samples[:, random_names])
 
-    g = DataFrame(grad(forward_fdm(2, 1), f, reference))
+    g = DataFrame(grad(forward_fdm(2, 1), f, reference)[1])
     names!(g, random_names)
 
     return g
