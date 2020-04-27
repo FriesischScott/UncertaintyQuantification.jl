@@ -33,6 +33,7 @@ export
       evaluate!,
       rand,
       sample,
+      dimension,
       mean,
       gradient,
       gradient_in_standard_normal_space,
