@@ -15,11 +15,14 @@ abstract type UQModel <: UQType end
 abstract type DeterministicUQInput <: UQInput end
 abstract type RandomUQInput <: UQInput end
 
+abstract type Copula <: UQType end
+
 export
     # inputs
       Parameter,
       RandomVariable,
-      RandomVariableSet,
+      JointDistribution,
+      GaussianCopula,
 
       Model,
 
@@ -33,14 +36,18 @@ export
       mean,
       gradient,
       gradient_in_standard_normal_space,
+      to_standard_normal_space,
       to_standard_normal_space!,
       to_physical_space!,
+      to_copula_space,
       probability_of_failure
 
 include("inputs/inputs.jl")
 include("inputs/parameter.jl")
 include("inputs/randomvariable.jl")
-include("inputs/randomvariableset.jl")
+include("inputs/jointdistribution.jl")
+
+include("inputs/copulas/gaussian.jl")
 
 include("models/model.jl")
 
