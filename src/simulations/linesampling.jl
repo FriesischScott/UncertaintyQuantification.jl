@@ -1,11 +1,11 @@
 mutable struct LineSampling
     lines::Int64
-    points::Vector{Float64}
+    points::Vector{<:Real}
     direction::DataFrame
 
     function LineSampling(
         lines::Int64,
-        points::Vector{Float64} = collect(0.5:0.5:5),
+        points::Vector{<:Real} = collect(0.5:0.5:5),
         direction::DataFrame = DataFrame()
     )
         new(lines, points, direction)
