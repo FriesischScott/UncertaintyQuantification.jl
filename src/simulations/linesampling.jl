@@ -21,8 +21,8 @@ function sample(inputs::Array{<:UQInput}, sim::LineSampling)
     for i in random_inputs
         if isa(i, RandomVariable)
             n_rv += 1
-        elseif isa(i, RandomVariableSet)
-            n_rv += length(i.members)
+        elseif isa(i, JointDistribution)
+            n_rv += length(i.marginals)
         end
     end
 

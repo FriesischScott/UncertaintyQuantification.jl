@@ -22,7 +22,7 @@ function names(inputs::Array{<:UQInput})
     for i in inputs
         if i isa Parameter || i isa RandomVariable
             push!(_names, i.name)
-        elseif i isa RandomVariableSet
+        elseif i isa JointDistribution
             append!(_names, names(i))
         end
     end
