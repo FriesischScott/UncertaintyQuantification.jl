@@ -27,13 +27,14 @@
 
         x = RandomVariable(Uniform(0.0, 1.0), :x)
         y = RandomVariable(Uniform(0.0, 1.0), :y)
+        r = Parameter(1, :r)
 
         d = Model(df -> sqrt.(df.x .^ 2 + df.y .^ 2), :d)
 
-        g = df -> 1 .- df.d # performance function
+        g = df -> df.r .- df.d # performance function
 
         pf, _ = probability_of_failure(
-            [d], g, [x, y], LineSampling(100),
+            [d], g, [x, y, r], LineSampling(100),
         )
 
         Random.seed!()
@@ -41,9 +42,9 @@
         @test round(4.0 * (1 - pf), digits = 3) == 3.142
 
         @test_logs (:warn, "All samples for line 1 are outside the failure domain") probability_of_failure(
-            [d], g, [x, y], LineSampling(1, [0, 0.1]))
+            [d], g, [x, y, r], LineSampling(1, [0, 0.1]))
         @test_logs (:warn, "All samples for line 1 are inside the failure domain") probability_of_failure(
-            [d], g, [x, y], LineSampling(1, [10, 20]))
+            [d], g, [x, y, r], LineSampling(1, [10, 20]))
     end
 
 end
