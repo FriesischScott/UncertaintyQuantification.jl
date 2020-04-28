@@ -26,4 +26,8 @@ inputs = [π, jd, z]
     @testset "names" begin
         @test names(inputs) == [:π, :x, :y, :z]
     end
+
+    @testset "count_rvs" begin
+        @test count_rvs(inputs) == 3
+    end
 end

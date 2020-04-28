@@ -6,7 +6,7 @@ correlation = [1 0.8; 0.8 1]
 
     copula = GaussianCopula(correlation)
     @test copula.correlation == correlation
-    @test dimension(copula) == 2
+    @test dimensions(copula) == 2
     
     @testset "sample" begin
         Random.seed!(8128)

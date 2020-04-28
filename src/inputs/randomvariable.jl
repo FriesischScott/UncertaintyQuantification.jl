@@ -19,3 +19,5 @@ end
 
 mean(rv::RandomVariable) = DataFrame(rv.name => Distributions.mean(rv.dist))
 mean(rvs::Array{RandomVariable}) = mapreduce(mean, hcat, rvs)
+
+dimensions(rv::RandomVariable) = 1

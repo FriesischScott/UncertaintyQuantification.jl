@@ -13,7 +13,7 @@ function sample(c::GaussianCopula, n::Int64 = 1)
     u = cdf.(Φ, X)
 end
 
-function dimension(c::GaussianCopula)
+function dimensions(c::GaussianCopula)
     size(c.correlation, 1)
 end
 

@@ -17,7 +17,7 @@ function to_standard_normal_space!(inputs::Array{<:UQInput}, x::DataFrame)
 end
 
 function names(inputs::Array{<:UQInput})
-    _names = Vector{Symbol}()
+    _names = Symbol[]
 
     for i in inputs
         if i isa Parameter || i isa RandomVariable
@@ -28,6 +28,11 @@ function names(inputs::Array{<:UQInput})
     end
 
     return _names
+end
+
+function count_rvs(inputs::Array{<:UQInput})
+    random_inputs = filter(i -> isa(i, RandomUQInput), inputs)
+    mapreduce(dimensions, +, random_inputs)
 end
 
 mean(inputs::Array{<:UQInput}) = mapreduce(mean, hcat, inputs)

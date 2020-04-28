@@ -16,15 +16,7 @@ function sample(inputs::Array{<:UQInput}, sim::LineSampling)
     random_inputs = filter(i -> isa(i, RandomUQInput), inputs)
     deterministic_inputs = filter(i -> isa(i, DeterministicUQInput), inputs)
 
-    n_rv = 0
-
-    for i in random_inputs
-        if isa(i, RandomVariable)
-            n_rv += 1
-        elseif isa(i, JointDistribution)
-            n_rv += length(i.marginals)
-        end
-    end
+    n_rv = count_rvs(random_inputs)
 
     α = vec(Matrix(sim.direction))
     α /= norm(α)
