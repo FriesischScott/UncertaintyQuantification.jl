@@ -11,7 +11,8 @@ inputs = [π, jd, z]
         samples = sample(inputs, 10)
 
         @test size(samples) == (10, 4)
-        @test names(samples) == [:π, :x, :y, :z]
+        @test names(samples) == ["π", "x", "y", "z"]
+        @test propertynames(samples) == [:π, :x, :y, :z]
     end
 
     @testset "mean" begin
