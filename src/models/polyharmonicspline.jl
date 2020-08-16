@@ -77,7 +77,6 @@ function evaluate!(
     # this function is designed to act like evaluate! in model.jl
     # it takes a model and dataframe and creates a new column: model.name
     # the model is appplied to each row of the dataframe and stashes the solution in the new column
-    # use is only possible if the PolySpline has a real orderfunction
     if po.orderfunc == 0 # only works with a single Polyharmonic Spline as model
         psinput = convert(Matrix, df[:,:])
     else    # multiple models
