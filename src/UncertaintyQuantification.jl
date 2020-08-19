@@ -25,6 +25,7 @@ export
       GaussianCopula,
 
       Model,
+      PolyharmonicSpline,
 
       LineSampling,
       MonteCarlo,
@@ -42,7 +43,9 @@ export
       to_standard_normal_space!,
       to_physical_space!,
       to_copula_space,
-      probability_of_failure
+      probability_of_failure,
+      sobolindices,
+      calcpolyspline
 
 include("inputs/inputs.jl")
 include("inputs/parameter.jl")
@@ -52,6 +55,7 @@ include("inputs/jointdistribution.jl")
 include("inputs/copulas/gaussian.jl")
 
 include("models/model.jl")
+include("models/polyharmonicspline.jl")
 
 include("sensitivity/gradient.jl")
 
@@ -59,5 +63,6 @@ include("simulations/linesampling.jl")
 include("simulations/montecarlo.jl")
 
 include("reliability/probabilityoffailure.jl")
+include("sensitivity/sobolindices.jl")
 
 end
