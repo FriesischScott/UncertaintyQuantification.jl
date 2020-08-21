@@ -35,11 +35,13 @@ export
       sample,
       count_rvs,
       dimensions,
+      FORM,
       mean,
       gradient,
       gradient_in_standard_normal_space,
       to_standard_normal_space,
       to_standard_normal_space!,
+      to_physical_space,
       to_physical_space!,
       to_copula_space,
       probability_of_failure
