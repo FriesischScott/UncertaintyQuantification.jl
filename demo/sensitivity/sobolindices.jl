@@ -1,4 +1,4 @@
-@testset "sobolindices" begin
+using UncertaintyQuantification
 
 σx = [1, 1.1, 0.9, 1.2, 0.8]
 σω = [0.7, 1.3, 1.4, 0.6, 0.95]
@@ -12,10 +12,6 @@ B = Model(df -> df.X1 .* df.ω1
     + df.X4 .* df.ω4
     + df.X5 .* df.ω5, :B)
 
-mc = MonteCarlo(10000)
+mc = MonteCarlo(50000)
 
 si = sobolindices([B], [X; ω], :B, mc)
-
-@test round.([si...], digits = 1) == [0.1; 0.4; 0.3; 0.1; 0.1; 0.1; 0.4; 0.3; 0.1; 0.1]
-
-end

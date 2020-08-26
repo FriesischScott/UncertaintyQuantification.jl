@@ -1,32 +1,30 @@
-using UncertaintyQuantification, Plots
+using UncertaintyQuantification
 
 # Die normale B-Funktion
 
-inputs = Vector{RandomVariable}(undef, 10)
+σx = [1, 1.1, 0.9, 1.2, 0.8]
+σω = [0.7, 1.3, 1.4, 0.6, 0.95]
 
-X = [1,1.1,0.9,1.2,0.8,0.7,1.3,1.4,0.6,0.95]
+X = RandomVariable.(Normal.(0, σx), [:X1, :X2, :X3, :X4, :X5])
+ω = RandomVariable.(Normal.(0, σω), [:ω1, :ω2, :ω3, :ω4, :ω5])
 
-for i in 1:5
-    inputs[i] = RandomVariable(Normal(0, X[i]), Symbol("x$i"))
-    inputs[i+5] = RandomVariable(Normal(0, X[i+5]), Symbol("w$i"))
-end
-
-
-bfkt = Model(df -> df.x1 .* df.w1 + df.x2 .* df.w2 + df.x3 .* df.w3
-+ df.x4 .* df.w4 + df.x5 .* df.w5, :fkt)
-
+B = Model(df -> df.X1 .* df.ω1 
+    + df.X2 .* df.ω2
+    + df.X3 .* df.ω3
+    + df.X4 .* df.ω4
+    + df.X5 .* df.ω5, :B)
 
 mc = MonteCarlo(10000)
 
-si = sobolindices([bfkt], inputs, mc)
+si = sobolindices([B], [X; ω], :B, mc)
 
-#Polyspline der B-Funktion
+# Polyspline der B-Funktion
 
 inputsb = Vector{RandomVariable}(undef, 10)
 
 for i in 1:5
     inputsb[i] = RandomVariable(Normal(0, X[i]), Symbol("x$i"))
-    inputsb[i+5] = RandomVariable(Normal(0, X[i+5]), Symbol("w$i"))
+    inputsb[i + 5] = RandomVariable(Normal(0, X[i + 5]), Symbol("w$i"))
 end
 
 ps_samples = sample(inputsb, 1000)
