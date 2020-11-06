@@ -1,25 +1,20 @@
 @testset "PolyharmonicSpline" begin
-    A = [1 2; 1 3; 3 6; 4 3; 5 7; 5 2; 6 8; 6 9; 3 7]
-    f = [2; 3; 18; 12; 35; 10; 48; 54; 21]
-    k = 1
-    order = df -> [df.a df.b]
+    x = RandomVariable.(Uniform(-π, π), [:x1, :x2, :x3])
+    a = Parameter(7, :a)
+    b = Parameter(0.1, :b)
 
-    input = DataFrame(a = 4, b = 3)
+    inputs = [x; a; b]
 
-    polyspline = PolyharmonicSpline(A, f, k, :fkt, order)
+    ishigami = Model(df -> sin.(df.x1) .+ df.a .* sin.(df.x2).^2 .+ df.b .* (df.x3.^4) .* sin.(df.x1), :y)
 
-    B = Array{Float64}(undef, 1)
-    B[1] = 12
+    data = sample(inputs, 100)
+    evaluate!(ishigami, data)
 
-    @test isa(polyspline, PolyharmonicSpline)
+    spline = PolyharmonicSpline(data, 2, :y)
 
-    B = Array{Float64}(undef, 1)
-    B[1] = 12
+    splinedata = select(data, Not(:y))
+    evaluate!(spline, splinedata)
 
-    evaluate!(polyspline, input)
-
-    A = input.fkt
-    A = round.(A, digits=3)
-
-    @test A == B
+    mse = (data.y .- splinedata.y).^2 |> mean
+    @test isapprox(mse, 0, atol=eps(Float64))
 end

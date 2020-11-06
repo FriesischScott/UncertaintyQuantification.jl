@@ -1,28 +1,22 @@
-using UncertaintyQuantification, Plots
+using UncertaintyQuantification
 
-#Test polyspline for function f(x, y) = x*y
+x = RandomVariable.(Uniform(-π, π), [:x1, :x2, :x3])
+a = Parameter(7, :a)
+b = Parameter(0.1, :b)
 
-A = [1 2; 1 3; 3 6; 4 3; 5 7; 5 2; 6 8; 6 9; 3 7]
-f = [2; 3; 18; 12; 35; 10; 48; 54; 21]
-k = 1
-test = PolyharmonicSpline(A, f, k, :fkt)
+inputs = [x; a; b]
 
-test_ps_1 = calcpolyspline(test, [4; 3])
+ishigami = Model(df -> sin.(df.x1) .+ df.a .* sin.(df.x2).^2 .+ df.b .* (df.x3.^4) .* sin.(df.x1), :y)
 
-#Test polyspline with plot
-#compare wikipedia: https://en.wikipedia.org/wiki/File:Polyharmonic-splines-example1.png
+mc = MonteCarlo(10000)
 
-B = [0; 0.4; 1.35; 2]
-fb = [0; -0.3; 0.4; -0.6]
-kb = 3
+data = sample(inputs, 500)
+evaluate!(ishigami, data)
 
-test2 = PolyharmonicSpline(B, fb, kb, :fkt)
+phs = PolyharmonicSpline(data, 2, :y)
 
-test_ps_2 = calcpolyspline(test2, [2])
+si = sobolindices([ishigami], inputs, :y, mc)
+si_phs = sobolindices([phs], inputs, :y, mc)
 
-x = collect(0:.1:2)
-y =  Vector{Float64}(undef, 21)
-for i in 1:21
-    y[i] = calcpolyspline(test2, [x[i]])
-end
-plot(x, y)
+println("Sobol indices of the ishigami function: $si")
+println("Sobol indices of the polyharmonic spline meta mode: $si_phs")

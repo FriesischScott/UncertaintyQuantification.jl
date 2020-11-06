@@ -17,9 +17,7 @@ abstract type RandomUQInput <: UQInput end
 
 abstract type Copula <: UQType end
 
-export
-    # inputs
-      Parameter,
+export Parameter,
       RandomVariable,
       JointDistribution,
       GaussianCopula,
@@ -45,7 +43,7 @@ export
       to_copula_space,
       probability_of_failure,
       sobolindices,
-      calcpolyspline
+      calc
 
 include("inputs/inputs.jl")
 include("inputs/parameter.jl")
