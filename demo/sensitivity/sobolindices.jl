@@ -12,6 +12,8 @@ B = Model(df -> df.X1 .* df.ω1
     + df.X4 .* df.ω4
     + df.X5 .* df.ω5, :B)
 
-mc = MonteCarlo(50000)
+mc = MonteCarlo(100000)
+sobol = SobolSampling(100000)
 
-si = sobolindices([B], [X; ω], :B, mc)
+si_mc = sobolindices([B], [X; ω], :B, mc)
+si_sobol = sobolindices([B], [X; ω], :B, sobol)

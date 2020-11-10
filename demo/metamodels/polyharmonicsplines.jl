@@ -8,15 +8,13 @@ inputs = [x; a; b]
 
 ishigami = Model(df -> sin.(df.x1) .+ df.a .* sin.(df.x2).^2 .+ df.b .* (df.x3.^4) .* sin.(df.x1), :y)
 
-mc = MonteCarlo(10000)
-
-data = sample(inputs, 500)
+data = sample(inputs, SobolSampling(500))
 evaluate!(ishigami, data)
 
 phs = PolyharmonicSpline(data, 2, :y)
 
-si = sobolindices([ishigami], inputs, :y, mc)
-si_phs = sobolindices([phs], inputs, :y, mc)
+si = sobolindices([ishigami], inputs, :y, MonteCarlo(1000))
+si_phs = sobolindices([phs], inputs, :y, SobolSampling(500))
 
 println("Sobol indices of the ishigami function: $si")
 println("Sobol indices of the polyharmonic spline meta mode: $si_phs")

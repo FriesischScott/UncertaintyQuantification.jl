@@ -1,10 +1,10 @@
 module UncertaintyQuantification
 
-using LinearAlgebra, DataFrames, FiniteDifferences, Dierckx, Reexport
+using LinearAlgebra, DataFrames, FiniteDifferences, Dierckx, Sobol, Reexport, Accessors
 
 @reexport using Distributions
 
-import Base: rand, names
+import Base: rand, names, copy
 import Statistics: mean
 
 abstract type UQType end
@@ -17,6 +17,8 @@ abstract type RandomUQInput <: UQInput end
 
 abstract type Copula <: UQType end
 
+abstract type AbstractMonteCarloSampling end
+
 export Parameter,
       RandomVariable,
       JointDistribution,
@@ -27,6 +29,7 @@ export Parameter,
 
       LineSampling,
       MonteCarlo,
+      SobolSampling,
 
     # methods
       evaluate!,

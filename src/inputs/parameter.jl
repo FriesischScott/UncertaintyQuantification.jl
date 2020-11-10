@@ -3,7 +3,7 @@ struct Parameter <: DeterministicUQInput
     name::Symbol
 end
 
-function sample(p::Parameter, n::Int64 = 1)
+function sample(p::Parameter, n::Integer=1)
     DataFrame(p.name => ones(n) * p.value)
 end
 

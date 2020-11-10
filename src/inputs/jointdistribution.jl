@@ -12,7 +12,7 @@ struct JointDistribution <: RandomUQInput
     end
 end
 
-function sample(jd::JointDistribution, n::Int64 = 1)
+function sample(jd::JointDistribution, n::Integer=1)
     u = sample(jd.copula, n)
 
     samples = DataFrame()
