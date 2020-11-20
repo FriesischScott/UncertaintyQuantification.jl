@@ -1,6 +1,6 @@
 module UncertaintyQuantification
 
-using LinearAlgebra, DataFrames, FiniteDifferences, Dierckx, Sobol, Reexport, Accessors
+using LinearAlgebra, DataFrames, FiniteDifferences, Dierckx, Sobol, HaltonSequences, Reexport, Accessors
 
 @reexport using Distributions
 
@@ -29,6 +29,7 @@ export Parameter,
 
       LineSampling,
       MonteCarlo,
+      HaltonSampling,
       SobolSampling,
 
     # methods
