@@ -12,8 +12,16 @@
     + df.X4 .* df.ω4
     + df.X5 .* df.ω5, :B)
 
+    Random.seed!(8128)
+
     si = sobolindices([B], [X; ω], :B, MonteCarlo(5000))
 
-    @test round.([si...], digits=1) == [0.1; 0.4; 0.3; 0.1; 0.1; 0.1; 0.4; 0.3; 0.1; 0.1]
+    Random.seed!()
 
+    VB = sum(σx.^2 .* σω.^2)
+    analytical = (σx.^2 .* σω.^2) / VB
+
+    @test isapprox.(si.FirstOrder, 0.0, atol=0.1) |> all
+    @test isapprox.(si.TotalEffect[1:5], analytical, rtol=0.1) |> all
+    @test isapprox.(si.TotalEffect[6:end], analytical, rtol=0.1) |> all
 end

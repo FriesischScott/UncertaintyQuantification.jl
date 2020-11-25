@@ -14,20 +14,13 @@ B = Model(df -> df.X1 .* df.ω1
 
 mc = MonteCarlo(10000)
 
-s_mc, st_mc = sobolindices([B], [X; ω], :B, mc)
+s_mc = sobolindices([B], [X; ω], :B, mc)
 
 # Compare with analytical solution
 VB = sum(σx.^2 .* σω.^2)
-st_analytical = (σx.^2 .* σω.^2) / VB
-# Monte Carlo
-@assert isapprox(s_mc.X1, 0, atol=0.1)
-@assert isapprox(s_mc.X2, 0, atol=0.1)
-@assert isapprox(s_mc.X3, 0, atol=0.1)
-@assert isapprox(s_mc.X4, 0, atol=0.1)
-@assert isapprox(s_mc.X5, 0, atol=0.1)
+analytical = (σx.^2 .* σω.^2) / VB
 
-@assert isapprox(st_mc.X1, st_analytical[1], rtol=0.1)
-@assert isapprox(st_mc.X2, st_analytical[2], rtol=0.1)
-@assert isapprox(st_mc.X3, st_analytical[3], rtol=0.1)
-@assert isapprox(st_mc.X4, st_analytical[4], rtol=0.1)
-@assert isapprox(st_mc.X5, st_analytical[5], rtol=0.1)
+# Monte Carlo
+@assert isapprox.(s_mc.FirstOrder, 0.0, atol=0.1) |> all
+@assert isapprox.(s_mc.TotalEffect[1:5], analytical, rtol=0.1) |> all
+@assert isapprox.(s_mc.TotalEffect[6:end], analytical, rtol=0.1) |> all
