@@ -32,8 +32,4 @@ jobs:
             ${{ runner.os }}-
       - uses: julia-actions/julia-runtest@latest
       - uses: julia-actions/julia-processcoverage@v1
-      - uses: julia-actions/julia-uploadcoveralls@latest
-        env:
-          COVERALLS_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
-        continue-on-error: true
       - uses: codecov/codecov-action@v1
