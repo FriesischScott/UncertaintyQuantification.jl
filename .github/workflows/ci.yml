@@ -35,3 +35,5 @@ jobs:
       - uses: julia-actions/julia-uploadcoveralls@latest
         env:
           COVERALLS_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
+        continue-on-error: true
+      - uses: codecov/codecov-action@v1
