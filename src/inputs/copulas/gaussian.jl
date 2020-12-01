@@ -4,7 +4,7 @@ end
 
 const Φ = Normal()
 
-function sample(c::GaussianCopula, n::Int64 = 1)
+function sample(c::GaussianCopula, n::Integer=1)
     L = cholesky(c.correlation).L
 
     Z = rand(Φ, n, size(c.correlation, 2))

@@ -1,4 +1,4 @@
-function sample(inputs::Array{<:UQInput}, n::Int64 = 1)
+function sample(inputs::Array{<:UQInput}, n::Integer=1)
     mapreduce(i -> sample(i, n), hcat, inputs)
 end
 

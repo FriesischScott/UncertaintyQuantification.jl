@@ -2,7 +2,7 @@ function probability_of_failure(
     models::Union{Array{<:UQModel},UQModel},
     performance::Function,
     inputs::Union{Array{<:UQInput},UQInput},
-    sim::MonteCarlo,
+    sim::AbstractMonteCarloSampling,
 )
 
     samples = sample(inputs, sim.n)

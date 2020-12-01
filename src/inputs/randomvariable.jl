@@ -3,7 +3,7 @@ struct RandomVariable <: RandomUQInput
     name::Symbol
 end
 
-function sample(rv::RandomVariable, n::Int64 = 1)
+function sample(rv::RandomVariable, n::Integer=1)
     DataFrame(rv.name => rand(rv.dist, n))
 end
 
