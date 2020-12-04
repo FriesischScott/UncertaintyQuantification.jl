@@ -7,9 +7,12 @@
 
     ishigami = Model(df -> sin.(df.x1) .+ df.a .* sin.(df.x2).^2 .+ df.b .* (df.x3.^4) .* sin.(df.x1), :y)
 
+    Random.seed!(8128)
+
     data = sample(inputs, 100)
     evaluate!(ishigami, data)
 
+    Random.seed!()
     spline = PolyharmonicSpline(data, 2, :y)
 
     splinedata = select(data, Not(:y))
