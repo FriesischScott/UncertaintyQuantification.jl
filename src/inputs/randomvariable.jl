@@ -1,8 +1,22 @@
+"""
+	RandomVariable(dist::Sampleable{Univariate}, name::Symbol)
+
+Defines a random variable, with a univaraite distribution from Distributions.jl and a name
+
+See also: [`Parameter`](@ref), [`sample`](@ref)
+"""
 struct RandomVariable <: RandomUQInput
     dist::Sampleable{Univariate}
     name::Symbol
 end
 
+"""
+	sample(rv::RandomVariable, n::Integer)
+
+Generates n samples from a random variable. Returns a DataFrame
+
+See also: [`RandomVariable`](@ref), [`Parameter`](@ref)
+"""
 function sample(rv::RandomVariable, n::Integer=1)
     DataFrame(rv.name => rand(rv.dist, n))
 end

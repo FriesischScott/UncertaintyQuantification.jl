@@ -1,0 +1,7 @@
+[deps]
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+UncertaintyQuantification= "7183a548-a887-11e9-15ce-a56ab60bad7a"
+
+[compact]
+Documenter = "0.25.5"
+UncertaintyQuantification = "0.1.0"

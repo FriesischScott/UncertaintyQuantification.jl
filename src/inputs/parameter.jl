@@ -1,3 +1,10 @@
+"""
+	Parameter(value::Real, name::Symbol)
+
+Defines a parameter value (scalar), with an input value and a name
+
+See also: [`RandomVariable`](@ref), [`sample`](@ref)
+"""
 struct Parameter <: DeterministicUQInput
     value::Real
     name::Symbol
