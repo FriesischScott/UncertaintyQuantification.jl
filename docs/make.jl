@@ -1,12 +1,12 @@
 using Documenter, UncertaintyQuantification
 
 makedocs(
-    modules = [UncertaintyQuantification],
-    format = Documenter.HTML(prettyurls = get(ENV, "CI", nothing) == "true"),
+    modules=[UncertaintyQuantification],
+    format=Documenter.HTML(prettyurls=get(ENV, "CI", nothing) == "true"),
     sitename="UncertaintyQuantification.jl",
-    authors = "Jasper Behrensdorf and Ander Gray",
+    authors="Jasper Behrensdorf and Ander Gray",
     doctest=false,
-    pages = [
+    pages=[
         "Home" => "index.md",
         "Uncertainty Propagation" => "UncProp.md",
         "Sensitivity Analysis" => "Sensitivity.md",
@@ -19,5 +19,6 @@ makedocs(
 
 
 deploydocs(
-    repo   = "github.com/FriesischScott/UncertaintyQuantification.jl",
+    repo="github.com/FriesischScott/UncertaintyQuantification.jl",
+    push_preview=true
 )
