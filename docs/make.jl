@@ -1,5 +1,7 @@
 using Documenter, UncertaintyQuantification
 
+DocMeta.setdocmeta!(UncertaintyQuantification, :DocTestSetup, :(using UncertaintyQuantification); recursive=true)
+
 makedocs(
     modules=[UncertaintyQuantification],
     format=Documenter.HTML(prettyurls=get(ENV, "CI", nothing) == "true"),

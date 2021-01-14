@@ -3,7 +3,7 @@
 ```@meta
 CurrentModule = UncertaintyQuantification
 DocTestSetup = quote
-    using UncertaintyQuantification, Distributions
+    using UncertaintyQuantification
 end
 ```
 
