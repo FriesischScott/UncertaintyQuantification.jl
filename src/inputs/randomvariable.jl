@@ -24,12 +24,6 @@ end
 Generates n samples from a random variable. Returns a DataFrame.
 
 # Examples
-```@meta
-DocTestSetup = quote
-    using UncertaintyQuantification, Random
-    Random.seed!(8128)
-end
-```
 
 ```jldoctest
 x = RandomVariable(Normal(), :x)

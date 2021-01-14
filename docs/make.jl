@@ -1,6 +1,6 @@
 using Documenter, UncertaintyQuantification
 
-DocMeta.setdocmeta!(UncertaintyQuantification, :DocTestSetup, :(using UncertaintyQuantification); recursive=true)
+DocMeta.setdocmeta!(UncertaintyQuantification, :DocTestSetup, :(using UncertaintyQuantification, Random; Random.seed!(8128)); recursive=true)
 
 makedocs(
     modules=[UncertaintyQuantification],
