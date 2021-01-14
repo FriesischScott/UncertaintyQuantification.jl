@@ -10,11 +10,18 @@ end
 ## Inputs
 
 ```@docs
-Parameter
-RandomVariable
 sample(inputs::Array{<:UQInput}, n::Integer)
-sample(rv::RandomVariable, n::Integer)
+```
 
+### Parameter
+```@docs
+Parameter
+```
+
+### RandomVariable
+```@docs
+RandomVariable
+sample(rv::RandomVariable, n::Integer)
 ```
 
 ## Index

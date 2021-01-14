@@ -21,7 +21,30 @@ end
 """
 	sample(rv::RandomVariable, n::Integer)
 
-Generates n samples from a random variable. Returns a DataFrame
+Generates n samples from a random variable. Returns a DataFrame.
+
+# Examples
+```@meta
+DocTestSetup = quote
+    using UncertaintyQuantification, Random
+    Random.seed!(8128)
+end
+```
+
+```jldoctest
+x = RandomVariable(Normal(), :x)
+sample(x, 3)
+
+# output
+
+3×1 DataFrame
+│ Row │ x          │
+│     │ Float64    │
+├─────┼────────────┤
+│ 1   │ 1.00763    │
+│ 2   │ -0.643618  │
+│ 3   │ -0.0826132 │
+```
 
 See also: [`RandomVariable`](@ref)
 """
