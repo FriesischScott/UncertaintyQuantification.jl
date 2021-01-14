@@ -10,8 +10,8 @@ end
 ## Inputs
 
 ```@docs
-Parameter(value::Real, name::Symbol)
-RandomVariable(dist::Sampleable{Univariate}, name::Symbol)
+Parameter
+RandomVariable
 sample(inputs::Array{<:UQInput}, n::Integer)
 sample(rv::RandomVariable, n::Integer)
 
