@@ -47,23 +47,8 @@ function evaluate!(
     df[!, pce.output] = out
 end
 
-#= function Ψ(x::Float64, n::Integer=0)
-    if n == -1
-        return 0
-    elseif n == 0
-        return 1
-    end
-
-    return x * Ψ(x, n - 1) - (n - 1) * Ψ(x, n - 2)
-end
-
-function Ψ(x::Array{Float64,1}, n::Integer)
-    [Ψ(x[i], n) for i ∈ 1:length(x)] |> prod
-end =#
-
 function Ψ(x::Array{Float64,1}, n::Integer)
     d = repeat([n], length(x))
-    @show n
     ops = GaussOrthoPoly.(d)
     mop = MultiOrthoPoly(ops, n)
 
