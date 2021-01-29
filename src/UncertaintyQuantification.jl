@@ -27,12 +27,16 @@ export Parameter,
       Model,
       PolyharmonicSpline,
 
+      MarkovChain,
+
       LineSampling,
       MonteCarlo,
       HaltonSampling,
       SobolSampling,
+      SubSetSimulation,
 
     # methods
+      assemblechains,
       evaluate!,
       rand,
       sample,
@@ -41,6 +45,7 @@ export Parameter,
       mean,
       gradient,
       gradient_in_standard_normal_space,
+      metropolishastings,
       to_standard_normal_space,
       to_standard_normal_space!,
       to_physical_space!,
@@ -55,6 +60,8 @@ include("inputs/randomvariable.jl")
 include("inputs/jointdistribution.jl")
 
 include("inputs/copulas/gaussian.jl")
+
+include("mcmc/metropolishastings.jl")
 
 include("models/model.jl")
 include("models/polyharmonicspline.jl")
