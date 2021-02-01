@@ -68,17 +68,17 @@ function probability_of_failure(
     return pf, samples
 end
 
-#= function probability_of_failure(
+function probability_of_failure(
     models::Union{Array{<:UQModel},UQModel},
     performance::Function,
-    inputs::Union{Array{<:UQInput},UQInput},
-    sim::SubSetSimulation,
+    inputs::Union{Array{T},T} where T <: UQInput,
+    sim::UncertaintyQuantification.SubSetSimulation,
 )
 
     random_inputs = filter(i -> isa(i, RandomUQInput), inputs)
     deterministic_inputs = filter(i -> isa(i, DeterministicUQInput), inputs)
 
-    samples = sample(inputs, MonteCarlo(sim.n))
+    samples = sample(inputs, sim)
 
     for m in models
         evaluate!(m, samples)
@@ -86,13 +86,13 @@ end
 
     g_subset = performance(samples)
 
-    number_of_chains = maximum(1, sim.n * sim.target)
+    number_of_chains = max(1, ceil(sim.n * sim.target)) |> Int64
     samples_per_chain = floor(sim.n / number_of_chains)
 
     threshold = zeros(sim.levels, 1)
     pf = zeros(sim.levels, 1)
     rejection_rates = zeros(sim.levels, 1)
-    cov = zeros(sim.level, 1)
+    cov = zeros(sim.levels, 1)
 
     for i ∈ 1:sim.levels
         sorted_performance = sort(g_subset)
@@ -100,44 +100,52 @@ end
 
         threshold[i] = sorted_performance[number_of_chains]
 
-        pf[i] = sum(g_subset .<= threshold[i] <= 0 ? 0 : threshold[i]) / sim.n
-        cov[i] = subset_cov(sim, i, sorted_performance, threshold[i], pf[i])
+        pf[i] = sum(g_subset .<= (threshold[i] <= 0 ? 0 : threshold[i])) / sim.n
 
-        @printf("[SubSet] Estimated pf: %f", prod(pf[1:i]))
+        if threshold[i] <= 0
+            break
+        end
 
-        (threshold[i] <= 0) && break
+        seeds = samples[sorted_indices[1:number_of_chains], names(random_inputs)]
 
-        seeds = samples[sorted_indices[1:number_of_chains], :]
+        # Markov chain / next level samples
+        markovchains = assemblechains(random_inputs, sim.parameter, seeds)
+        lastperformance = sorted_performance[1:number_of_chains]
 
-    end
+        samples = DataFrame()
+        g_subset = []
 
-end =#
+        for c ∈ 1:samples_per_chain
+            markovchains = metropolishastings(markovchains)
 
-#= function subset_cov(sim::SubSetSimulation, level, g, threshold, pf)
-    if level == 1
-        return sqrt((1 - pf) / (pf * sim.n))
-    end
+            chainsamples = copy(markovchains.samples[end])
 
-    nc = maximum(1, sim.n * sim.target)
-    sc = floor(sim.n / number_of_chains)
+            if length(deterministic_inputs) > 0
+                chainsamples = hcat(chainsamples, sample(deterministic_inputs, number_of_chains))
+            end
 
-    ind = reshape(g[end - nc * sc + 1:end], [], sc) .< threshold
+            for m in models
+                evaluate!(m, chainsamples)
+            end
 
-    correlation = zeros(nc, sc)
+            chainperformance = performance(chainsamples)
 
-    for i ∈ 1:nc
-        v = ind[i, :]
-        for δk ∈ 0:sc - 1
-            v1 = v[1:end - δk]
-            v2 = v[1 + δk:end]
-            correlation[δk + 1, i] = (1 / length(v1)) * sum(v1 .* v2)
+            reject = chainperformance .> threshold[i]
+
+            chainperformance[reject] = lastperformance[reject]
+            markovchains.samples[end][reject, :] = markovchains.samples[end - 1][reject, :]
+
+            lastperformance = chainperformance
+
+            if c == 1
+                samples = chainsamples
+                g_subset = chainperformance
+            else
+                samples = vcat(samples, chainsamples)
+                g_subset = vcat(g_subset, chainperformance)
+            end
         end
     end
 
-    corr = sum(correlation, 2) / nc - pf^2
-
-    ρ = corr ./ corr[1]
-    γ = 2 * sum((1 - (1:sc - 1) * nc / sim.n) .* transpose(ρ[1:sc - 1]))
-
-    sqrt((1 - pf) / (pf * sim.n) * (1 + γ))
-end =#
+    return prod(pf[pf .> 0])
+end

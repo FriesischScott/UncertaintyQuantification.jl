@@ -70,6 +70,7 @@ include("sensitivity/gradient.jl")
 
 include("simulations/linesampling.jl")
 include("simulations/montecarlo.jl")
+include("simulations/subset.jl")
 
 include("reliability/probabilityoffailure.jl")
 include("sensitivity/sobolindices.jl")
