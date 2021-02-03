@@ -78,13 +78,16 @@ function probability_of_failure(
     random_inputs = filter(i -> isa(i, RandomUQInput), inputs)
     deterministic_inputs = filter(i -> isa(i, DeterministicUQInput), inputs)
 
-    samples = sample(inputs, sim)
+    levelsamples = sample(inputs, sim)
 
     for m in models
-        evaluate!(m, samples)
+        evaluate!(m, levelsamples)
     end
 
-    g_subset = performance(samples)
+    samples = copy(levelsamples)
+    samples[!, :level] .= 1
+
+    g_subset = performance(levelsamples)
 
     number_of_chains = max(1, ceil(sim.n * sim.target)) |> Int64
     samples_per_chain = floor(sim.n / number_of_chains)
@@ -102,18 +105,15 @@ function probability_of_failure(
 
         pf[i] = sum(g_subset .<= (threshold[i] <= 0 ? 0 : threshold[i])) / sim.n
 
-        if threshold[i] <= 0
+        if (threshold[i] <= 0) || i == sim.levels
             break
         end
 
-        seeds = samples[sorted_indices[1:number_of_chains], names(random_inputs)]
+        seeds = levelsamples[sorted_indices[1:number_of_chains], names(random_inputs)]
 
         # Markov chain / next level samples
         markovchains = assemblechains(random_inputs, sim.parameter, seeds)
         lastperformance = sorted_performance[1:number_of_chains]
-
-        samples = DataFrame()
-        g_subset = []
 
         for c ∈ 1:samples_per_chain
             markovchains = metropolishastings(markovchains)
@@ -138,14 +138,16 @@ function probability_of_failure(
             lastperformance = chainperformance
 
             if c == 1
-                samples = chainsamples
+                levelsamples = chainsamples
                 g_subset = chainperformance
             else
-                samples = vcat(samples, chainsamples)
+                append!(levelsamples, chainsamples)
                 g_subset = vcat(g_subset, chainperformance)
             end
         end
+        levelsamples[!, :level] .= i + 1
+        append!(samples, levelsamples)
     end
 
-    return prod(pf[pf .> 0])
+    return prod(pf[pf .> 0]), samples
 end
