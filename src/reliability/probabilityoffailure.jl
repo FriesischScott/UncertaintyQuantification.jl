@@ -5,7 +5,7 @@ function probability_of_failure(
     sim::AbstractMonteCarloSampling,
 )
 
-    samples = sample(inputs, sim.n)
+    samples = sample(inputs, sim)
 
     # Models
     for m in models
