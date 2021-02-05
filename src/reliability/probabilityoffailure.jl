@@ -78,6 +78,7 @@ function probability_of_failure(
     random_inputs = filter(i -> isa(i, RandomUQInput), inputs)
     deterministic_inputs = filter(i -> isa(i, DeterministicUQInput), inputs)
 
+    rvs = names(random_inputs)
     levelsamples = sample(inputs, sim)
 
     for m in models
@@ -133,7 +134,7 @@ function probability_of_failure(
             reject = chainperformance .> threshold[i]
 
             chainperformance[reject] = lastperformance[reject]
-            markovchains.samples[end][reject, :] = markovchains.samples[end - 1][reject, :]
+            markovchains.samples[end][reject, rvs] = markovchains.samples[end - 1][reject, rvs]
 
             lastperformance = chainperformance
 
