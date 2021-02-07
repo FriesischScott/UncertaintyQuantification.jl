@@ -17,7 +17,8 @@ abstract type RandomUQInput <: UQInput end
 
 abstract type Copula <: UQType end
 
-abstract type AbstractMonteCarloSampling end
+abstract type AbstractMonteCarlo end
+abstract type AbstractQuasiMonteCarlo <: AbstractMonteCarlo end
 
 export Parameter,
       RandomVariable,
