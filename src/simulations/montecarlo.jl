@@ -31,10 +31,10 @@ function sample(inputs::Array{<:UQInput}, sim::SobolSampling)
     n_skip = findlast("1", reverse(bitstring(sim.n - 1)))[1] - 1
     skip(s, 2^n_skip)
 
-    u = hcat([next!(s) for i = 1:sim.n]...)'
-    samples = DataFrame(quantile.(Φ, u))
+    u = hcat([next!(s) for i = 1:sim.n]...) |> transpose
 
-    rename!(samples, names(random_inputs))
+    samples = quantile.(Φ, u)
+    samples = DataFrame(names(random_inputs) .=> eachcol(samples))
 
     if !isempty(deterministic_inputs)
         samples = hcat(samples, sample(deterministic_inputs, sim.n))
@@ -59,9 +59,8 @@ function sample(inputs::Array{<:UQInput}, sim::HaltonSampling)
         u[i, :] = hp
     end
 
-    samples = DataFrame(quantile.(Φ, u))
-
-    rename!(samples, names(random_inputs))
+    samples = quantile.(Φ, u)
+    samples = DataFrame(names(random_inputs) .=> eachcol(samples))
 
     if !isempty(deterministic_inputs)
         samples = hcat(samples, sample(deterministic_inputs, sim.n))
