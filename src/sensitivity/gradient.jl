@@ -23,7 +23,7 @@ function gradient(
 
     g = grad(forward_fdm(2, 1), f, reference)[1]
 
-    return DataFrame(random_names .=> eachcol(g))
+    return (; zip(random_names, g)...)
 end
 
 function gradient_in_standard_normal_space(
@@ -50,5 +50,5 @@ function gradient_in_standard_normal_space(
 
     g = grad(forward_fdm(2, 1), f, reference)[1]
 
-    return DataFrame(random_names .=> eachcol(g))
+    return (; zip(random_names, g)...)
 end

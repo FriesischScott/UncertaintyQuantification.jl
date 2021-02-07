@@ -1,12 +1,12 @@
 mutable struct LineSampling
     lines::Integer
     points::Vector{<:Real}
-    direction::DataFrame
+    direction::NamedTuple
 
     function LineSampling(
         lines::Integer,
         points::Vector{<:Real}=collect(0.5:0.5:5),
-        direction::DataFrame=DataFrame()
+        direction::NamedTuple=NamedTuple()
     )
         new(lines, points, direction)
     end
@@ -18,8 +18,9 @@ function sample(inputs::Array{<:UQInput}, sim::LineSampling)
 
     n_rv = count_rvs(random_inputs)
     n_samples = length(sim.points) * sim.lines
+    rv_names = names(random_inputs)
 
-    α = vec(Matrix(sim.direction))
+    α = map(n -> sim.direction[n], rv_names)
     α /= norm(α)
 
     θ = rand(Normal(), n_rv, sim.lines)
@@ -30,7 +31,7 @@ function sample(inputs::Array{<:UQInput}, sim::LineSampling)
     θ = θ[:] + repeat(α * sim.points', outer=[1, sim.lines])[:]
 
     samples = reshape(θ, n_rv, n_samples) |> transpose
-    samples = DataFrame(names(random_inputs) .=> eachcol(samples))
+    samples = DataFrame(rv_names .=> eachcol(samples))
 
     if !isempty(deterministic_inputs)
         samples = hcat(samples, sample(deterministic_inputs, n_samples))

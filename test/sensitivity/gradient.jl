@@ -10,8 +10,8 @@
 
         g = gradient([model], [p, x, y], DataFrame(p = 2.0, x = 2.0, y = 1.0), :f)
 
-        @test isapprox(g.x[1], 8.0, rtol = 0.001)
-        @test isapprox(g.y[1], -2.0, rtol = 0.001)
+        @test isapprox(g.x, 8.0, rtol = 0.001)
+        @test isapprox(g.y, -2.0, rtol = 0.001)
 
     end
 end
