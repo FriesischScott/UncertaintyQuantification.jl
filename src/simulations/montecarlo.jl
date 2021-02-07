@@ -13,8 +13,6 @@ struct HaltonSampling <: AbstractMonteCarloSampling
     HaltonSampling(n) = n > 0 ? new(n) : error("n must be greater than zero")
 end
 
-const Φ = Normal()
-
 function sample(inputs::Array{<:UQInput}, sim::MonteCarlo)
     sample(inputs, sim.n)
 end
@@ -33,7 +31,7 @@ function sample(inputs::Array{<:UQInput}, sim::SobolSampling)
 
     u = hcat([next!(s) for i = 1:sim.n]...) |> transpose
 
-    samples = quantile.(Φ, u)
+    samples = quantile.(Normal(), u)
     samples = DataFrame(names(random_inputs) .=> eachcol(samples))
 
     if !isempty(deterministic_inputs)
