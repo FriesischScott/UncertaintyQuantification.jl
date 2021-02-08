@@ -23,13 +23,7 @@ function sample(inputs::Array{<:UQInput}, sim::AbstractQuasiMonteCarlo)
 
     n_rv = count_rvs(random_inputs)
 
-    if isa(sim, SobolSampling)
-        u = sobol_samples(sim.n, n_rv)
-    elseif isa(sim, HaltonSampling)
-        u = halton_samples(sim.n, n_rv)
-    else
-        error("Unknown Quasi Monte Carlo Simulation")
-    end
+    u = qmc_samples(sim, n_rv)
 
     samples = quantile.(Normal(), u)
     samples = DataFrame(names(random_inputs) .=> eachcol(samples))
@@ -43,19 +37,19 @@ function sample(inputs::Array{<:UQInput}, sim::AbstractQuasiMonteCarlo)
     return samples
 end
 
-function sobol_samples(rows::Integer, cols::Integer)
-    s = SobolSeq(cols)
+function qmc_samples(sim::SobolSampling, rvs::Integer)
+    s = SobolSeq(rvs)
 
-    n_skip = findlast("1", reverse(bitstring(rows - 1)))[1] - 1
+    n_skip = findlast("1", reverse(bitstring(sim.n - 1)))[1] - 1
     skip(s, 2^n_skip)
 
-    u = hcat([next!(s) for i = 1:rows]...) |> transpose
+    u = hcat([next!(s) for i = 1:sim.n]...) |> transpose
 end
 
-function halton_samples(rows::Integer, cols::Integer)
-    h = HaltonPoint(cols, length=rows)
+function qmc_samples(sim::HaltonSampling, rvs::Integer)
+    h = HaltonPoint(rvs, length=sim.n)
 
-    u = zeros(rows, cols)
+    u = zeros(sim.n, rvs)
 
     for (i, hp) ∈ enumerate(h)
         u[i, :] = hp

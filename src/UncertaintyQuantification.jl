@@ -20,7 +20,16 @@ abstract type Copula <: UQType end
 abstract type AbstractMonteCarlo end
 abstract type AbstractQuasiMonteCarlo <: AbstractMonteCarlo end
 
-export Parameter,
+export UQType,
+      UQInput,
+      UQModel,
+      DeterministicUQInput,
+      RandomUQInput,
+      Copula,
+      AbstractMonteCarlo,
+      AbstractQuasiMonteCarlo,
+
+      Parameter,
       RandomVariable,
       JointDistribution,
       GaussianCopula,
@@ -33,7 +42,7 @@ export Parameter,
       HaltonSampling,
       SobolSampling,
 
-    # methods
+      # methods
       evaluate!,
       rand,
       sample,
@@ -42,6 +51,7 @@ export Parameter,
       mean,
       gradient,
       gradient_in_standard_normal_space,
+      qmc_samples,
       to_standard_normal_space,
       to_standard_normal_space!,
       to_physical_space!,
