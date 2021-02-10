@@ -11,9 +11,7 @@ function sobolindices(
 
     random_names = filter(i -> isa(i, RandomUQInput), inputs) |> names
 
-    for m ∈ models
-        evaluate!(m, samples)
-    end
+    evaluate!(models, samples)
 
     A = samples[1:sim.n, :]
     B = samples[sim.n + 1:end, :]

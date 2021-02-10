@@ -27,7 +27,7 @@ performance = Model(df -> (-df.L1 .* df.L2) ./ (df.L1 + df.L2) .* (1 ./ df.Zp) .
 mc = MonteCarlo(10^5)
 
 mc_pf, mc_samples = probability_of_failure(
-    [performance],
+    performance,
     df -> df.p,
     inputs,
     mc,
@@ -36,7 +36,7 @@ mc_pf, mc_samples = probability_of_failure(
 sus = SubSetSimulation(2000, 0.2, 10, Uniform(-0.5, 0.5))
 
 sus_pf, sus_samples = probability_of_failure(
-    [performance],
+    performance,
     df -> df.p,
     inputs,
     sus,

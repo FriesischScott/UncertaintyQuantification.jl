@@ -35,9 +35,7 @@ function probability_of_failure(
     rvs = names(random_inputs)
     samples = [sample(inputs, sim)]
 
-    for m in models
-        evaluate!(m, samples[end])
-    end
+    evaluate!(models, samples[end])
 
     performance = [performancefunction(samples[end])]
 
@@ -77,9 +75,7 @@ function probability_of_failure(
 
             to_physical_space!(inputs, chainsamples)
 
-            for m ∈ models
-                evaluate!(m, chainsamples)
-            end
+            evaluate!(models, chainsamples)
 
             chainperformance = performancefunction(chainsamples)
 
