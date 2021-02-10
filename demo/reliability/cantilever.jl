@@ -56,7 +56,7 @@ ls_pf, ls_samples = probability_of_failure(
 
 println("Line Sampling probability of failure: $ls_pf ($(size(ls_samples, 1)) model evaluations)")
 
-subset = UncertaintyQuantification.SubSetSimulation(2000, 0.1, 10, 0.5)
+subset = UncertaintyQuantification.SubSetSimulation(2000, 0.1, 10, Uniform(-0.5, 0.5))
 
 subset_pf, subset_samples = probability_of_failure(
     [inertia, displacement],

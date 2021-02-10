@@ -5,7 +5,7 @@ y = RandomVariable(Normal(), :y)
 
 model = Model(df -> 0.35 * sqrt.(df.x.^2 .+ df.y.^2), :z)
 
-subset = UncertaintyQuantification.SubSetSimulation(1000, 0.1, 10, 0.5)
+subset = UncertaintyQuantification.SubSetSimulation(1000, 0.1, 10, Uniform(-0.5, 0.5))
 
 pf, samples = probability_of_failure(
     [model],
@@ -15,7 +15,7 @@ pf, samples = probability_of_failure(
 
 println("Probability of failure: $pf")
 
-p = plot()
+p = plot(aspect_ratio=:equal)
 
 for level ∈ unique(samples.level)
     data = filter(:level => l -> l == level, samples)

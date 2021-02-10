@@ -50,6 +50,7 @@ export UQType,
       count_rvs,
       dimensions,
       mean,
+      metropolishastings,
       gradient,
       gradient_in_standard_normal_space,
       qmc_samples,
@@ -67,6 +68,8 @@ include("inputs/randomvariable.jl")
 include("inputs/jointdistribution.jl")
 
 include("inputs/copulas/gaussian.jl")
+
+include("mcmc/metropolishastings.jl")
 
 include("models/model.jl")
 include("models/polyharmonicspline.jl")
