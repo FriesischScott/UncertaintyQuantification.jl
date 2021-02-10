@@ -7,11 +7,8 @@
         x = RandomVariable(Uniform(0.0, 1.0), :x)
         y = RandomVariable(Uniform(0.0, 1.0), :y)
 
-        d = Model(df -> sqrt.(df.x.^2 + df.y.^2), :d)
-
         pf, _ = probability_of_failure(
-            [d],
-            df -> 1 .- df.d,
+            df -> 1 .- sqrt.(df.x.^2 + df.y.^2),
             [x, y],
             MonteCarlo(1000000),
         )
