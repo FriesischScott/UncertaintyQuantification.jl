@@ -21,14 +21,13 @@ X2 = RandomVariable(Truncated(LogNormal(μ, σ), lb, Inf), :X2)
 
 inputs = [L1, L2, Zp, X1, X2]
 
-performance = Model(df -> (-df.L1 .* df.L2) ./ (df.L1 + df.L2) .* (1 ./ df.Zp) .* df.X1 .+ df.X2, :p)
+performance = df -> (-df.L1 .* df.L2) ./ (df.L1 + df.L2) .* (1 ./ df.Zp) .* df.X1 .+ df.X2
 
 # Compute probability of failure using standard Monte Carlo
 mc = MonteCarlo(10^5)
 
 mc_pf, mc_samples = probability_of_failure(
     performance,
-    df -> df.p,
     inputs,
     mc,
 )
@@ -37,7 +36,6 @@ sus = SubSetSimulation(2000, 0.2, 10, Uniform(-0.5, 0.5))
 
 sus_pf, sus_samples = probability_of_failure(
     performance,
-    df -> df.p,
     inputs,
     sus,
 )

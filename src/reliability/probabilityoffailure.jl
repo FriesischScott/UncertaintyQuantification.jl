@@ -60,3 +60,10 @@ function probability_of_failure(
 
     return pf, samples
 end
+
+# Allow to calculate the pf using only a performance function but no model
+probability_of_failure(
+    performance::Function,
+    inputs::Union{Array{<:UQInput},UQInput},
+    sim::Any,
+) = probability_of_failure(UQModel[], performance, inputs, sim)
