@@ -3,6 +3,16 @@ struct SubSetSimulation
     target::Float64
     levels::Integer
     proposal::Sampleable{Univariate}
+
+    function SubSetSimulation(
+        n::Integer,
+        target::Float64,
+        levels::Integer,
+        proposal::Sampleable{Univariate}
+    )
+        skewness(proposal) != 0.0 && error("proposal must be a symmetric distribution")
+        new(n, target, levels, proposal)
+    end
 end
 
 function sample(inputs::Array{<:UQInput}, sim::SubSetSimulation)
@@ -10,9 +20,9 @@ function sample(inputs::Array{<:UQInput}, sim::SubSetSimulation)
     deterministic_inputs = filter(i -> isa(i, DeterministicUQInput), inputs)
 
     n_rv = count_rvs(random_inputs)
+    rv_names = names(random_inputs)
 
-    samples = rand(MvNormal(n_rv, 1), sim.n) |> transpose |> DataFrame
-    rename!(samples, names(random_inputs))
+    samples = DataFrame(rv_names .=> eachcol(rand(Normal(), sim.n, n_rv)))
 
     to_physical_space!(random_inputs, samples)
 
@@ -30,9 +40,8 @@ function probability_of_failure(
     sim::SubSetSimulation,
 )
     random_inputs = filter(i -> isa(i, RandomUQInput), inputs)
-    deterministic_inputs = filter(i -> isa(i, DeterministicUQInput), inputs)
-
     rvs = names(random_inputs)
+
     samples = [sample(inputs, sim)]
 
     evaluate!(models, samples[end])
@@ -43,23 +52,16 @@ function probability_of_failure(
     samples_per_chain = floor(sim.n / number_of_chains)
 
     threshold = zeros(sim.levels, 1)
-    pf = zeros(sim.levels, 1)
-
-    if !isempty(deterministic_inputs)
-        deterministic_samples = sample(deterministic_inputs, number_of_chains)
-    else
-        deterministic_samples = DataFrame()
-    end
+    pf = ones(sim.levels, 1)
 
     for i ∈ 1:sim.levels
         sorted_performance = sort(performance[end])
         sorted_indices = sortperm(performance[end])
 
         threshold[i] = sorted_performance[number_of_chains]
+        pf[i] = threshold[i] <= 0 ? mean(performance[end] .<= 0) : mean(performance[end] .<= threshold[i])
 
-        pf[i] = sum(performance[end] .<= (threshold[i] <= 0 ? 0 : threshold[i])) / sim.n
-
-        if (threshold[i] <= 0) || i == sim.levels
+        if threshold[i] <= 0 || i == sim.levels
             break
         end
 
@@ -71,7 +73,7 @@ function probability_of_failure(
 
             to_standard_normal_space!(inputs, chainsamples)
 
-            chainsamples[:, rvs] = metropolishastings(convert(Matrix, chainsamples[:, rvs]), sim.proposal)
+            chainsamples[:, rvs] = modifiedmetropolishastings(convert(Matrix, chainsamples[:, rvs]), sim.proposal)
 
             to_physical_space!(inputs, chainsamples)
 
@@ -107,20 +109,19 @@ function probability_of_failure(
     # merge (vcat) all samples
     samples = reduce(vcat, samples)
 
-    return prod(pf[pf .> 0]), samples
+    pf = prod(pf)
+
+    return pf, samples
 end
 
-function metropolishastings(U0::AbstractMatrix, proposal::Sampleable{Univariate})
-    dim = size(U0)
-    Φ = MvNormal(dim[2], 1.0)
+function modifiedmetropolishastings(θ::AbstractMatrix, proposal::Sampleable{Univariate})
+    Φ = MvNormal(size(θ, 2), 1.0)
 
-    U = rand(proposal, dim...)
+    ξ = θ + rand(proposal, size(θ)...)
+    α = pdf(Φ, transpose(ξ)) ./ pdf(Φ, transpose(θ))
 
-    pdf_i = prod(pdf(Φ, (U0 .+ U)'), dims=2)
-    pdf_0 = prod(pdf(Φ, U0'), dims=2)
-
-    α = pdf_i ./ pdf_0
     accept = α .>= rand(size(α)...)
+    θ[accept, :] = ξ[accept, :]
 
-    U0 += U .* accept
+    return θ
 end
