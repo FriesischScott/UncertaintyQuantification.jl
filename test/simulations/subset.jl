@@ -1,5 +1,5 @@
 @testset "SubSetSimulation" begin
-    proposal = Uniform(-0.5, 0.5)
+    proposal = Normal()
     subset = SubSetSimulation(2000, 0.2, 10, proposal)
 
     @test isa(subset, SubSetSimulation)
@@ -8,5 +8,5 @@
     @test subset.levels == 10
     @test subset.proposal == proposal
 
-    @test_logs (:error, "proposal must be a symmetric distribution") SubSetSimulation(2000, 0.2, 10, Exponential())
+    @test_throws ErrorException("proposal must be a symmetric distribution") SubSetSimulation(2000, 0.2, 10, Exponential())
 end
