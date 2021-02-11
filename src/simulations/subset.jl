@@ -11,6 +11,7 @@ struct SubSetSimulation
         proposal::Sampleable{Univariate}
     )
         skewness(proposal) != 0.0 && error("proposal must be a symmetric distribution")
+        mean(proposal) != median(proposal) && error("proposal must be a symmetric distribution")
         new(n, target, levels, proposal)
     end
 end
@@ -68,12 +69,13 @@ function probability_of_failure(
         nextlevelsamples = [samples[end][sorted_indices[1:number_of_chains], :]]
         nextlevelperformance = [sorted_performance[1:number_of_chains]]
 
+        # Modified metropolis hastings to generate samples for the next intermediate failure region
         for c ∈ 1:samples_per_chain
             chainsamples = copy(nextlevelsamples[end])
 
             to_standard_normal_space!(inputs, chainsamples)
 
-            chainsamples[:, rvs] = modifiedmetropolishastings(convert(Matrix, chainsamples[:, rvs]), sim.proposal)
+            chainsamples[:, rvs] = candidatesamples(convert(Matrix, chainsamples[:, rvs]), sim.proposal)
 
             to_physical_space!(inputs, chainsamples)
 
@@ -114,7 +116,7 @@ function probability_of_failure(
     return pf, samples
 end
 
-function modifiedmetropolishastings(θ::AbstractMatrix, proposal::Sampleable{Univariate})
+function candidatesamples(θ::AbstractMatrix, proposal::Sampleable{Univariate})
     Φ = MvNormal(size(θ, 2), 1.0)
 
     ξ = θ + rand(proposal, size(θ)...)
