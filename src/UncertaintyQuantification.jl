@@ -5,7 +5,7 @@ using LinearAlgebra, DataFrames, FiniteDifferences, Dierckx, Sobol, HaltonSequen
 @reexport using Distributions
 
 import Base: rand, names, copy
-import Statistics: mean
+import Statistics:mean
 
 abstract type UQType end
 
@@ -41,8 +41,9 @@ export UQType,
       MonteCarlo,
       HaltonSampling,
       SobolSampling,
+      SubSetSimulation,
 
-      # methods
+    # methods
       evaluate!,
       rand,
       sample,
@@ -74,6 +75,7 @@ include("sensitivity/gradient.jl")
 
 include("simulations/linesampling.jl")
 include("simulations/montecarlo.jl")
+include("simulations/subset.jl")
 
 include("reliability/probabilityoffailure.jl")
 include("sensitivity/sobolindices.jl")

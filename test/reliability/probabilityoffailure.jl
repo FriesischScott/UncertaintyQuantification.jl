@@ -7,11 +7,8 @@
         x = RandomVariable(Uniform(0.0, 1.0), :x)
         y = RandomVariable(Uniform(0.0, 1.0), :y)
 
-        d = Model(df -> sqrt.(df.x.^2 + df.y.^2), :d)
-
         pf, _ = probability_of_failure(
-            [d],
-            df -> 1 .- df.d,
+            df -> 1 .- sqrt.(df.x.^2 + df.y.^2),
             [x, y],
             MonteCarlo(1000000),
         )
@@ -47,4 +44,35 @@
             [d], g, [x, y, r], LineSampling(1, [10, 20]))
     end
 
+    @testset "Subset Simulation" begin
+        # Kontantin Zuev - Subset Simulation Method for Rare Event Estimation: An Introduction
+        # Example 6.1
+        # Target pf of 1e-10
+
+        Random.seed!(8128)
+
+        pf_analytical = 1e-10
+
+        x1 = RandomVariable(Normal(), :x1)
+        x2 = RandomVariable(Normal(), :x2)
+
+        y = Parameter(sqrt(2) * quantile(Normal(), 1 - pf_analytical), :y)
+
+        g = Model(df -> df.x1 + df.x2, :g)
+
+        F = df -> df.y .- df.g
+
+        subset = SubSetSimulation(10^3, 0.1, 10, Normal())
+
+        pf, _ = probability_of_failure(
+            g,
+            F,
+            [x1, x2, y],
+            subset
+        )
+
+        Random.seed!()
+
+        @test isapprox(pf, pf_analytical, atol=10^-10)
+    end
 end
