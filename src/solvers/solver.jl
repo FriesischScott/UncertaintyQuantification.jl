@@ -9,6 +9,7 @@ function run(solver::Solver, folder::String)
     args = solver.args
     source = solver.source
 
+    old_pwd = pwd()
     cd(folder)
 
     out = joinpath(folder, basename(binary) * "UncertaintyQuantification.out")
@@ -19,4 +20,6 @@ function run(solver::Solver, folder::String)
     else
         Base.run(pipeline(`$binary $source`, stdout=out, stderr=err))
     end
+
+    cd(old_pwd)
 end
