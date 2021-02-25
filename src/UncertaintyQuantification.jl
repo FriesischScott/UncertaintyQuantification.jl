@@ -1,6 +1,6 @@
 module UncertaintyQuantification
 
-using LinearAlgebra, DataFrames, FiniteDifferences, Dierckx, Sobol, HaltonSequences, Reexport, Accessors, Bootstrap, Mustache, Formatting, Dates
+using LinearAlgebra, DataFrames, FiniteDifferences, Dierckx, Sobol, HaltonSequences, Reexport, Accessors, Bootstrap, Mustache, Formatting, Dates, Distributed
 
 
 @reexport using Distributions

@@ -15,7 +15,7 @@ function evaluate!(m::ExternalModel, df::DataFrame)
     n = size(df, 1)
     digits = ndigits(n)
 
-    results = map(1:n) do i
+    results = pmap(1:n) do i
         path = joinpath(m.workdir, datetime, "sample-$(lpad(i, digits, "0"))")
         mkpath(path)
 

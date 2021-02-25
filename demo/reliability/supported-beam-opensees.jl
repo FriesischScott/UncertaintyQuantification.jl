@@ -1,6 +1,10 @@
 # Reference: https://opensees.berkeley.edu/wiki/index.php/Simply_supported_beam_modeled_with_two_dimensional_solid_elements
-
 using UncertaintyQuantification, DelimitedFiles, Formatting
+
+# To run the model distributed add the desired workers and load the required packages with @everywhere
+# using Distributed, Formatting
+# addprocs(6; exeflags="--project")
+# @everywhere using UncertaintyQuantification, DelimitedFiles
 
 E = RandomVariable(Normal(1000, 5), :E)
 
