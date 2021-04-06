@@ -62,7 +62,3 @@ julia> using Main.UncertaintyQuantification
 
 ### related packages:
 * [OpenCossan](https://github.com/cossan-working-group/OpenCossan): Matlab-based toolbox for uncertainty quantification and management
-* [MonteCarloMeasurements.jl](https://github.com/baggepinnen/MonteCarloMeasurements.jl): uncertainty propagation with Monte Carlo and particle-filtering
-* [PolyChaos.jl](https://github.com/timueh/PolyChaos.jl): polynomial chaos in Julia
-* [ProbabilityBoundsAnalysis.jl](https://github.com/JuliaIntervals/ValidatedNumerics.jl): rigorous computations with probabilities
-* [IntervalArithmetic.jl](https://github.com/JuliaIntervals/IntervalArithmetic.jl): rigorous computations with intervals
