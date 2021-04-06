@@ -1,7 +1,7 @@
 name: CI
 on:
   - push
-  - pull_request_target
+  - pull_request
 jobs:
   test:
     name: Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }}
