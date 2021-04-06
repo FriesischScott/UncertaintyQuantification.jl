@@ -1,4 +1,4 @@
-using Test, UncertaintyQuantification, DataFrames, Random
+using Test, InteractiveUtils, UncertaintyQuantification, DataFrames, Random
 
 include("inputs/parameter.jl")
 include("inputs/randomvariable.jl");
@@ -16,3 +16,4 @@ include("sensitivity/gradient.jl")
 include("sensitivity/sobolindices.jl")
 
 include("simulations/montecarlo.jl")
+include("simulations/subset.jl")

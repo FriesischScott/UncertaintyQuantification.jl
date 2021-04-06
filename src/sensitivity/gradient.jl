@@ -12,19 +12,16 @@ function gradient(
         samples = sample(inputs, size(x, 1))
         samples[:, random_names] .= x
 
-        for m in models
-            evaluate!(m, samples)
-        end
+        evaluate!(models, samples)
 
         return samples[:, output][1]
     end
 
-    reference = convert(Array{Float64, 2}, samples[:, random_names])
+    reference = convert(Array{Float64,2}, samples[:, random_names])
 
-    g = DataFrame(grad(forward_fdm(2, 1), f, reference)[1])
-    rename!(g, random_names)
+    g = grad(forward_fdm(2, 1), f, reference)[1]
 
-    return g
+    return (; zip(random_names, g)...)
 end
 
 function gradient_in_standard_normal_space(
@@ -41,16 +38,15 @@ function gradient_in_standard_normal_space(
     function f(x)
         samples[:, random_names] .= x
         to_physical_space!(inputs, samples)
-        for m in models
-            evaluate!(m, samples)
-        end
+
+        evaluate!(models, samples)
+
         return samples[:, output][1]
     end
 
-    reference = convert(Array{Float64, 2}, samples[:, random_names])
+    reference = convert(Array{Float64,2}, samples[:, random_names])
 
-    g = DataFrame(grad(forward_fdm(2, 1), f, reference)[1])
-    rename!(g, random_names)
+    g = grad(forward_fdm(2, 1), f, reference)[1]
 
-    return g
+    return (; zip(random_names, g)...)
 end

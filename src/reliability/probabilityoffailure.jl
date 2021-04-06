@@ -2,15 +2,11 @@ function probability_of_failure(
     models::Union{Array{<:UQModel},UQModel},
     performance::Function,
     inputs::Union{Array{<:UQInput},UQInput},
-    sim::AbstractMonteCarloSampling,
+    sim::AbstractMonteCarlo,
 )
 
-    samples = sample(inputs, sim.n)
-
-    # Models
-    for m in models
-        evaluate!(m, samples)
-    end
+    samples = sample(inputs, sim)
+    evaluate!(models, samples)
 
     # Probability of failure
     pf = sum(performance(samples) .< 0) / sim.n
@@ -34,10 +30,7 @@ function probability_of_failure(
     end
 
     samples = sample(inputs, sim)
-
-    for m in models
-        evaluate!(m, samples)
-    end
+    evaluate!(models, samples)
 
     p = reshape(performance(samples), length(sim.points), sim.lines)
 
@@ -67,3 +60,10 @@ function probability_of_failure(
 
     return pf, samples
 end
+
+# Allow to calculate the pf using only a performance function but no model
+probability_of_failure(
+    performance::Function,
+    inputs::Union{Array{<:UQInput},UQInput},
+    sim::Any,
+) = probability_of_failure(UQModel[], performance, inputs, sim)

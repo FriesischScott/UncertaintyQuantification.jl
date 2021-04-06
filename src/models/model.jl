@@ -7,6 +7,13 @@ function (obj::Model)(df::DataFrame)
     obj.func(df)
 end
 
+function evaluate!(models::Array{T,1} where T <: UQModel, df::DataFrame)
+    for m ∈ models
+        evaluate!(m, df)
+    end
+    return nothing
+end
+
 function evaluate!(m::Model, df::DataFrame)
     df[!, m.name] = m.func(df)
     return nothing

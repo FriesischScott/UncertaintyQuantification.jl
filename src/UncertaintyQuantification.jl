@@ -5,7 +5,7 @@ using LinearAlgebra, DataFrames, FiniteDifferences, Dierckx, Sobol, HaltonSequen
 @reexport using Distributions
 
 import Base: rand, names, copy
-import Statistics: mean
+import Statistics:mean
 
 abstract type UQType end
 
@@ -17,9 +17,19 @@ abstract type RandomUQInput <: UQInput end
 
 abstract type Copula <: UQType end
 
-abstract type AbstractMonteCarloSampling end
+abstract type AbstractMonteCarlo end
+abstract type AbstractQuasiMonteCarlo <: AbstractMonteCarlo end
 
-export Parameter,
+export UQType,
+      UQInput,
+      UQModel,
+      DeterministicUQInput,
+      RandomUQInput,
+      Copula,
+      AbstractMonteCarlo,
+      AbstractQuasiMonteCarlo,
+
+      Parameter,
       RandomVariable,
       JointDistribution,
       GaussianCopula,
@@ -31,6 +41,7 @@ export Parameter,
       MonteCarlo,
       HaltonSampling,
       SobolSampling,
+      SubSetSimulation,
 
     # methods
       evaluate!,
@@ -41,6 +52,7 @@ export Parameter,
       mean,
       gradient,
       gradient_in_standard_normal_space,
+      qmc_samples,
       to_standard_normal_space,
       to_standard_normal_space!,
       to_physical_space!,
@@ -63,6 +75,7 @@ include("sensitivity/gradient.jl")
 
 include("simulations/linesampling.jl")
 include("simulations/montecarlo.jl")
+include("simulations/subset.jl")
 
 include("reliability/probabilityoffailure.jl")
 include("sensitivity/sobolindices.jl")
