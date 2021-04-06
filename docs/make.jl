@@ -9,10 +9,12 @@ makedocs(
     authors="Jasper Behrensdorf and Ander Gray",
     pages=[
         "Home" => "index.md",
-        "Uncertainty Propagation" => "UncProp.md",
-        "Sensitivity Analysis" => "Sensitivity.md",
-        "Reliability Analysis" => "Reliability.md",
-        "Examples" => "examples.md",
+        "Manual" => [
+            "Uncertainty Propagation" => "manual/uncertaintypropagation.md",
+            "Sensitivity Analysis" => "manual/sensitivity.md",
+            "Reliability Analysis" => "manual/reliability.md",
+        ],
+        "Examples" => "examples/index.md",
         "API" => "api.md"
         ]
     )
