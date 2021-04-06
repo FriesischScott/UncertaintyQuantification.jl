@@ -1,64 +1,41 @@
 # UncertaintyQuantification.jl
 
+A Julia package for uncertainty quantification. Current functionality includes:
 
-A Julia package for uncertainty quantification. Current (very limited) functionality includes:
-
- * Simulation-based Reliability Analysis (Monte Carlo, Line Sampling)
- * Sensitivity Analysis (local)
-
-
-
-### Authors
-
-* ADD
-* ADD
-
-### Collaborators
-
-* ADD
-* ADD
-
+ * Simulation-based reliability analysis
+   * Monte Carlo simulation
+   * Quasi Monte Carlo simulation (Sobol, Halton)
+   * Line Sampling
+   * Subset Simulation
+ * Sensitivity analysis
+   * Gradients
+   * Sobol indices
+ * Metamodeling
+   * Polyharmonic splines
 
 ---
+## Installation
 
-Installation
----
-Two ways to install and use:
-
-**1. From the julia package manager**
-
-You may download the lastest release by:
+To install the latest release through the Julia package manager run:
 ```julia
-julia> ]
-(v1.0) pkg> add UncertaintyQuantification
+julia> ]add UncertaintyQuantification
 julia> using UncertaintyQuantification
 ```
 
-or the latest version by:
+or install the latest development version with:
 
 ```julia
-julia> ]
-(v1.0) pkg> add UncertaintyQuantification#master
+julia> ]add UncertaintyQuantification#master
 julia> using UncertaintyQuantification
-```
-
-or
-
-```julia
-julia> ]
-(v1.0) pkg> add https://github.com/FriesischScott/UncertaintyQuantification.jl
-julia> using UncertaintyQuantification
-```
-
-**2. Downloading the source code**
-```julia
-git clone https://github.com/FriesischScott/UncertaintyQuantification.jl
-
-julia> include("UncertaintyQuantification.jl/src/UncertaintyQuantification.jl")
-julia> using Main.UncertaintyQuantification
 ```
 
 ---
 
-### related packages:
+## Authors
+
+ * Jasper Behrensdorf, Institute for Risk and Reliability, Leibniz University Hannover
+ * Ander Gray, Institute for Risk and Uncertainty, University of Liverpool
+
+
+### Related packages:
 * [OpenCossan](https://github.com/cossan-working-group/OpenCossan): Matlab-based toolbox for uncertainty quantification and management

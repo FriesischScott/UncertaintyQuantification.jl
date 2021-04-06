@@ -10,14 +10,17 @@ makedocs(
     pages=[
         "Home" => "index.md",
         "Manual" => [
-            "Uncertainty Propagation" => "manual/uncertaintypropagation.md",
+            "Uncertainty Propagation" => "manual/uncertainty.md",
             "Sensitivity Analysis" => "manual/sensitivity.md",
             "Reliability Analysis" => "manual/reliability.md",
         ],
-        "Examples" => "examples/index.md",
-        "API" => "api.md"
-        ]
-    )
+        "API" => [
+            "Inputs" => "api/inputs.md",
+            "Parameter" => "api/parameter.md",
+            "RandomVariable" => "api/randomvariable.md"
+        ],
+    ]
+)
 
 deploydocs(
     repo="github.com/FriesischScott/UncertaintyQuantification.jl",
