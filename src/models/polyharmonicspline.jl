@@ -16,7 +16,7 @@ struct PolyharmonicSpline <: UQModel
 
         centers = select(data, Not(output))
         n = propertynames(centers)
-        centers = convert(Matrix, centers)
+        centers = Matrix{Float64}(centers)
 
         dim = size(centers, 1)
 
@@ -70,7 +70,7 @@ function evaluate!(
     ps::PolyharmonicSpline,
     df::DataFrame
     )
-    x = convert(Matrix, df[:, ps.n]) # convert to matrix and order variables by ps.n
+    x = Matrix{Float64}(df[:, ps.n]) # convert to matrix and order variables by ps.n
 
     out = map(row -> calc(ps, convert(Array, row)), eachrow(x))
     df[!, ps.output] = out

@@ -25,7 +25,7 @@ function sample(jd::JointDistribution, n::Integer=1)
 end
 
 function to_physical_space!(jd::JointDistribution, x::DataFrame)
-    correlated_cdf = to_copula_space(jd.copula, convert(Matrix, x[:, names(jd)]))
+    correlated_cdf = to_copula_space(jd.copula, Matrix{Float64}(x[:, names(jd)]))
     for (i, rv) in enumerate(jd.marginals)
         x[!, rv.name] = quantile.(rv.dist, correlated_cdf[:, i])
     end
@@ -36,7 +36,7 @@ function to_standard_normal_space!(jd::JointDistribution, x::DataFrame)
     for rv in jd.marginals
         x[!, rv.name] = cdf.(rv.dist, x[:, rv.name])
     end
-    uncorrelated_stdnorm = to_standard_normal_space(jd.copula, convert(Matrix, x[:, names(jd)]))
+    uncorrelated_stdnorm = to_standard_normal_space(jd.copula, Matrix{Float64}(x[:, names(jd)]))
     for (i, rv) in enumerate(jd.marginals)
         x[!, rv.name] = uncorrelated_stdnorm[:, i]
     end
