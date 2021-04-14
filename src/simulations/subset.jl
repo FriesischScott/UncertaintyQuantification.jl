@@ -75,7 +75,7 @@ function probability_of_failure(
 
             to_standard_normal_space!(inputs, chainsamples)
 
-            chainsamples[:, rvs] = candidatesamples(convert(Matrix, chainsamples[:, rvs]), sim.proposal)
+            chainsamples[:, rvs] = candidatesamples(Matrix{Float64}(chainsamples[:, rvs]), sim.proposal)
 
             to_physical_space!(inputs, chainsamples)
 

@@ -15,7 +15,9 @@
 
         Random.seed!()
 
-        @test round(4.0 * (1 - pf), digits=3) == 3.141
+        pi = 4.0 * (1 - pf)
+
+        @test isapprox(pi, 3.141, atol=1e-3)
     end
 
     @testset "Line sampling" begin
