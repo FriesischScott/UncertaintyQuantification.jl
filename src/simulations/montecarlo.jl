@@ -40,8 +40,7 @@ end
 function qmc_samples(sim::SobolSampling, rvs::Integer)
     s = SobolSeq(rvs)
 
-    n_skip = findlast("1", reverse(bitstring(sim.n - 1)))[1] - 1
-    skip(s, 2^n_skip)
+    skip(s, sim.n)
 
     u = hcat([next!(s) for i = 1:sim.n]...) |> transpose
 end
