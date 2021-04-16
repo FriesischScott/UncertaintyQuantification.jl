@@ -1,10 +1,11 @@
 module UncertaintyQuantification
 
-using LinearAlgebra, DataFrames, FiniteDifferences, Dierckx, Sobol, HaltonSequences, Reexport, Accessors, Bootstrap
+using LinearAlgebra, DataFrames, FiniteDifferences, Dierckx, Sobol, HaltonSequences, Reexport, Accessors, Bootstrap, Mustache, Formatting, Dates, Distributed
+
 
 @reexport using Distributions
 
-import Base: rand, names, copy
+import Base: rand, names, copy, run
 import Statistics:mean
 
 abstract type UQType end
@@ -34,6 +35,7 @@ export UQType,
       JointDistribution,
       GaussianCopula,
 
+      ExternalModel,
       Model,
       PolyharmonicSpline,
 
@@ -42,6 +44,9 @@ export UQType,
       HaltonSampling,
       SobolSampling,
       SubSetSimulation,
+
+      Solver,
+      Extractor,
 
     # methods
       evaluate!,
@@ -68,6 +73,10 @@ include("inputs/jointdistribution.jl")
 
 include("inputs/copulas/gaussian.jl")
 
+include("solvers/solver.jl")
+include("solvers/extractor.jl")
+
+include("models/externalmodel.jl")
 include("models/model.jl")
 include("models/polyharmonicspline.jl")
 
