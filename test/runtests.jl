@@ -17,3 +17,5 @@ include("sensitivity/sobolindices.jl")
 
 include("simulations/montecarlo.jl")
 include("simulations/subset.jl")
+
+include("solvers/solvers.jl")
