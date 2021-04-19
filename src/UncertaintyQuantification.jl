@@ -1,7 +1,18 @@
 module UncertaintyQuantification
 
-using LinearAlgebra, DataFrames, FiniteDifferences, Dierckx, Sobol, HaltonSequences, Reexport, Accessors, Bootstrap, Mustache, Formatting, Dates, Distributed
-
+using Accessors
+using Bootstrap
+using DataFrames
+using Dates
+using Dierckx
+using Distributed
+using FiniteDifferences
+using Formatting
+using HaltonSequences
+using LinearAlgebra
+using Mustache
+using Reexport
+using Sobol
 
 @reexport using Distributions
 
@@ -21,50 +32,49 @@ abstract type Copula <: UQType end
 abstract type AbstractMonteCarlo end
 abstract type AbstractQuasiMonteCarlo <: AbstractMonteCarlo end
 
-export UQType,
-      UQInput,
-      UQModel,
-      DeterministicUQInput,
-      RandomUQInput,
-      Copula,
-      AbstractMonteCarlo,
-      AbstractQuasiMonteCarlo,
+# Types
+export AbstractMonteCarlo
+export AbstractQuasiMonteCarlo
+export Copula
+export DeterministicUQInput
+export RandomUQInput
+export UQInput
+export UQModel
+export UQType
 
-      Parameter,
-      RandomVariable,
-      JointDistribution,
-      GaussianCopula,
+# Structs
+export ExternalModel
+export Extractor
+export GaussianCopula
+export HaltonSampling
+export JointDistribution
+export LineSampling
+export Model
+export MonteCarlo
+export Parameter
+export PolyharmonicSpline
+export RandomVariable
+export SobolSampling
+export Solver
+export SubSetSimulation
 
-      ExternalModel,
-      Model,
-      PolyharmonicSpline,
-
-      LineSampling,
-      MonteCarlo,
-      HaltonSampling,
-      SobolSampling,
-      SubSetSimulation,
-
-      Solver,
-      Extractor,
-
-    # methods
-      evaluate!,
-      rand,
-      sample,
-      count_rvs,
-      dimensions,
-      mean,
-      gradient,
-      gradient_in_standard_normal_space,
-      qmc_samples,
-      to_standard_normal_space,
-      to_standard_normal_space!,
-      to_physical_space!,
-      to_copula_space,
-      probability_of_failure,
-      sobolindices,
-      calc
+# Methods
+export calc
+export count_rvs
+export dimensions
+export evaluate!
+export gradient
+export gradient_in_standard_normal_space
+export mean
+export probability_of_failure
+export qmc_samples
+export rand
+export sample
+export sobolindices
+export to_copula_space
+export to_physical_space!
+export to_standard_normal_space
+export to_standard_normal_space!
 
 include("inputs/inputs.jl")
 include("inputs/parameter.jl")
