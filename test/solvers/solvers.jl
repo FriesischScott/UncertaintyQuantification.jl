@@ -1,20 +1,24 @@
 @testset "Solvers" begin
 
-    @static if Sys.isunix()
-        binary = joinpath(pwd(), "solvers/bin/radius")
-        solver = Solver(binary, "", "in.txt")
+    binary = ""
+    if Sys.iswindows()
+    binary = joinpath(pwd(), "solvers/bin/radius.exe")
+else
+    binary = joinpath(pwd(), "solvers/bin/radius")
+end
 
-        tmp = tempdir()
+    solver = Solver(binary, "", "in.txt")
 
-        open(joinpath(tmp, "in.txt"), "w") do input
-            println(input, "0.5")
-            println(input, "0.5")
-        end
+    tmp = tempdir()
 
-        run(solver, tmp)
+    open(joinpath(tmp, "in.txt"), "w") do input
+    println(input, "0.5")
+    println(input, "0.5")
+end
 
-        radius = map(x -> parse(Float64, x), readlines(joinpath(tmp, "out.txt")))
+    run(solver, tmp)
 
-        @test radius[1] == sqrt(0.5^2 + 0.5^2)
-    end
+    radius = map(x -> parse(Float64, x), readlines(joinpath(tmp, "out.txt")))
+
+    @test radius[1] == sqrt(0.5^2 + 0.5^2)
 end
