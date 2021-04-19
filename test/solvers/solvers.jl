@@ -2,19 +2,19 @@
 
     binary = ""
     if Sys.iswindows()
-    binary = joinpath(pwd(), "solvers/bin/radius.exe")
-else
-    binary = joinpath(pwd(), "solvers/bin/radius")
-end
+        binary = joinpath(pwd(), "solvers/bin/radius.exe")
+    else
+        binary = joinpath(pwd(), "solvers/bin/radius")
+    end
 
     solver = Solver(binary, "", "in.txt")
 
     tmp = tempdir()
 
     open(joinpath(tmp, "in.txt"), "w") do input
-    println(input, "0.5")
-    println(input, "0.5")
-end
+        println(input, "0.5")
+        println(input, "0.5")
+    end
 
     run(solver, tmp)
 
