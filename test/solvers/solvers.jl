@@ -3,6 +3,8 @@
     binary = ""
     if Sys.iswindows()
         binary = joinpath(pwd(), "solvers/bin/radius.exe")
+    elseif Sys.isapple()
+        binary = joinpath(pwd(), "solvers/bin/radius-mac")
     else
         binary = joinpath(pwd(), "solvers/bin/radius")
     end
