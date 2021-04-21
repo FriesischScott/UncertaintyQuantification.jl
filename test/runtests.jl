@@ -1,4 +1,9 @@
-using Test, InteractiveUtils, UncertaintyQuantification, DataFrames, Random
+using DataFrames
+using Formatting
+using InteractiveUtils
+using Random
+using Test
+using UncertaintyQuantification
 
 include("inputs/parameter.jl")
 include("inputs/randomvariable.jl");
@@ -7,6 +12,7 @@ include("inputs/inputs.jl")
 
 include("inputs/copulas/gaussian.jl")
 
+include("models/externalmodel.jl")
 include("models/model.jl")
 include("models/polyharmonicspline.jl")
 
