@@ -40,7 +40,7 @@ disp = Extractor(
 )
 
 opensees = Solver(
-    "/home/behrensd/src/OpenSees/bin/OpenSees",
+    "OpenSees", # path to OpenSees binary
     "", # extra args passed to the solver binary
     "supported-beam.tcl"
 )
