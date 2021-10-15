@@ -13,6 +13,11 @@ struct HaltonSampling <: AbstractQuasiMonteCarlo
     HaltonSampling(n) = n > 0 ? new(n) : error("n must be greater than zero")
 end
 
+struct LatinHypercubeSampling <: AbstractQuasiMonteCarlo
+    n::Integer
+    LatinHypercubeSampling(n) = n > 0 ? new(n) : error("n must be greater than zero")
+end
+
 function sample(inputs::Array{<:UQInput}, sim::MonteCarlo)
     sample(inputs, sim.n)
 end
@@ -38,15 +43,11 @@ function sample(inputs::Array{<:UQInput}, sim::AbstractQuasiMonteCarlo)
 end
 
 function qmc_samples(sim::SobolSampling, rvs::Integer)
-    s = SobolSeq(rvs)
-
-    skip(s, sim.n)
-
-    u = hcat([next!(s) for i = 1:sim.n]...) |> transpose
+    return QuasiMonteCarlo.sample(sim.n, zeros(rvs), ones(rvs), SobolSample()) |> transpose
 end
 
 function qmc_samples(sim::HaltonSampling, rvs::Integer)
-    h = HaltonPoint(rvs, length=sim.n)
+    h = HaltonPoint(rvs, length = sim.n)
 
     u = zeros(sim.n, rvs)
 
@@ -55,4 +56,9 @@ function qmc_samples(sim::HaltonSampling, rvs::Integer)
     end
 
     return u
+end
+
+function qmc_samples(sim::LatinHypercubeSampling, rvs::Integer)
+    return QuasiMonteCarlo.sample(sim.n, zeros(rvs), ones(rvs), LatinHypercubeSample()) |>
+           transpose
 end

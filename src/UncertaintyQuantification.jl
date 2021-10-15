@@ -11,13 +11,13 @@ using Formatting
 using HaltonSequences
 using LinearAlgebra
 using Mustache
+using QuasiMonteCarlo
 using Reexport
-using Sobol
 
 @reexport using Distributions
 
 import Base: rand, names, copy, run
-import Statistics:mean
+import Statistics: mean
 
 abstract type UQType end
 
@@ -48,6 +48,7 @@ export Extractor
 export GaussianCopula
 export HaltonSampling
 export JointDistribution
+export LatinHypercubeSampling
 export LineSampling
 export Model
 export MonteCarlo
