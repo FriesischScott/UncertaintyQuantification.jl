@@ -14,7 +14,7 @@ function MH(
     for i in 1:mcit-1
         curr = sample[i,:]
 
-        proposalval = curr + propdistsample() # hier curr input funktion?
+        proposalval = curr + propdistsample()
 
         A = (likelihood(proposalval)/likelihood(curr)*prior(proposalval)/
             prior(curr)*propdistpdf(proposalval-curr)/
