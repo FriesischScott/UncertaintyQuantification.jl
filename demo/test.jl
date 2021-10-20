@@ -15,7 +15,7 @@ propdistpdf(x) = pdf(propdist, x[1])
 
 
 
-mcit = 50500
+mcit = MonteCarlo(50500)
 
 rsample = MH(expfunc, prior, propdistpdf, propdistsample, [3], mcit, 500)
 

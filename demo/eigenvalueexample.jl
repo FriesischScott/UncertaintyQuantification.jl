@@ -26,8 +26,8 @@ function likelihood(x)
  
  tuningsig = [0.04 0; 0 0.04]
  propdist = MvNormal([0;0], tuningsig)
- propdistsample() = rand(expropdist)
- propdistpdf(x) = pdf(expropdist, x)
+ propdistsample() = rand(propdist)
+ propdistpdf(x) = pdf(propdist, x)
 
  priorsample(n) = rand(Uniform(0.001,4),(n, 2))
 
@@ -42,4 +42,10 @@ end
 
 
 
-tmcmcsample = tmcmc(likelihood, uniformprior, priorsample, 10000, 0.1)
+tmcmcsample = tmcmc(likelihood, uniformprior, priorsample, 5000, 0.1)
+
+#exsample = smc(likelihood, uniformprior, priorsample, propdistpdf, propdistsample, 5000, 1.0)
+
+#exsample = MH(likelihood, uniformprior, propdistpdf, propdistsample, [2.84; 2.33], 5000, 0)
+ 
+display(scatter(exsample[:,1], exsample[:, 2]))

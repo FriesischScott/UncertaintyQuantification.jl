@@ -83,9 +83,9 @@ mpropdist = MvNormal([0;0], propsig)
 mpropdistsample() = rand(mpropdist)
 mpropdistpdf(x) = pdf(mpropdist, x)
 
-msample = MH(likenormal, prior, mpropdistpdf, mpropdistsample, [-10; -7], 15000, 0)
+#msample = MH(likenormal, prior, mpropdistpdf, mpropdistsample, [-10; -7], 15000, 0)
 
-display(plot(1:15000, msample[:,1]))
+#display(plot(1:15000, msample[:,1]))
 #display(histogram(msample[:, 1]))
 #display(scatter(msample[:,1], msample[:, 2]))
 #eqt = calcequaltails(msample, 0.8)
@@ -136,8 +136,9 @@ end
  #display(scatter(exsample[:,1], exsample[:, 2]))
 
  println(exlikelihood([0.15 1.5]))
- println(exlikelihood([3 2.8]))
  println(exlikelihood([0.5 1.5]))
- println(exlikelihood([1.3 1.0]))
+ println(exlikelihood([1.5 1]))
+ println(exlikelihood([2.8 0.2]))
 
- # change order sample pdf
+println(exlikelihood([3 3]))
+println(exlikelihood([0.5 0.5]))

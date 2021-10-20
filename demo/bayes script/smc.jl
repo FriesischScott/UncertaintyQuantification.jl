@@ -7,7 +7,7 @@ function resample(sset, hatw)
     number = [1:snum...]
 
     for i in 1:snum
-        resample = sample(number, ProbabilityWeights(vec(hatw)))
+        resample = StatsBase.sample(number, ProbabilityWeights(vec(hatw)))
         rsset[i,:] = sset[resample, :]
     end
 
@@ -145,8 +145,7 @@ function exlikelihood(x)
  expropdistpdf(x) = pdf(expropdist, x)
  expriorsample(n) = rand(Uniform(0.001,4),(n, 2))
 
- exsample = smc(exlikelihood, prior, expriorsample, expropdistpdf, expropdistsample, 1000, 1.0)
+ exsample = smc(exlikelihood, prior, expriorsample, expropdistpdf, expropdistsample, 5000, 1.0)
  
  display(scatter(exsample[:,1], exsample[:, 2]))
 
- #println(exlikelihood([0.25 3]))

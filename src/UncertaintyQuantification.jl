@@ -78,7 +78,7 @@ export to_physical_space!
 export to_standard_normal_space
 export to_standard_normal_space!
 export MH
-export gibbs
+export gibbssample
 export smc
 export tmcmc
 

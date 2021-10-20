@@ -178,10 +178,10 @@ likenormal(x) = pdf(mvnormal, [x[1], x[2]])+pdf(mvnormal2, [x[1], x[2]])
 
 mpriorsample(n) = rand(Uniform(-40,40),(n, 2))
 
-tmsample = tmcmc(likenormal, prior, mpriorsample, 10000, gamma)
+#tmsample = tmcmc(likenormal, prior, mpriorsample, 10000, gamma)
 
 #display(histogram(msample[:, 1]))
-display(scatter(tmsample[:,1], tmsample[:, 2]))
+#display(scatter(tmsample[:,1], tmsample[:, 2]))
 
 
 
@@ -225,7 +225,7 @@ function exlikelihood(x)
     return  rv
 end
 
- exsample = tmcmc(exlikelihood, uniprior, expriorsample, 10000, 0.1)
+ exsample = tmcmc(exlikelihood, uniprior, expriorsample, 5000, 0.1)
  
- #display(scatter(exsample[:,1], exsample[:, 2]))
- display(histogram(exsample[:, 2]))
+ display(scatter(exsample[:,1], exsample[:, 2]))
+ #display(histogram(exsample[:, 2]))
