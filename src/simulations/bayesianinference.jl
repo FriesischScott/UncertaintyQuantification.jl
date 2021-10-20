@@ -1,16 +1,14 @@
-using LinearAlgebra, DataFrames, FiniteDifferences, Dierckx, Reexport,
-Distributions, Random, Plots, StatsBase
-
 function MH(
     likelihood::Function,
     prior::Function,
-    propdistsample::Function,
     propdistpdf::Function,
+    propdistsample::Function,
     startval::Array,
     mcit::Int64,
     burn::Int64
     )
-    sample = zeros(mcit,size(startval, 1))
+
+    sample = zeros(mcit,size(startval,1))
     sample[1,:] = startval
 
     for i in 1:mcit-1
@@ -32,7 +30,29 @@ function MH(
     return sample[burn+1:mcit,:]
 end
 
-function tresample(sset, hatw)
+function gibbssample(
+    condist::Array,
+    startval::Array,
+    mcit::Int64,
+    burn::Int64
+    )
+
+    sample = zeros(mcit, size(startval, 2))
+    sample[1,:] = startval
+
+    for i in 1:mcit-1
+        sample[i+1,:] = sample[i,:]
+        for j in 1:size(sample, 2)
+            sample[i+1,j] = rand(condist[j](sample[i+1,:]))
+        end
+    end
+    return sample[burn+1:mcit,:]
+end
+
+function tresample(
+    sset::Array,
+    hatw::Array
+    )
     snum = size(sset,1)
     rsset = zeros(snum, size(sset,2))
     hatwn = zeros(snum, 1)
@@ -80,9 +100,9 @@ function calcbeta(
 end
 
 function calcsigma(
-    sset,
-    hatw,
-    gamma
+    sset::Array,
+    hatw::Array,
+    gamma::Int64
     )
     sdim = size(sset, 2)
     snum = size(sset, 1)
@@ -129,7 +149,7 @@ function tmcmc(
             propdistsample() = rand(mvpropdist)
             propdistpdf(x) = pdf(mvpropdist, x)
             likelihoodbeta(x) = likelihood(x)^(betaj1)
-            sset[i,:] = MH(likelihoodbeta, prior, propdistsample, propdistpdf, sset[i,:], 2,1)
+            sset[i,:] = MH(likelihoodbeta, prior, propdistpdf, propdistsample, sset[i,:], 2,1)
         end
         betaj = betaj1
     end
@@ -137,95 +157,68 @@ function tmcmc(
     return sset
 end
 
-function samplemean(
-    dsample::Array
+function resample(
+    sset::Array,
+    hatw::Array
     )
-    sumx = sum(dsample, dims=1)
-    mcit = size(dsample,1)
-    return sumx./mcit
-end
+    snum = size(sset,1)
+    rsset = zeros(snum, size(sset,2))
+    number = [1:snum...]
 
-
-function expfunc(x)
-    if x[1]<0
-        rv = 0
-    else
-        rv = exp(-x[1])
+    for i in 1:snum
+        resample = StatsBase.sample(number, ProbabilityWeights(vec(hatw)))
+        rsset[i,:] = sset[resample, :]
     end
-    return rv
+
+    return rsset
 end
-prior(x) = 1
 
-priorsample(n) = rand(Uniform(0,10),n)
+function smc(
+    likelihood::Function,
+    prior::Function,
+    priorsample::Function,
+    propdistpdf::Function,
+    propdistsample::Function,
+    snum::Int64,
+    term::Float64
+    )
 
-propdist = Normal(0, 0.1)
-propdistsample() = [rand(propdist)]
-propdistpdf(x) = pdf(propdist, x[1])
+    j = 0
+    cov = 0
+    sset = priorsample(snum)
+    w = zeros(snum,1)
 
+    for i in 1:snum
+        w[i] = likelihood(sset[i,:])*prior(sset[i,:])
+    end
 
-mcit = 5000
-gamma = 0.2
+    hatw = w./sum(w)
 
-#rsample = tmcmc(expfunc, prior, priorsample, mcit, gamma)
-#display(histogram(rsample[:, 1]))
-
-
-mu = [0, 0]
-sig = [1 0.8; 0.8 10]
-mvnormal = MvNormal(mu, sig)
-mvnormal2 = MvNormal([3, -5], sig)
-likenormal(x) = pdf(mvnormal, [x[1], x[2]])+pdf(mvnormal2, [x[1], x[2]])
-
-mpriorsample(n) = rand(Uniform(-40,40),(n, 2))
-
-tmsample = tmcmc(likenormal, prior, mpriorsample, 10000, gamma)
-
-#display(histogram(msample[:, 1]))
-display(scatter(tmsample[:,1], tmsample[:, 2]))
-
-
-
-function exlikelihood(x)
-    eigvaln = [1.51 0.33; 4.01 0.30; 3.16 0.27; 3.21 0.18; 2.19 0.33; 1.71 0.23;
- 2.73 0.21; 5.51 0.20; 1.95 0.11; 4.48 0.20; 1.43 0.16; 2.91 0.26; 3.81 0.23;
- 3.58 0.25; 2.62 0.25]
-
-    exsig = [1 0.5]
-    rv = 0
-
-    la1 = (x[1] + 2*x[2] + sqrt(x[1].^2 + 4x[2].^2))/2
-    la2 = (x[1] + 2*x[2] - sqrt(x[1].^2 + 4x[2].^2))/2
-
-    model = [la1 la2]
-
-
-    for i in 1:2
-        for j in 1:15
-            rv += ((eigvaln[j,i] - model[i])/exsig[i])^2
+    while cov < term
+        j += 1
+        Neff = 1/sum(hatw.^2)
+        if Neff < snum/2
+            sset = resample(sset, hatw)
+            hatw = ones(snum,1)./snum
         end
+
+        rsset = zeros(snum, size(sset,2))
+        w = zeros(snum, 1)
+        likelihoodcov = zeros(snum, size(sset,2))
+
+        for i in 1:snum
+            rsset[i,:] = sset[i,:] + propdistsample()
+            likelihoodcov[i] = likelihood(rsset[i,:])/likelihood(rsset[i,:])
+            w[i] = hatw[i].*likelihood(rsset[i,:])/likelihood(sset[i,:])*
+                prior(rsset[i,:])/prior(sset[i,:])*
+                propdistpdf(rsset[i,:]-sset[i,:])/propdistpdf(sset[i,:]-rsset[i,:])
+        end
+
+        sset = rsset
+        hatw = w./sum(w)
+
+        cov = std(likelihoodcov)/mean(likelihoodcov)
+
     end
-
-    rv = exp(-1/2*rv)
-    return rv
- end
-
- 
- tuningsig = [0.04 0; 0 0.04]
- expropdist = MvNormal(mu, tuningsig)
- expropdistsample() = rand(expropdist)
- expropdistpdf(x) = pdf(expropdist, x)
- expriorsample(n) = rand(Uniform(0.001,4),(n, 2))
-
- function uniprior(x) 
-    if x[1] > 0.001 && x[1] < 4 && x[2] > 0.001 && x[2] < 4
-        rv = 1
-    else 
-        rv = 0
-    end
-    return  rv
+    return sset
 end
-
- exsample = tmcmc(exlikelihood, uniprior, expriorsample, 10000, 0.1)
- 
- #display(scatter(exsample[:,1], exsample[:, 2]))
- display(histogram(exsample[:, 2]))
