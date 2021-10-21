@@ -9,6 +9,9 @@
 
     n = 1000
 
+    firstorder_analytical = [0.3138, 0.4424, 0.00]
+    totaleffect_analytical = [0.5574, 0.4424, 0.2436]
+
     @testset "Monte Carlo" begin
         Random.seed!(8128)
 
@@ -16,7 +19,8 @@
 
         Random.seed!()
 
-        @test isapprox(si.FirstOrder, [0.314, 0.442, 0.00], rtol = 0.1) |> all
+        @test isapprox(si.FirstOrder, firstorder_analytical, rtol = 0.1) |> all
+        @test isapprox(si.TotalEffect, totaleffect_analytical, rtol = 0.1) |> all
     end
 
     @testset "Sobol" begin
@@ -26,7 +30,8 @@
 
         Random.seed!()
 
-        @test isapprox(si.FirstOrder, [0.314, 0.442, 0.00], rtol = 0.1) |> all
+        @test isapprox(si.FirstOrder, firstorder_analytical, rtol = 0.1) |> all
+        @test isapprox(si.TotalEffect, totaleffect_analytical, rtol = 0.1) |> all
     end
 
     @testset "Halton" begin
@@ -36,7 +41,8 @@
 
         Random.seed!()
 
-        @test isapprox(si.FirstOrder, [0.314, 0.442, 0.00], rtol = 0.1) |> all
+        @test isapprox(si.FirstOrder, firstorder_analytical, rtol = 0.1) |> all
+        @test isapprox(si.TotalEffect, totaleffect_analytical, rtol = 0.1) |> all
     end
 
     @testset "Latin Hypercube" begin
@@ -46,6 +52,7 @@
 
         Random.seed!()
 
-        @test isapprox(si.FirstOrder, [0.314, 0.442, 0.00], rtol = 0.1) |> all
+        @test isapprox(si.FirstOrder, firstorder_analytical, rtol = 0.1) |> all
+        @test isapprox(si.TotalEffect, totaleffect_analytical, rtol = 0.1) |> all
     end
 end
