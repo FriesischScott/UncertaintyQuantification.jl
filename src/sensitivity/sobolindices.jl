@@ -39,7 +39,7 @@ function sobolindices(
         ABi[:, output] .-= mean(ABi[:, output])
 
         first_order = x -> mean(fB .* (x .- fA)) / VY # Saltelli 2009
-        total_effect = x -> (1 / (sim.n)) * sum((fA .- x) .^ 2) / VY # Saltelli 2009
+        total_effect = x -> (1 / (2 * sim.n)) * sum((fA .- x) .^ 2) / VY # Saltelli 2009
 
         # First order effects
         Si[i, 1] = first_order(ABi[:, output])
