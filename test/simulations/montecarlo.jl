@@ -8,9 +8,9 @@ end
 @testset "QuasiMonteCarlo" begin
 
     # Make sure that all QMC Types implement qmc_samples
-    for qmc ∈ subtypes(AbstractQuasiMonteCarlo)
-    @test hasmethod(qmc_samples, (qmc, Integer))
-end
+    for qmc in subtypes(AbstractQuasiMonteCarlo)
+        @test hasmethod(qmc_samples, (qmc, Integer))
+    end
 
     @testset "SobolSampling" begin
         sobol = SobolSampling(1000)

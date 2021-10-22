@@ -9,7 +9,6 @@ struct ExternalModel <: UQModel
 end
 
 function evaluate!(m::ExternalModel, df::DataFrame)
-
     datetime = Dates.format(now(), "YYYY-mm-dd-HH-MM-SS")
 
     n = size(df, 1)
@@ -21,7 +20,7 @@ function evaluate!(m::ExternalModel, df::DataFrame)
 
         row = formatinputs(df[i, :], m.formats)
 
-        for file ∈ m.sources
+        for file in m.sources
             tokens = Mustache.load(joinpath(m.sourcedir, file))
 
             open(joinpath(path, file), "w") do io
@@ -29,7 +28,7 @@ function evaluate!(m::ExternalModel, df::DataFrame)
             end
         end
 
-        for file ∈ m.extras
+        for file in m.extras
             cp(joinpath(m.sourcedir, file), joinpath(path, file))
         end
 
@@ -38,10 +37,10 @@ function evaluate!(m::ExternalModel, df::DataFrame)
         return map(e -> e.f(path), m.extractors)
     end
 
-    results = hcat(results...) |> transpose
+    results = transpose(hcat(results...))
     vars = names(m.extractors)
 
-    for (i, name) ∈ enumerate(names(m.extractors))
+    for (i, name) in enumerate(names(m.extractors))
         df[!, name] = results[:, i]
     end
 end
@@ -49,7 +48,7 @@ end
 function formatinputs(row::DataFrameRow, formats::Dict{Symbol,FormatSpec})
     names = propertynames(row)
     values = []
-    for symbol ∈ names
+    for symbol in names
         if haskey(formats, symbol)
             push!(values, fmt(formats[symbol], row[symbol]))
         elseif haskey(formats, :*)

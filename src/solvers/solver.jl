@@ -16,10 +16,10 @@ function run(solver::Solver, folder::String)
     err = joinpath(folder, basename(binary) * "UncertaintyQuantification.err")
 
     if !isempty(args)
-        Base.run(pipeline(`$binary $args $source`, stdout=out, stderr=err))
+        Base.run(pipeline(`$binary $args $source`; stdout=out, stderr=err))
     else
-        Base.run(pipeline(`$binary $source`, stdout=out, stderr=err))
+        Base.run(pipeline(`$binary $source`; stdout=out, stderr=err))
     end
 
-    cd(old_pwd)
+    return cd(old_pwd)
 end

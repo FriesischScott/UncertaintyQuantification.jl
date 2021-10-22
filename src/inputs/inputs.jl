@@ -6,7 +6,7 @@ Generates n correlated samples from a collection of inputs. Returns a DataFrame
 See also: [`RandomVariable`](@ref), [`Parameter`](@ref)
 """
 function sample(inputs::Array{<:UQInput}, n::Integer=1)
-    mapreduce(i -> sample(i, n), hcat, inputs)
+    return mapreduce(i -> sample(i, n), hcat, inputs)
 end
 
 function to_physical_space!(inputs::Array{<:UQInput}, x::DataFrame)
@@ -39,7 +39,7 @@ end
 
 function count_rvs(inputs::Array{<:UQInput})
     random_inputs = filter(i -> isa(i, RandomUQInput), inputs)
-    mapreduce(dimensions, +, random_inputs)
+    return mapreduce(dimensions, +, random_inputs)
 end
 
 mean(inputs::Array{<:UQInput}) = mapreduce(mean, hcat, inputs)

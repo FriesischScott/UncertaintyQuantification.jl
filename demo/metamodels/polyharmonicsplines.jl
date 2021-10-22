@@ -6,7 +6,9 @@ b = Parameter(0.05, :b)
 
 inputs = [x; a; b]
 
-ishigami = Model(df -> sin.(df.x1) .+ df.a .* sin.(df.x2).^2 .+ df.b .* (df.x3.^4) .* sin.(df.x1), :y)
+ishigami = Model(
+    df -> sin.(df.x1) .+ df.a .* sin.(df.x2) .^ 2 .+ df.b .* (df.x3 .^ 4) .* sin.(df.x1), :y
+)
 
 data = sample(inputs, SobolSampling(500))
 evaluate!(ishigami, data)

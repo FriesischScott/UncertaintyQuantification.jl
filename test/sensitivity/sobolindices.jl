@@ -1,10 +1,8 @@
 @testset "sobolindices" begin
-
     x = RandomVariable.(Uniform(-π, π), [:x1, :x2, :x3])
 
     ishigami = Model(
-        df -> sin.(df.x1) + 7 .* sin.(df.x2) .^ 2 + 0.1 .* df.x3 .^ 4 .* sin.(df.x1),
-        :f,
+        df -> sin.(df.x1) + 7 .* sin.(df.x2) .^ 2 + 0.1 .* df.x3 .^ 4 .* sin.(df.x1), :f
     )
 
     n = 1000
@@ -19,8 +17,8 @@
 
         Random.seed!()
 
-        @test isapprox(si.FirstOrder, firstorder_analytical, rtol = 0.1) |> all
-        @test isapprox(si.TotalEffect, totaleffect_analytical, rtol = 0.1) |> all
+        @test all(isapprox(si.FirstOrder, firstorder_analytical; rtol=0.1))
+        @test all(isapprox(si.TotalEffect, totaleffect_analytical; rtol=0.1))
     end
 
     @testset "Sobol" begin
@@ -30,8 +28,8 @@
 
         Random.seed!()
 
-        @test isapprox(si.FirstOrder, firstorder_analytical, rtol = 0.1) |> all
-        @test isapprox(si.TotalEffect, totaleffect_analytical, rtol = 0.1) |> all
+        @test all(isapprox(si.FirstOrder, firstorder_analytical; rtol=0.1))
+        @test all(isapprox(si.TotalEffect, totaleffect_analytical; rtol=0.1))
     end
 
     @testset "Halton" begin
@@ -41,8 +39,8 @@
 
         Random.seed!()
 
-        @test isapprox(si.FirstOrder, firstorder_analytical, rtol = 0.1) |> all
-        @test isapprox(si.TotalEffect, totaleffect_analytical, rtol = 0.1) |> all
+        @test all(isapprox(si.FirstOrder, firstorder_analytical; rtol=0.1))
+        @test all(isapprox(si.TotalEffect, totaleffect_analytical; rtol=0.1))
     end
 
     @testset "Latin Hypercube" begin
@@ -52,7 +50,7 @@
 
         Random.seed!()
 
-        @test isapprox(si.FirstOrder, firstorder_analytical, rtol = 0.1) |> all
-        @test isapprox(si.TotalEffect, totaleffect_analytical, rtol = 0.1) |> all
+        @test all(isapprox(si.FirstOrder, firstorder_analytical; rtol=0.1))
+        @test all(isapprox(si.TotalEffect, totaleffect_analytical; rtol=0.1))
     end
 end

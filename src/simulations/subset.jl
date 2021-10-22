@@ -5,14 +5,12 @@ struct SubSetSimulation
     proposal::Sampleable{Univariate}
 
     function SubSetSimulation(
-        n::Integer,
-        target::Float64,
-        levels::Integer,
-        proposal::Sampleable{Univariate}
+        n::Integer, target::Float64, levels::Integer, proposal::Sampleable{Univariate}
     )
         skewness(proposal) != 0.0 && error("proposal must be a symmetric distribution")
-        mean(proposal) != median(proposal) && error("proposal must be a symmetric distribution")
-        new(n, target, levels, proposal)
+        mean(proposal) != median(proposal) &&
+            error("proposal must be a symmetric distribution")
+        return new(n, target, levels, proposal)
     end
 end
 
@@ -37,7 +35,7 @@ end
 function probability_of_failure(
     models::Union{Array{<:UQModel},UQModel},
     performancefunction::Function,
-    inputs::Union{Array{T},T} where T <: UQInput,
+    inputs::Union{Array{T},T} where {T<:UQInput},
     sim::SubSetSimulation,
 )
     random_inputs = filter(i -> isa(i, RandomUQInput), inputs)
@@ -49,18 +47,22 @@ function probability_of_failure(
 
     performance = [performancefunction(samples[end])]
 
-    number_of_chains = max(1, ceil(sim.n * sim.target)) |> Int64
+    number_of_chains = Int64(max(1, ceil(sim.n * sim.target)))
     samples_per_chain = floor(sim.n / number_of_chains)
 
     threshold = zeros(sim.levels, 1)
     pf = ones(sim.levels, 1)
 
-    for i ∈ 1:sim.levels
+    for i in 1:(sim.levels)
         sorted_performance = sort(performance[end])
         sorted_indices = sortperm(performance[end])
 
         threshold[i] = sorted_performance[number_of_chains]
-        pf[i] = threshold[i] <= 0 ? mean(performance[end] .<= 0) : mean(performance[end] .<= threshold[i])
+        pf[i] = if threshold[i] <= 0
+            mean(performance[end] .<= 0)
+        else
+            mean(performance[end] .<= threshold[i])
+        end
 
         if threshold[i] <= 0 || i == sim.levels
             break
@@ -70,12 +72,14 @@ function probability_of_failure(
         nextlevelperformance = [sorted_performance[1:number_of_chains]]
 
         # Modified metropolis hastings to generate samples for the next intermediate failure region
-        for c ∈ 1:samples_per_chain
+        for c in 1:samples_per_chain
             chainsamples = copy(nextlevelsamples[end])
 
             to_standard_normal_space!(inputs, chainsamples)
 
-            chainsamples[:, rvs] = candidatesamples(Matrix{Float64}(chainsamples[:, rvs]), sim.proposal)
+            chainsamples[:, rvs] = candidatesamples(
+                Matrix{Float64}(chainsamples[:, rvs]), sim.proposal
+            )
 
             to_physical_space!(inputs, chainsamples)
 
@@ -105,7 +109,7 @@ function probability_of_failure(
     end
 
     # add level to each dataframe
-    for i ∈ eachindex(samples)
+    for i in eachindex(samples)
         samples[i][!, :level] .= i
     end
     # merge (vcat) all samples

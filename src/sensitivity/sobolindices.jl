@@ -4,18 +4,17 @@ function sobolindices(
     output::Symbol,
     sim::AbstractMonteCarlo,
 )
-
     sim_double_samples = @set sim.n = 2 * sim.n
 
     samples = sample(inputs, sim_double_samples)
     samples = samples[shuffle(1:size(samples, 1)), :]
 
-    random_names = filter(i -> isa(i, RandomUQInput), inputs) |> names
+    random_names = names(filter(i -> isa(i, RandomUQInput), inputs))
 
     evaluate!(models, samples)
 
-    A = samples[1:sim.n, :]
-    B = samples[sim.n+1:end, :]
+    A = samples[1:(sim.n), :]
+    B = samples[(sim.n + 1):end, :]
 
     fA = A[:, output]
     fB = B[:, output]
@@ -28,11 +27,11 @@ function sobolindices(
     Si = zeros(length(random_names), 2)
     STi = zeros(length(random_names), 2)
 
-    for (i, name) ∈ enumerate(random_names)
+    for (i, name) in enumerate(random_names)
         ABi = select(A, Not(name))
         ABi[:, name] = B[:, name]
 
-        for m ∈ models
+        for m in models
             evaluate!(m, ABi)
         end
 
