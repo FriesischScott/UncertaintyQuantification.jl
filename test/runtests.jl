@@ -1,4 +1,5 @@
 using DataFrames
+using Distributions
 using Formatting
 using InteractiveUtils
 using Random
@@ -21,6 +22,7 @@ include("reliability/probabilityoffailure.jl")
 include("sensitivity/gradient.jl")
 include("sensitivity/sobolindices.jl")
 
+include("simulations/bayesianinference.jl")
 include("simulations/montecarlo.jl")
 include("simulations/subset.jl")
 

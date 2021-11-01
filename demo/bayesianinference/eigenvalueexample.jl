@@ -5,10 +5,10 @@ function likelihood(x)
  2.73 0.21; 5.51 0.20; 1.95 0.11; 4.48 0.20; 1.43 0.16; 2.91 0.26; 3.81 0.23;
  3.58 0.25; 2.62 0.25]
 
-    sig = [1 0.5]
+    sig = [1 0.1]
 
-    la1 = (x[1] + 2*x[2] + sqrt(x[1].^2 + 4x[2].^2))/2
-    la2 = (x[1] + 2*x[2] - sqrt(x[1].^2 + 4x[2].^2))/2
+    la1 = (x[1] + 2*x[2] + sqrt(x[1].^2 + 4*x[2].^2))/2
+    la2 = (x[1] + 2*x[2] - sqrt(x[1].^2 + 4*x[2].^2))/2
 
     model = [la1 la2]
     rv = 0
@@ -18,9 +18,7 @@ function likelihood(x)
             rv += ((eigvaln[j,i] - model[i])/sig[i])^2
         end
     end
-
-    rv = exp(-1/2*rv)
-    return rv
+    return exp(-1/2*rv)
  end
 
  
@@ -38,14 +36,19 @@ function likelihood(x)
         rv = 0
     end
     return  rv
-end
+ end
+
+ function term(sset, j)
+    #cov = std(sset)/mean(sset) 
+    #coefficient of variance is an alternative way to terminate the sampler
+    rv = true
+    if j >= 1 rv = false end
+    return rv
+ end
 
 
+tmcmcexsample = tmcmc(likelihood, uniformprior, priorsample, 1000, 0.001)
 
-tmcmcsample = tmcmc(likelihood, uniformprior, priorsample, 5000, 0.1)
+smcexsample = smc(likelihood, uniformprior, priorsample, propdistpdf, propdistsample, 1000, term)
 
-#exsample = smc(likelihood, uniformprior, priorsample, propdistpdf, propdistsample, 5000, 1.0)
-
-#exsample = MH(likelihood, uniformprior, propdistpdf, propdistsample, [2.84; 2.33], 5000, 0)
- 
-display(scatter(exsample[:,1], exsample[:, 2]))
+mhexsample = mh(likelihood, uniformprior, propdistpdf, propdistsample, [2.84, 2.33], 1000, 0)

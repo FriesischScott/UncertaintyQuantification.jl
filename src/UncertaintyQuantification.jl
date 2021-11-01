@@ -77,10 +77,13 @@ export to_copula_space
 export to_physical_space!
 export to_standard_normal_space
 export to_standard_normal_space!
-export MH
+export mh
 export gibbssample
 export smc
 export tmcmc
+export grconvergence
+export calcequaltails
+
 
 include("inputs/inputs.jl")
 include("inputs/parameter.jl")
