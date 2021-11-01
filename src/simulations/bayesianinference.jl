@@ -15,13 +15,13 @@ function mh(
         curr = sample[i,:]
 
         #create new sample
-        proposalval = curr + propdistsample() 
+        proposalval = curr + propdistsample()
 
         #calculate acceptance probability
         A = (likelihood(proposalval)/likelihood(curr)*prior(proposalval)/
             prior(curr)*propdistpdf(proposalval-curr)/
             propdistpdf(curr-proposalval))[1]
-            
+
         #accept or reject sample
         if A>=rand(Uniform(0,1))
             sample[i+1,:] = proposalval
@@ -118,7 +118,7 @@ function calcsigma(
     for i in 1:snum
         thet = thet + sset[i,:].*hatw[i]
     end
-    
+
     for i in 1:snum
         sig = sig + ((sset[i,:]-thet)*(sset[i,:]-thet)').*hatw[i]
     end
@@ -277,16 +277,16 @@ function grconvergence(
         end
         #vector of variances for each chain
         chainvariance = chainvariance./(mcitb-1)
-        
+
         #variance of all chains
         mvariance = 0
         for i in 1:nchains mvariance += chainvariance[i]/nchains end
-        
+
         #variance bias estimator
         Bn = 0
         for i in 1:nchains Bn += (chainmean[i]-overallmean)^2 end
         Bn = Bn/(nchains-1)
-        
+
         #over corrected variance
         sig2 = ((mcitb-1)/mcitb)*mvariance + Bn
 
@@ -306,14 +306,14 @@ function grconvergence(
         end
         #array of covariance matrices for each chain
         chainvariance = chainvariance./(mcitb-1)
-        
+
         #covariance matrix of all chains
         mvariance = zeros(dims, dims)
         for i in 1:nchains mvariance += chainvariance[:,:,i]./nchains end
 
         #bias estimator
         Bn = zeros(dims, dims)
-        for i in 1:nchains 
+        for i in 1:nchains
             v = chainmean[:,i] - overallmean
             Bn += v*v'
         end
@@ -321,7 +321,7 @@ function grconvergence(
         Bn = Bn*mcitb/(nchains-1)
         mvariance = inv(mvariance)
         maxeig = maximum(eigvals(mvariance*Bn))
-    
+
         rhat = sqrt((mcitb-1)/mcitb + maxeig/mcitb)
     end
 
