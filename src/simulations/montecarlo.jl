@@ -19,7 +19,7 @@ struct LatinHypercubeSampling <: AbstractQuasiMonteCarlo
 end
 
 function sample(inputs::Array{<:UQInput}, sim::MonteCarlo)
-    sample(inputs, sim.n)
+    return sample(inputs, sim.n)
 end
 
 function sample(inputs::Array{<:UQInput}, sim::AbstractQuasiMonteCarlo)
@@ -43,15 +43,15 @@ function sample(inputs::Array{<:UQInput}, sim::AbstractQuasiMonteCarlo)
 end
 
 function qmc_samples(sim::SobolSampling, rvs::Integer)
-    return QuasiMonteCarlo.sample(sim.n, zeros(rvs), ones(rvs), SobolSample()) |> transpose
+    return transpose(QuasiMonteCarlo.sample(sim.n, zeros(rvs), ones(rvs), SobolSample()))
 end
 
 function qmc_samples(sim::HaltonSampling, rvs::Integer)
-    h = HaltonPoint(rvs, length = sim.n)
+    h = HaltonPoint(rvs; length=sim.n)
 
     u = zeros(sim.n, rvs)
 
-    for (i, hp) ∈ enumerate(h)
+    for (i, hp) in enumerate(h)
         u[i, :] = hp
     end
 
@@ -59,6 +59,7 @@ function qmc_samples(sim::HaltonSampling, rvs::Integer)
 end
 
 function qmc_samples(sim::LatinHypercubeSampling, rvs::Integer)
-    return QuasiMonteCarlo.sample(sim.n, zeros(rvs), ones(rvs), LatinHypercubeSample()) |>
-           transpose
+    return transpose(
+        QuasiMonteCarlo.sample(sim.n, zeros(rvs), ones(rvs), LatinHypercubeSample())
+    )
 end

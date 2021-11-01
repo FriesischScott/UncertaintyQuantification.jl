@@ -15,7 +15,7 @@ struct Parameter <: DeterministicUQInput
 end
 
 function sample(p::Parameter, n::Integer=1)
-    DataFrame(p.name => ones(n) * p.value)
+    return DataFrame(p.name => ones(n) * p.value)
 end
 
 to_standard_normal_space!(p::Parameter, x::DataFrame) = nothing

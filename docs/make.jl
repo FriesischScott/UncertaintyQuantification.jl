@@ -1,10 +1,15 @@
 using Documenter, UncertaintyQuantification
 
-DocMeta.setdocmeta!(UncertaintyQuantification, :DocTestSetup, :(using UncertaintyQuantification, Random; Random.seed!(8128)); recursive=true)
+DocMeta.setdocmeta!(
+    UncertaintyQuantification,
+    :DocTestSetup,
+    :(using UncertaintyQuantification, Random; Random.seed!(8128));
+    recursive=true,
+)
 
-makedocs(
+makedocs(;
     modules=[UncertaintyQuantification],
-    format=Documenter.HTML(prettyurls=get(ENV, "CI", nothing) == "true"),
+    format=Documenter.HTML(; prettyurls=get(ENV, "CI", nothing) == "true"),
     sitename="UncertaintyQuantification.jl",
     authors="Jasper Behrensdorf and Ander Gray",
     pages=[
@@ -17,12 +22,11 @@ makedocs(
         "API" => [
             "Inputs" => "api/inputs.md",
             "Parameter" => "api/parameter.md",
-            "RandomVariable" => "api/randomvariable.md"
+            "RandomVariable" => "api/randomvariable.md",
         ],
-    ]
+    ],
 )
 
-deploydocs(
-    repo="github.com/FriesischScott/UncertaintyQuantification.jl",
-    push_preview=true
+deploydocs(;
+    repo="github.com/FriesischScott/UncertaintyQuantification.jl", push_preview=true
 )

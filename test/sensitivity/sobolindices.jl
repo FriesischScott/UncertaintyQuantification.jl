@@ -1,27 +1,56 @@
 @testset "sobolindices" begin
+    x = RandomVariable.(Uniform(-π, π), [:x1, :x2, :x3])
 
-    σx = [1, 1.1, 0.9, 1.2, 0.8]
-    σω = [0.7, 1.3, 1.4, 0.6, 0.95]
+    ishigami = Model(
+        df -> sin.(df.x1) + 7 .* sin.(df.x2) .^ 2 + 0.1 .* df.x3 .^ 4 .* sin.(df.x1), :f
+    )
 
-    X = RandomVariable.(Normal.(0, σx), [:X1, :X2, :X3, :X4, :X5])
-    ω = RandomVariable.(Normal.(0, σω), [:ω1, :ω2, :ω3, :ω4, :ω5])
+    n = 1000
 
-    B = Model(df -> df.X1 .* df.ω1
-    + df.X2 .* df.ω2
-    + df.X3 .* df.ω3
-    + df.X4 .* df.ω4
-    + df.X5 .* df.ω5, :B)
+    firstorder_analytical = [0.3138, 0.4424, 0.00]
+    totaleffect_analytical = [0.5574, 0.4424, 0.2436]
 
-    Random.seed!(8128)
+    @testset "Monte Carlo" begin
+        Random.seed!(8128)
 
-    si = sobolindices([B], [X; ω], :B, MonteCarlo(5000))
+        si = sobolindices([ishigami], x, :f, MonteCarlo(n))
 
-    Random.seed!()
+        Random.seed!()
 
-    VB = sum(σx.^2 .* σω.^2)
-    analytical = (σx.^2 .* σω.^2) / VB
+        @test all(isapprox(si.FirstOrder, firstorder_analytical; rtol=0.1))
+        @test all(isapprox(si.TotalEffect, totaleffect_analytical; rtol=0.1))
+    end
 
-    @test isapprox.(si.FirstOrder, 0.0, atol=0.1) |> all
-    @test isapprox.(si.TotalEffect[1:5], analytical, rtol=0.1) |> all
-    @test isapprox.(si.TotalEffect[6:end], analytical, rtol=0.1) |> all
+    @testset "Sobol" begin
+        Random.seed!(8128)
+
+        si = sobolindices([ishigami], x, :f, SobolSampling(n))
+
+        Random.seed!()
+
+        @test all(isapprox(si.FirstOrder, firstorder_analytical; rtol=0.1))
+        @test all(isapprox(si.TotalEffect, totaleffect_analytical; rtol=0.1))
+    end
+
+    @testset "Halton" begin
+        Random.seed!(8128)
+
+        si = sobolindices([ishigami], x, :f, MonteCarlo(n))
+
+        Random.seed!()
+
+        @test all(isapprox(si.FirstOrder, firstorder_analytical; rtol=0.1))
+        @test all(isapprox(si.TotalEffect, totaleffect_analytical; rtol=0.1))
+    end
+
+    @testset "Latin Hypercube" begin
+        Random.seed!(8128)
+
+        si = sobolindices([ishigami], x, :f, MonteCarlo(n))
+
+        Random.seed!()
+
+        @test all(isapprox(si.FirstOrder, firstorder_analytical; rtol=0.1))
+        @test all(isapprox(si.TotalEffect, totaleffect_analytical; rtol=0.1))
+    end
 end

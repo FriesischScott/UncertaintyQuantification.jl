@@ -1,21 +1,16 @@
 @testset "ExternalModel" begin
-
     sourcedir = tempdir()
     sourcefiles = ["in.txt"]
     extrafiles = []
 
-    numberformats = Dict(
-        :x => FormatSpec(".8e"),
-        :* => FormatSpec(".8e")
-    )
+    numberformats = Dict(:x => FormatSpec(".8e"), :* => FormatSpec(".8e"))
 
     workdir = joinpath(tempdir(), "external-model-test")
 
     r = Extractor(
         base -> begin
             map(x -> parse(Float64, x), readlines(joinpath(base, "out.txt")))[1]
-        end,
-        :r
+        end, :r
     )
 
     binary = ""
@@ -27,20 +22,10 @@
         binary = joinpath(pwd(), "solvers/bin/radius")
     end
 
-    opensees = Solver(
-        binary,
-        "",
-        "in.txt"
-    )
+    opensees = Solver(binary, "", "in.txt")
 
     ext = ExternalModel(
-        sourcedir,
-        sourcefiles,
-        extrafiles,
-        numberformats,
-        workdir,
-        [r],
-        opensees
+        sourcedir, sourcefiles, extrafiles, numberformats, workdir, [r], opensees
     )
 
     open(joinpath(sourcedir, "in.txt"), "w") do input
@@ -55,6 +40,5 @@
 
     evaluate!(ext, df)
 
-    @test isapprox(df.r, sqrt.(df.x.^2 + df.y.^2))
-
+    @test isapprox(df.r, sqrt.(df.x .^ 2 + df.y .^ 2))
 end

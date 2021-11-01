@@ -5,7 +5,11 @@
 
     inputs = [x; a; b]
 
-    ishigami = Model(df -> sin.(df.x1) .+ df.a .* sin.(df.x2).^2 .+ df.b .* (df.x3.^4) .* sin.(df.x1), :y)
+    ishigami = Model(
+        df ->
+            sin.(df.x1) .+ df.a .* sin.(df.x2) .^ 2 .+ df.b .* (df.x3 .^ 4) .* sin.(df.x1),
+        :y,
+    )
 
     Random.seed!(8128)
 
@@ -18,6 +22,6 @@
     splinedata = select(data, Not(:y))
     evaluate!(spline, splinedata)
 
-    mse = (data.y .- splinedata.y).^2 |> mean
-    @test isapprox(mse, 0, atol=eps(Float64))
+    mse = mean((data.y .- splinedata.y) .^ 2)
+    @test isapprox(mse, 0; atol=eps(Float64))
 end

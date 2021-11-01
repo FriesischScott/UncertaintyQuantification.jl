@@ -1,5 +1,4 @@
 @testset "Solvers" begin
-
     binary = ""
     if Sys.iswindows()
         binary = joinpath(pwd(), "solvers/bin/radius.exe")

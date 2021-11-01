@@ -6,9 +6,9 @@ mutable struct LineSampling
     function LineSampling(
         lines::Integer,
         points::Vector{<:Real}=collect(0.5:0.5:5),
-        direction::NamedTuple=NamedTuple()
+        direction::NamedTuple=NamedTuple(),
     )
-        new(lines, points, direction)
+        return new(lines, points, direction)
     end
 end
 
@@ -26,11 +26,11 @@ function sample(inputs::Array{<:UQInput}, sim::LineSampling)
     θ = rand(Normal(), n_rv, sim.lines)
 
     θ = θ - α * (α' * θ)
-    θ = repeat(θ, outer=[length(sim.points), 1])
+    θ = repeat(θ; outer=[length(sim.points), 1])
 
-    θ = θ[:] + repeat(α * sim.points', outer=[1, sim.lines])[:]
+    θ = θ[:] + repeat(α * sim.points'; outer=[1, sim.lines])[:]
 
-    samples = reshape(θ, n_rv, n_samples) |> transpose
+    samples = transpose(reshape(θ, n_rv, n_samples))
     samples = DataFrame(rv_names .=> eachcol(samples))
 
     if !isempty(deterministic_inputs)

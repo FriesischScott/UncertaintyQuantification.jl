@@ -2,19 +2,19 @@ function sobolindices(
     models::Array{<:UQModel},
     inputs::Array{<:UQInput},
     output::Symbol,
-    sim::AbstractMonteCarlo
+    sim::AbstractMonteCarlo,
 )
-
     sim_double_samples = @set sim.n = 2 * sim.n
 
     samples = sample(inputs, sim_double_samples)
+    samples = samples[shuffle(1:size(samples, 1)), :]
 
-    random_names = filter(i -> isa(i, RandomUQInput), inputs) |> names
+    random_names = names(filter(i -> isa(i, RandomUQInput), inputs))
 
     evaluate!(models, samples)
 
-    A = samples[1:sim.n, :]
-    B = samples[sim.n + 1:end, :]
+    A = samples[1:(sim.n), :]
+    B = samples[(sim.n + 1):end, :]
 
     fA = A[:, output]
     fB = B[:, output]
@@ -27,18 +27,19 @@ function sobolindices(
     Si = zeros(length(random_names), 2)
     STi = zeros(length(random_names), 2)
 
-    for (i, name) ∈ enumerate(random_names)
+    for (i, name) in enumerate(random_names)
         ABi = select(A, Not(name))
         ABi[:, name] = B[:, name]
 
-        for m ∈ models
+        for m in models
             evaluate!(m, ABi)
         end
 
         ABi[:, output] .-= mean(ABi[:, output])
 
-        first_order = x -> mean(fB .* (x .- fA )) / VY # Saltelli 2009
-        total_effect = x ->  (1 / (2 * sim.n)) * sum((fA .- x).^2) / VY # Saltelli 2009
+        first_order = x -> mean(fB .* (x .- fA)) / VY # Saltelli 2009
+        total_effect = x -> (1 / (2 * sim.n)) * sum((fA .- x) .^ 2) / VY # Saltelli 2009
+
         # First order effects
         Si[i, 1] = first_order(ABi[:, output])
         bs = bootstrap(first_order, ABi[:, output], BasicSampling(1000))

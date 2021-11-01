@@ -12,6 +12,7 @@ using HaltonSequences
 using LinearAlgebra
 using Mustache
 using QuasiMonteCarlo
+using Random
 using Reexport
 using StatsBase
 

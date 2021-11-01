@@ -2,13 +2,11 @@ struct JointDistribution <: RandomUQInput
     marginals::Array{RandomVariable}
     copula::Copula
 
-    function JointDistribution(
-        marginals::Array{RandomVariable},
-        copula::Copula,
-    )
-        length(marginals) == dimensions(copula) || error("Dimension mismatch between copula and marginals")
+    function JointDistribution(marginals::Array{RandomVariable}, copula::Copula)
+        length(marginals) == dimensions(copula) ||
+            error("Dimension mismatch between copula and marginals")
 
-        new(marginals, copula)
+        return new(marginals, copula)
     end
 end
 
@@ -36,7 +34,9 @@ function to_standard_normal_space!(jd::JointDistribution, x::DataFrame)
     for rv in jd.marginals
         x[!, rv.name] = cdf.(rv.dist, x[:, rv.name])
     end
-    uncorrelated_stdnorm = to_standard_normal_space(jd.copula, Matrix{Float64}(x[:, names(jd)]))
+    uncorrelated_stdnorm = to_standard_normal_space(
+        jd.copula, Matrix{Float64}(x[:, names(jd)])
+    )
     for (i, rv) in enumerate(jd.marginals)
         x[!, rv.name] = uncorrelated_stdnorm[:, i]
     end

@@ -43,7 +43,7 @@ sample(x, 3)
 See also: [`RandomVariable`](@ref)
 """
 function sample(rv::RandomVariable, n::Integer=1)
-    DataFrame(rv.name => rand(rv.dist, n))
+    return DataFrame(rv.name => rand(rv.dist, n))
 end
 
 function to_physical_space!(rv::RandomVariable, x::DataFrame)

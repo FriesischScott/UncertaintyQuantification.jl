@@ -6,12 +6,7 @@ struct PolyharmonicSpline <: UQModel
     n::Array{Symbol}
     output::Symbol
 
-    function PolyharmonicSpline(
-        data::DataFrame,
-        k::Int64,
-        output::Symbol
-        )
-
+    function PolyharmonicSpline(data::DataFrame, k::Int64, output::Symbol)
         f = data[:, output]
 
         centers = select(data, Not(output))
@@ -21,11 +16,11 @@ struct PolyharmonicSpline <: UQModel
         dim = size(centers, 1)
 
         A = zeros(dim, dim)
-        for i ∈ 1:dim, j ∈ 1:dim
+        for i in 1:dim, j in 1:dim
             if i == j
                 continue
             end
-            r = (centers[i, :] - centers[j, :]).^2 |> sum |> sqrt
+            r = sqrt(sum((centers[i, :] - centers[j, :]) .^ 2))
             A[i, j] = ϕ(r, k)
         end
 
@@ -37,16 +32,13 @@ struct PolyharmonicSpline <: UQModel
         wv = M \ F
 
         w = wv[1:dim, :]
-        v = wv[dim + 1:size(wv, 1), :]
+        v = wv[(dim + 1):size(wv, 1), :]
 
-        new(w, v, centers, k, n, output)
+        return new(w, v, centers, k, n, output)
     end
 end
 
-function ϕ(
-    r::Float64,
-    k::Int64
-    )
+function ϕ(r::Float64, k::Int64)
     if k % 2 != 0
         return r^k
     elseif r < 1
@@ -56,22 +48,15 @@ function ϕ(
     end
 end
 
-function calc(
-    ps::PolyharmonicSpline,
-    x::Array{Float64,1}
-    )
-
-    r = sqrt.(sum((ps.c .- transpose(x)).^2, dims=2))
-    f = ϕ.(r, ps.k) .* ps.w |> sum
-    f += (transpose(ps.v) * [1; x])[1]
+function calc(ps::PolyharmonicSpline, x::Array{Float64,1})
+    r = sqrt.(sum((ps.c .- transpose(x)) .^ 2; dims=2))
+    f = sum(ϕ.(r, ps.k) .* ps.w)
+    return f += (transpose(ps.v) * [1; x])[1]
 end
 
-function evaluate!(
-    ps::PolyharmonicSpline,
-    df::DataFrame
-    )
+function evaluate!(ps::PolyharmonicSpline, df::DataFrame)
     x = Matrix{Float64}(df[:, ps.n]) # convert to matrix and order variables by ps.n
 
     out = map(row -> calc(ps, convert(Array, row)), eachrow(x))
-    df[!, ps.output] = out
+    return df[!, ps.output] = out
 end
