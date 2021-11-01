@@ -1,4 +1,4 @@
-using UncertaintyQuantification
+using UncertaintyQuantification, Random
 
 Random.seed!(2547);
 N = 100
