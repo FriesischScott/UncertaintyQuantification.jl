@@ -1,7 +1,5 @@
 @testset "Probability of Failure" begin
     @testset "Monte Carlo" begin
-        Random.seed!(8128)
-
         x = RandomVariable(Uniform(0.0, 1.0), :x)
         y = RandomVariable(Uniform(0.0, 1.0), :y)
 
@@ -9,16 +7,12 @@
             df -> 1 .- sqrt.(df.x .^ 2 + df.y .^ 2), [x, y], MonteCarlo(1000000)
         )
 
-        Random.seed!()
-
         pi = 4.0 * (1 - pf)
 
-        @test isapprox(pi, 3.141; atol=1e-3)
+        @test pi ≈ 3.141 atol = 0.01
     end
 
     @testset "Line sampling" begin
-        Random.seed!(8128)
-
         x = RandomVariable(Uniform(0.0, 1.0), :x)
         y = RandomVariable(Uniform(0.0, 1.0), :y)
         r = Parameter(1, :r)
@@ -29,9 +23,7 @@
 
         pf, _ = probability_of_failure([d], g, [x, y, r], LineSampling(100))
 
-        Random.seed!()
-
-        @test round(4.0 * (1 - pf); digits=3) == 3.142
+        @test 4.0 * (1 - pf) ≈ 3.141 atol = 0.01
 
         @test_logs (:warn, "All samples for line 1 are outside the failure domain") probability_of_failure(
             [d], g, [x, y, r], LineSampling(1, [0, 0.1])
@@ -45,9 +37,6 @@
         # Kontantin Zuev - Subset Simulation Method for Rare Event Estimation: An Introduction
         # Example 6.1
         # Target pf of 1e-10
-
-        Random.seed!(8128)
-
         pf_analytical = 1e-10
 
         x1 = RandomVariable(Normal(), :x1)
@@ -63,8 +52,6 @@
 
         pf, _ = probability_of_failure(g, F, [x1, x2, y], subset)
 
-        Random.seed!()
-
-        @test isapprox(pf, pf_analytical; atol=10^-10)
+        @test pf ≈ pf_analytical atol = 10^-9
     end
 end
