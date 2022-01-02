@@ -8,7 +8,6 @@ using Dierckx
 using Distributed
 using FiniteDifferences
 using Formatting
-using HaltonSequences
 using LinearAlgebra
 using Mustache
 using QuasiMonteCarlo
