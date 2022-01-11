@@ -10,6 +10,7 @@ using FiniteDifferences
 using Formatting
 using LinearAlgebra
 using Mustache
+using Primes
 using QuasiMonteCarlo
 using Random
 using Reexport
