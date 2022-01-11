@@ -47,23 +47,10 @@ function qmc_samples(sim::SobolSampling, rvs::Integer)
 end
 
 function qmc_samples(sim::HaltonSampling, rvs::Integer)
- prime = ones(rvs*rvs)
- prime[1] = 0 
- pl = 2
- kl = rvs
- coprimes = zeros(rvs)
- while kl>0
-     if prime[pl]==1
-         for i in (pl*pl):pl:(rvs*rvs)
-             prime[i] = 0
-         end
-         kl-=1
-         coprimes[rvs-kl] = pl
-     end
-     pl+=1
- end
-
-    return transpose(QuasiMonteCarlo.sample(sim.n, zeros(rvs), ones(rvs), LowDiscrepancySample(coprimes)))
+    coprimes = [prime(i) for i in 1:rvs]
+    return transpose(
+        QuasiMonteCarlo.sample(sim.n, zeros(rvs), ones(rvs), LowDiscrepancySample(coprimes))
+    )
 end
 
 function qmc_samples(sim::LatinHypercubeSampling, rvs::Integer)
