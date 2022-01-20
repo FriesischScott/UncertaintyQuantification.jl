@@ -18,6 +18,11 @@ struct LatinHypercubeSampling <: AbstractQuasiMonteCarlo
     LatinHypercubeSampling(n) = n > 0 ? new(n) : error("n must be greater than zero")
 end
 
+struct LatticeRuleSampling <: AbstractQuasiMonteCarlo
+    n::Integer
+    LatticeRuleSampling(n) = n > 0 ? new(n) : error("n must be greater than zero")
+end
+
 function sample(inputs::Array{<:UQInput}, sim::MonteCarlo)
     return sample(inputs, sim.n)
 end
@@ -56,5 +61,11 @@ end
 function qmc_samples(sim::LatinHypercubeSampling, rvs::Integer)
     return transpose(
         QuasiMonteCarlo.sample(sim.n, zeros(rvs), ones(rvs), LatinHypercubeSample())
+    )
+end
+
+function qmc_samples(sim::LatticeRuleSampling, rvs::Integer)
+    return transpose(
+        QuasiMonteCarlo.sample(sim.n, zeros(rvs), ones(rvs), LatticeRuleSample())
     )
 end

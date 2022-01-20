@@ -46,3 +46,22 @@ end
         end
     end
 end
+
+@testset "LatticeRuleSampling" begin
+    lattice = LatticeRuleSampling(1000)
+    @test isa(lattice, LatticeRuleSampling)
+    @test lattice.n == 1000
+    @testset "sample" begin
+        inputs = [RandomVariable.(Uniform(), [:a, :b]); Parameter(1, :c)]
+
+        Random.seed!(1)
+        s = QuasiMonteCarlo.sample(4, [0, 0], [1, 1], LatticeRuleSample())
+        Random.seed!(1)
+        samples = sample(inputs, LatticeRuleSampling(4))
+        Random.seed!()
+
+        @test isapprox(samples.a, s[1, :])
+        @test isapprox(samples.b, s[2, :])
+        @test samples.c == [1.0, 1.0, 1.0, 1.0]
+    end
+end

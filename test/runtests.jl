@@ -1,6 +1,7 @@
 using DataFrames
 using Formatting
 using InteractiveUtils
+using QuasiMonteCarlo
 using Random
 using Test
 using UncertaintyQuantification
