@@ -12,7 +12,7 @@ A Julia package for uncertainty quantification. Current functionality includes:
 
  * Simulation-based reliability analysis
    * Monte Carlo simulation
-   * Quasi Monte Carlo simulation (Sobol, Halton)
+   * Quasi Monte Carlo simulation (Sobol, Halton, Latin Hypercube, Lattice Rule)
    * Line Sampling
    * Subset Simulation
  * Sensitivity analysis
