@@ -50,6 +50,7 @@ export GaussianCopula
 export HaltonSampling
 export JointDistribution
 export LatinHypercubeSampling
+export LatticeRuleSampling
 export LineSampling
 export Model
 export MonteCarlo
