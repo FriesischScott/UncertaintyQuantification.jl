@@ -2,15 +2,10 @@ function probability_of_failure(
     models::Union{Array{<:UQModel},UQModel},
     performance::Function,
     inputs::Union{Array{<:UQInput},UQInput},
-    sim::MonteCarlo,
+    sim::AbstractMonteCarlo,
 )
-
-    samples = sample(inputs, sim.n)
-
-    # Models
-    for m in models
-        evaluate!(m, samples)
-    end
+    samples = sample(inputs, sim)
+    evaluate!(models, samples)
 
     # Probability of failure
     pf = sum(performance(samples) .< 0) / sim.n
@@ -24,20 +19,17 @@ function probability_of_failure(
     inputs::Union{Array{<:UQInput},UQInput},
     sim::LineSampling,
 )
-
     if isempty(sim.direction)
         sim.direction = gradient_in_standard_normal_space(
-        [models..., Model(x -> -1 * performance(x), :performance)],
-        inputs,
-        mean(inputs),
-        :performance)
+            [models..., Model(x -> -1 * performance(x), :performance)],
+            inputs,
+            mean(inputs),
+            :performance,
+        )
     end
 
     samples = sample(inputs, sim)
-
-    for m in models
-        evaluate!(m, samples)
-    end
+    evaluate!(models, samples)
 
     p = reshape(performance(samples), length(sim.points), sim.lines)
 
@@ -45,7 +37,7 @@ function probability_of_failure(
     pf = 0
     roots_found = 0
     x = median(sim.points)
-    for i = 1:sim.lines
+    for i in 1:(sim.lines)
         if all(p[:, i] .< 0)
             @warn "All samples for line $i are inside the failure domain"
             continue
@@ -68,8 +60,6 @@ function probability_of_failure(
     return pf, samples
 end
 
-const Φ = Normal()
-
 function FORM(models::Union{Array{<:UQModel},UQModel},
     performance::Function,
     inputs::Union{Array{<:UQInput},UQInput})
@@ -85,7 +75,7 @@ function FORM(models::Union{Array{<:UQModel},UQModel},
     if !isempty(deterministic_inputs)
         physical = hcat(physical, sample(deterministic_inputs, 1))
     end
-    
+
     iteration = 0
     delta = Inf
     beta_last = Inf
@@ -130,9 +120,15 @@ function FORM(models::Union{Array{<:UQModel},UQModel},
 
     @show norm(Matrix(u))
 
-    pf = cdf(Φ , (performance_at_origin > 0 ? -1 : 1) * norm(Matrix(u)))
+    pf = cdf(Normal() , (performance_at_origin > 0 ? -1 : 1) * norm(Matrix(u)))
     designPoint = to_physical_space(inputs, u)
-    
-    return pf, designPoint
 
+    return pf, designPoint
+end
+
+# Allow to calculate the pf using only a performance function but no model
+function probability_of_failure(
+    performance::Function, inputs::Union{Array{<:UQInput},UQInput}, sim::Any
+)
+    return probability_of_failure(UQModel[], performance, inputs, sim)
 end

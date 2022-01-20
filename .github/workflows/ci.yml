@@ -1,37 +1,25 @@
 name: CI
 on:
   - push
-  - pull_request_target
+  - pull_request
 jobs:
   test:
-    name: Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }}
+    name: Julia ${{ matrix.julia-version }} - ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        version:
-          - '1.5'
+        julia-version:
+          - "1.6"
+          - "1.7"
         os:
-          - ubuntu-latest
-        arch:
-          - x64
+          - "ubuntu-latest"
+          - "windows-latest"
+          - "macOS-latest"
     steps:
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@v1
         with:
-          version: ${{ matrix.version }}
-          arch: ${{ matrix.arch }}
-      - uses: actions/cache@v1
-        env:
-          cache-name: cache-artifacts
-        with:
-          path: ~/.julia/artifacts
-          key: ${{ runner.os }}-test-${{ env.cache-name }}-${{ hashFiles('**/Project.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-test-${{ env.cache-name }}-
-            ${{ runner.os }}-test-
-            ${{ runner.os }}-
+          version: ${{ matrix.julia-version }}
       - uses: julia-actions/julia-runtest@latest
       - uses: julia-actions/julia-processcoverage@v1
-      - uses: julia-actions/julia-uploadcoveralls@latest
-        env:
-          COVERALLS_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
+      - uses: codecov/codecov-action@v1

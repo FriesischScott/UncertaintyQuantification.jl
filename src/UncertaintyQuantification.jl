@@ -1,10 +1,23 @@
 module UncertaintyQuantification
 
-using LinearAlgebra, DataFrames, FiniteDifferences, Dierckx, Reexport
+using Accessors
+using Bootstrap
+using DataFrames
+using Dates
+using Dierckx
+using Distributed
+using FiniteDifferences
+using Formatting
+using LinearAlgebra
+using Mustache
+using Primes
+using QuasiMonteCarlo
+using Random
+using Reexport
 
 @reexport using Distributions
 
-import Base: rand, names
+import Base: rand, names, copy, run
 import Statistics: mean
 
 abstract type UQType end
@@ -17,34 +30,55 @@ abstract type RandomUQInput <: UQInput end
 
 abstract type Copula <: UQType end
 
-export
-    # inputs
-      Parameter,
-      RandomVariable,
-      JointDistribution,
-      GaussianCopula,
+abstract type AbstractMonteCarlo end
+abstract type AbstractQuasiMonteCarlo <: AbstractMonteCarlo end
 
-      Model,
+# Types
+export AbstractMonteCarlo
+export AbstractQuasiMonteCarlo
+export Copula
+export DeterministicUQInput
+export RandomUQInput
+export UQInput
+export UQModel
+export UQType
 
-      LineSampling,
-      MonteCarlo,
+# Structs
+export ExternalModel
+export Extractor
+export GaussianCopula
+export HaltonSampling
+export JointDistribution
+export LatinHypercubeSampling
+export LatticeRuleSampling
+export LineSampling
+export Model
+export MonteCarlo
+export Parameter
+export PolyharmonicSpline
+export RandomVariable
+export SobolSampling
+export Solver
+export SubSetSimulation
 
-    # methods
-      evaluate!,
-      rand,
-      sample,
-      count_rvs,
-      dimensions,
-      FORM,
-      mean,
-      gradient,
-      gradient_in_standard_normal_space,
-      to_standard_normal_space,
-      to_standard_normal_space!,
-      to_physical_space,
-      to_physical_space!,
-      to_copula_space,
-      probability_of_failure
+# Methods
+export calc
+export count_rvs
+export dimensions
+export FORM
+export evaluate!
+export gradient
+export gradient_in_standard_normal_space
+export mean
+export probability_of_failure
+export qmc_samples
+export rand
+export sample
+export sobolindices
+export to_copula_space
+export to_physical_space!
+export to_standard_normal_space
+export to_standard_normal_space!
 
 include("inputs/inputs.jl")
 include("inputs/parameter.jl")
@@ -53,13 +87,20 @@ include("inputs/jointdistribution.jl")
 
 include("inputs/copulas/gaussian.jl")
 
+include("solvers/solver.jl")
+include("solvers/extractor.jl")
+
+include("models/externalmodel.jl")
 include("models/model.jl")
+include("models/polyharmonicspline.jl")
 
 include("sensitivity/gradient.jl")
 
 include("simulations/linesampling.jl")
 include("simulations/montecarlo.jl")
+include("simulations/subset.jl")
 
 include("reliability/probabilityoffailure.jl")
+include("sensitivity/sobolindices.jl")
 
 end

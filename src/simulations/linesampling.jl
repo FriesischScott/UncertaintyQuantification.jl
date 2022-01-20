@@ -1,14 +1,14 @@
 mutable struct LineSampling
-    lines::Int64
+    lines::Integer
     points::Vector{<:Real}
-    direction::DataFrame
+    direction::NamedTuple
 
     function LineSampling(
-        lines::Int64,
-        points::Vector{<:Real} = collect(0.5:0.5:5),
-        direction::DataFrame = DataFrame()
+        lines::Integer,
+        points::Vector{<:Real}=collect(0.5:0.5:5),
+        direction::NamedTuple=NamedTuple(),
     )
-        new(lines, points, direction)
+        return new(lines, points, direction)
     end
 end
 
@@ -17,25 +17,24 @@ function sample(inputs::Array{<:UQInput}, sim::LineSampling)
     deterministic_inputs = filter(i -> isa(i, DeterministicUQInput), inputs)
 
     n_rv = count_rvs(random_inputs)
+    n_samples = length(sim.points) * sim.lines
+    rv_names = names(random_inputs)
 
-    α = vec(Matrix(sim.direction))
+    α = map(n -> sim.direction[n], rv_names)
     α /= norm(α)
 
     θ = rand(Normal(), n_rv, sim.lines)
 
     θ = θ - α * (α' * θ)
-    θ = repeat(θ, outer=[length(sim.points), 1])
+    θ = repeat(θ; outer=[length(sim.points), 1])
 
-    θ = θ[:] + repeat(α * sim.points', outer=[1, sim.lines])[:]
+    θ = θ[:] + repeat(α * sim.points'; outer=[1, sim.lines])[:]
 
-    samples = DataFrame(reshape(θ, n_rv, length(sim.points) * sim.lines)')
-
-    random_names = names(random_inputs)
-
-    rename!(samples, random_names)
+    samples = transpose(reshape(θ, n_rv, n_samples))
+    samples = DataFrame(rv_names .=> eachcol(samples))
 
     if !isempty(deterministic_inputs)
-        samples = hcat(samples, sample(deterministic_inputs, length(sim.points) * sim.lines))
+        samples = hcat(samples, sample(deterministic_inputs, n_samples))
     end
 
     to_physical_space!(inputs, samples)
