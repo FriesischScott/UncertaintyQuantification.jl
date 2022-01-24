@@ -10,6 +10,7 @@ using FiniteDifferences
 using Formatting
 using LinearAlgebra
 using Mustache
+using PolyChaos
 using Primes
 using QuasiMonteCarlo
 using Random
@@ -55,6 +56,7 @@ export LineSampling
 export Model
 export MonteCarlo
 export Parameter
+export PolynomialChaosExpansion
 export PolyharmonicSpline
 export RandomVariable
 export SobolSampling
@@ -92,6 +94,7 @@ include("solvers/extractor.jl")
 include("models/externalmodel.jl")
 include("models/model.jl")
 include("models/polyharmonicspline.jl")
+include("models/polynomialchaosexpansion.jl")
 
 include("sensitivity/gradient.jl")
 
