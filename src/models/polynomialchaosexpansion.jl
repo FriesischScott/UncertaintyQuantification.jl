@@ -2,6 +2,7 @@ struct PolynomialChaosExpansion <: UQModel
     y::Vector{Float64}
     n::Vector{Symbol}
     p::Integer
+    Ψ::MultiOrthoPoly
     inputs::Vector{<:UQInput}
     output::Symbol
 
@@ -14,19 +15,14 @@ struct PolynomialChaosExpansion <: UQModel
         x = data[:, random_names]
         to_standard_normal_space!(random_inputs, x)
 
-        N = size(x, 1)
+        univariate_polynomials = GaussOrthoPoly.(repeat([p], size(x, 2)))
+        Ψ = MultiOrthoPoly(univariate_polynomials, p)
 
-        P = Int(factorial(p + size(x, 2)) / (factorial(p) * factorial(size(x, 2))))
-
-        A = zeros(size(x, 1), P)
-
-        for i in 1:N, j in 1:P
-            A[i, j] = Ψ(collect(x[i, :]), j - 1)
-        end
+        A = mapreduce(row -> PolyChaos.evaluate(collect(row), Ψ), hcat, eachrow(x))'
 
         y = inv(transpose(A) * A) * transpose(A) * data[:, output]
 
-        return new(y, random_names, P, random_inputs, output)
+        return new(y, random_names, p, Ψ, random_inputs, output)
     end
 end
 
@@ -34,19 +30,6 @@ function evaluate!(pce::PolynomialChaosExpansion, df::DataFrame)
     data = df[:, pce.n]
     to_standard_normal_space!(pce.inputs, data)
 
-    p = [0:(length(pce.y) - 1);]
-    out = map(row -> sum(pce.y .* [Ψ(collect(row), j) for j in p]), eachrow(data))
+    out = map(row -> dot(pce.y, PolyChaos.evaluate(collect(row), pce.Ψ)), eachrow(data))
     return df[!, pce.output] = out
-end
-
-function Ψ(x::Vector{Float64}, n::Integer)
-    if n == 0
-        return 1
-    end
-
-    d = repeat([n], length(x))
-    ops = GaussOrthoPoly.(d)
-    mop = MultiOrthoPoly(ops, n)
-
-    return sum(PolyChaos.evaluate(x, mop))
 end
