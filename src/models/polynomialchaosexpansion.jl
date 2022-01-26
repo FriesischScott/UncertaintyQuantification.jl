@@ -33,3 +33,13 @@ function evaluate!(pce::PolynomialChaosExpansion, df::DataFrame)
     out = map(row -> dot(pce.y, PolyChaos.evaluate(collect(row), pce.Ψ)), eachrow(data))
     return df[!, pce.output] = out
 end
+
+function sample(pce::PolynomialChaosExpansion, N :: Integer)
+
+    samps = DataFrame(randn(N, length(pce.n)), pce.n)
+    out = map(row -> dot(pce.y, PolyChaos.evaluate(collect(row), pce.Ψ)), eachrow(samps))
+
+    to_physical_space!(pce.inputs, samps)
+    samps[!,  pce.output] = out
+    return samps
+end
