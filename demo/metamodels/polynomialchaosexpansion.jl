@@ -2,12 +2,15 @@ using UncertaintyQuantification, DataFrames
 
 x = RandomVariable.(Uniform(-1, 1), [:x1, :x2])
 
-model = Model(df -> π .* (df.x1 .- 1) .* sin.(π .* df.x1) .* (1 .- df.x2 .^ 2), :y)
+model = Model(df -> begin
+    π .* (df.x1 .- 1) .* sin.(π .* df.x1) .* (1 .- df.x2 .^ 2)
+end, :y)
 
 data = sample(x, SobolSampling(10000))
 evaluate!(model, data)
 
-pce = PolynomialChaosExpansion(data, x, 4, :y)
+Ψ = HermiteBasis(4, 2)
+pce = PolynomialChaosExpansion(data, x, Ψ, :y)
 
 μ = pce.y[1]
 σ² = sum(pce.y[2:end] .^ 2)

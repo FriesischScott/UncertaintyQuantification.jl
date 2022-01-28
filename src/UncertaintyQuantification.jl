@@ -10,7 +10,6 @@ using FiniteDifferences
 using Formatting
 using LinearAlgebra
 using Mustache
-using PolyChaos
 using Primes
 using QuasiMonteCarlo
 using Random
@@ -49,6 +48,7 @@ export ExternalModel
 export Extractor
 export GaussianCopula
 export HaltonSampling
+export HermiteBasis
 export JointDistribution
 export LatinHypercubeSampling
 export LatticeRuleSampling
