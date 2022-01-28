@@ -52,6 +52,7 @@ export HermiteBasis
 export JointDistribution
 export LatinHypercubeSampling
 export LatticeRuleSampling
+export LegendreBasis
 export LineSampling
 export Model
 export MonteCarlo

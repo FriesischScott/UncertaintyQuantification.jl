@@ -1,4 +1,5 @@
-struct HermiteBasis
+abstract type AbstractOrthogonalBasis end
+struct HermiteBasis <: AbstractOrthogonalBasis
     p::Int
     d::Int
     indices::Vector{Vector{Int64}}
@@ -6,21 +7,32 @@ struct HermiteBasis
     HermiteBasis(p::Int, d::Int) = new(p, d, multivariate_indices(p, d))
 end
 
+struct LegendreBasis <: AbstractOrthogonalBasis
+    p::Int
+    d::Int
+    indices::Vector{Vector{Int64}}
+
+    LegendreBasis(p::Int, d::Int) = new(p, d, multivariate_indices(p, d))
+end
+
 struct PolynomialChaosExpansion <: UQModel
     y::Vector{Float64}
     n::Vector{Symbol}
-    Ψ::HermiteBasis
+    Ψ::AbstractOrthogonalBasis
     inputs::Vector{<:UQInput}
     output::Symbol
 
     function PolynomialChaosExpansion(
-        data::DataFrame, inputs::Vector{<:UQInput}, Ψ::HermiteBasis, output::Symbol
+        data::DataFrame,
+        inputs::Vector{<:UQInput},
+        Ψ::AbstractOrthogonalBasis,
+        output::Symbol,
     )
         random_inputs = filter(i -> isa(i, RandomUQInput), inputs)
         random_names = names(random_inputs)
 
         x = data[:, random_names]
-        to_standard_normal_space!(random_inputs, x)
+        isoprobabilistic_transform!(x, inputs, Ψ)
 
         A = mapreduce(row -> evaluate(collect(row), Ψ), hcat, eachrow(x))'
 
@@ -32,19 +44,19 @@ end
 
 function evaluate!(pce::PolynomialChaosExpansion, df::DataFrame)
     data = df[:, pce.n]
-    to_standard_normal_space!(pce.inputs, data)
+    isoprobabilistic_transform!(data, pce.inputs, pce.Ψ)
 
     out = map(row -> dot(pce.y, evaluate(collect(row), pce.Ψ)), eachrow(data))
-    return df[!, pce.output] = out
+    df[!, pce.output] = out
+    return nothing
 end
 
-function sample(pce::PolynomialChaosExpansion, N :: Integer)
-
+function sample(pce::PolynomialChaosExpansion, N::Integer)
     samps = DataFrame(randn(N, length(pce.n)), pce.n)
     out = map(row -> dot(pce.y, evaluate(collect(row), pce.Ψ)), eachrow(data))
 
     to_physical_space!(pce.inputs, samps)
-    samps[!,  pce.output] = out
+    samps[!, pce.output] = out
     return samps
 end
 
@@ -86,6 +98,37 @@ function He(x::Float64, d::Int)
     return x * He(x, d - 1) - (d - 1) * He(x, d - 2)
 end
 
+function P(x::Float64, d::Int)
+    if d == 0
+        return 1.0
+    end
+
+    if d == 1
+        return x
+    end
+
+    return ((2d - 1) * x * P(x, d - 1) - (d - 1) * P(x, d - 2)) / float(d)
+end
+
 function evaluate(x::Vector{Float64}, Ψ::HermiteBasis)
     return [prod(He.(x, ind)) for ind in Ψ.indices]
+end
+
+function evaluate(x::Vector{Float64}, Ψ::LegendreBasis)
+    return [prod(P.(x, ind)) for ind in Ψ.indices]
+end
+
+function isoprobabilistic_transform!(
+    data::DataFrame, inputs::Vector{<:UQInput}, _::HermiteBasis
+)
+    to_standard_normal_space!(inputs, data)
+    return nothing
+end
+
+function isoprobabilistic_transform!(
+    data::DataFrame, inputs::Vector{<:UQInput}, _::LegendreBasis
+)
+    to_standard_normal_space!(inputs, data)
+    data[:, :] = quantile.(Uniform(-1, 1), cdf.(Normal(), data[:, :]))
+    return nothing
 end

@@ -6,7 +6,7 @@ model = Model(df -> begin
     π .* (df.x1 .- 1) .* sin.(π .* df.x1) .* (1 .- df.x2 .^ 2)
 end, :y)
 
-data = sample(x, SobolSampling(10000))
+data = sample(x, SobolSampling(1000))
 evaluate!(model, data)
 
 Ψ = HermiteBasis(4, 2)
