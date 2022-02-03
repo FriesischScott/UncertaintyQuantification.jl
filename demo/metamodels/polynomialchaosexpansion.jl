@@ -9,11 +9,16 @@ end, :y)
 data = sample(x, SobolSampling(1000))
 evaluate!(model, data)
 
-Ψ = HermiteBasis(4, 2)
+Ψ = LegendreBasis(10, 2)
 pce = PolynomialChaosExpansion(data, x, Ψ, :y)
 
 μ = pce.y[1]
-σ² = sum(pce.y[2:end] .^ 2)
+global σ² = 0.0
+
+for i in 2:length(pce.y)
+    global σ² +=
+        (pce.y[i] * sqrt(1 / (2 * pce.Ψ.indices[i][1] + 1)) * sqrt(1 / (2 * pce.Ψ.indices[i][2] + 1)))^2
+end
 
 println("Mean: $μ")
 println("Variance: $σ²")
