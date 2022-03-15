@@ -1,4 +1,4 @@
-using UncertaintyQuantification, DataFrames
+using UncertaintyQuantification
 
 x = RandomVariable.(Uniform(-1, 1), [:x1, :x2])
 
@@ -6,25 +6,26 @@ model = Model(df -> begin
     π .* (df.x1 .- 1) .* sin.(π .* df.x1) .* (1 .- df.x2 .^ 2)
 end, :y)
 
-data = sample(x, SobolSampling(1000))
-evaluate!(model, data)
+Ψ = LegendreBasis(8, 2)
 
-Ψ = LegendreBasis(10, 2)
-pce = PolynomialChaosExpansion(data, x, Ψ, :y)
+# Estimation by least squares
+ls = LeastSquares(SobolSampling(1000))
+pce, samples, mse = polynomialchaos(x, [model], Ψ, :y, ls)
 
-μ = pce.y[1]
-global σ² = 0.0
+println("LS Mean: $(mean(pce))")
+println("LS Variance: $(var(pce))")
+println("LS Mean Squared Error: $mse")
 
-for i in 2:length(pce.y)
-    global σ² +=
-        (pce.y[i] * sqrt(1 / (2 * pce.Ψ.indices[i][1] + 1)) * sqrt(1 / (2 * pce.Ψ.indices[i][2] + 1)))^2
-end
+# Estimation by full quadrature
+gq = GaussQuadrature()
+pce, samples = polynomialchaos(x, [model], Ψ, :y, gq)
 
-println("Mean: $μ")
-println("Variance: $σ²")
+println("GQ Mean: $(mean(pce))")
+println("GQ Variance: $(var(pce))")
 
-test_data = select(data, Not(:y))
-evaluate!(pce, test_data)
+# Estimation by sparse quadrature
+sq = SparseQuadrature()
+pce, samples = polynomialchaos(x, [model], Ψ, :y, sq)
 
-ϵ = sum(abs.(data.y .- test_data.y))
-println("Residual sum: $ϵ")
+println("SQ Mean: $(mean(pce))")
+println("SQ Variance: $(var(pce))")

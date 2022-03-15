@@ -15,35 +15,151 @@ struct LegendreBasis <: AbstractOrthogonalBasis
     LegendreBasis(p::Int, d::Int) = new(p, d, multivariate_indices(p, d))
 end
 
+struct LeastSquares
+    sim::AbstractMonteCarlo
+end
+
+abstract type AbstractQuadrature end
+struct GaussQuadrature <: AbstractQuadrature end
+struct SparseQuadrature <: AbstractQuadrature end
+
 struct PolynomialChaosExpansion <: UQModel
     y::Vector{Float64}
-    n::Vector{Symbol}
     Ψ::AbstractOrthogonalBasis
-    inputs::Vector{<:UQInput}
     output::Symbol
+    inputs::Vector{<:UQInput}
+end
 
-    function PolynomialChaosExpansion(
-        data::DataFrame,
-        inputs::Vector{<:UQInput},
-        Ψ::AbstractOrthogonalBasis,
-        output::Symbol,
-    )
-        random_inputs = filter(i -> isa(i, RandomUQInput), inputs)
-        random_names = names(random_inputs)
+function PolynomialChaosExpansion(
+    data::DataFrame, inputs::Vector{<:UQInput}, Ψ::AbstractOrthogonalBasis, output::Symbol
+)
+    random_inputs = filter(i -> isa(i, RandomUQInput), inputs)
+    random_names = names(random_inputs)
 
-        x = data[:, random_names]
-        isoprobabilistic_transform!(x, inputs, Ψ)
+    x = data[:, random_names]
+    isoprobabilistic_transform!(x, inputs, Ψ)
 
-        A = mapreduce(row -> evaluate(collect(row), Ψ), hcat, eachrow(x))'
+    A = mapreduce(row -> evaluate(collect(row), Ψ), hcat, eachrow(x))'
 
-        y = inv(transpose(A) * A) * transpose(A) * data[:, output]
+    y = inv(transpose(A) * A) * transpose(A) * data[:, output]
 
-        return new(y, random_names, Ψ, random_inputs, output)
+    return new(y, random_names, Ψ, random_inputs, output)
+end
+
+function polynomialchaos(
+    inputs::Vector{<:UQInput},
+    models::Vector{<:UQModel},
+    Ψ::AbstractOrthogonalBasis,
+    output::Symbol,
+    ls::LeastSquares,
+)
+    samples = sample(inputs, ls.sim)
+
+    for m in models
+        evaluate!(m, samples)
     end
+
+    random_inputs = filter(i -> isa(i, RandomUQInput), inputs)
+    random_names = names(random_inputs)
+
+    x = samples[:, random_names]
+    isoprobabilistic_transform!(x, inputs, Ψ)
+
+    A = mapreduce(row -> evaluate(collect(row), Ψ), hcat, eachrow(x))'
+    y = inv(transpose(A) * A) * transpose(A) * samples[:, output]
+
+    ϵ = samples[:, output] - A * y
+    mse = dot(ϵ, ϵ)
+
+    return PolynomialChaosExpansion(y, Ψ, output, inputs), samples, mse
+end
+
+function polynomialchaos(
+    inputs::Vector{<:UQInput},
+    models::Vector{<:UQModel},
+    Ψ::AbstractOrthogonalBasis,
+    output::Symbol,
+    _::GaussQuadrature,
+)
+    random_inputs = filter(i -> isa(i, RandomUQInput), inputs)
+    random_names = names(random_inputs)
+
+    samples = DataFrame()
+
+    if Ψ isa LegendreBasis
+        _x, _w = gausslegendre(Ψ.p + 1)
+    else
+        _x, _w = gausshermite(Ψ.p + 1)
+    end
+
+    nodes =
+        mapreduce(
+            collect,
+            hcat,
+            Iterators.product(Iterators.repeated(_x, length(random_inputs))...),
+        )'
+    weights = map(prod, Iterators.product(Iterators.repeated(_w, length(random_inputs))...))
+
+    samples = DataFrame(nodes, random_names)
+    inverse_isoprobabilistic_transform!(samples, inputs, Ψ)
+
+    for m in models
+        evaluate!(m, samples)
+    end
+
+    y = zeros(length(Ψ.indices))
+
+    for (x, w, f) in zip(eachrow(nodes), weights, samples[:, output])
+        y +=
+            f * w * evaluate(collect(x), Ψ) /
+            (length(random_inputs) * length(random_inputs))
+    end
+
+    return PolynomialChaosExpansion(y, Ψ, output, inputs), samples
+end
+
+function polynomialchaos(
+    inputs::Vector{<:UQInput},
+    models::Vector{<:UQModel},
+    Ψ::AbstractOrthogonalBasis,
+    output::Symbol,
+    _::SparseQuadrature,
+)
+    random_inputs = filter(i -> isa(i, RandomUQInput), inputs)
+    random_names = names(random_inputs)
+
+    samples = DataFrame()
+
+    if Ψ isa LegendreBasis
+        _x, weights = sparsegrid(length(random_inputs), Ψ.p + 1, gausslegendre)
+    else
+        _x, weights = sparsegrid(length(random_inputs), Ψ.p + 1, gausshermite)
+    end
+
+    nodes = reduce(hcat, _x)'
+
+    samples = DataFrame(nodes, random_names)
+    inverse_isoprobabilistic_transform!(samples, inputs, Ψ)
+
+    for m in models
+        evaluate!(m, samples)
+    end
+
+    y = zeros(length(Ψ.indices))
+
+    for (x, w, f) in zip(eachrow(nodes), weights, samples[:, output])
+        y +=
+            f * w * evaluate(collect(x), Ψ) / length(random_inputs)^2
+    end
+
+    return PolynomialChaosExpansion(y, Ψ, output, inputs), samples
 end
 
 function evaluate!(pce::PolynomialChaosExpansion, df::DataFrame)
-    data = df[:, pce.n]
+    random_inputs = filter(i -> isa(i, RandomUQInput), pce.inputs)
+    random_names = names(random_inputs)
+
+    data = df[:, random_names]
     isoprobabilistic_transform!(data, pce.inputs, pce.Ψ)
 
     out = map(row -> dot(pce.y, evaluate(collect(row), pce.Ψ)), eachrow(data))
@@ -111,11 +227,13 @@ function P(x::Float64, d::Int)
 end
 
 function evaluate(x::Vector{Float64}, Ψ::HermiteBasis)
-    return [prod(He.(x, ind)) for ind in Ψ.indices]
+    normalization = [prod(1 ./ factorial.(ind)) for ind in Ψ.indices]
+    return [prod(He.(x, ind)) for ind in Ψ.indices] .* normalization
 end
 
 function evaluate(x::Vector{Float64}, Ψ::LegendreBasis)
-    return [prod(P.(x, ind)) for ind in Ψ.indices]
+    normalization = [prod(sqrt.(2 * ind .+ 1)) for ind in Ψ.indices]
+    return [prod(P.(x, ind)) for ind in Ψ.indices] .* normalization
 end
 
 function isoprobabilistic_transform!(
@@ -132,3 +250,14 @@ function isoprobabilistic_transform!(
     data[:, :] = quantile.(Uniform(-1, 1), cdf.(Normal(), data[:, :]))
     return nothing
 end
+
+function inverse_isoprobabilistic_transform!(
+    data::DataFrame, inputs::Vector{<:UQInput}, _::LegendreBasis
+)
+    data[:, :] = quantile.(Normal(), cdf.(Uniform(-1, 1), data[:, :]))
+
+    return to_physical_space!(inputs, data)
+end
+
+mean(pce::PolynomialChaosExpansion) = pce.y[1]
+var(pce::PolynomialChaosExpansion) = sum(pce.y[2:end] .^ 2)

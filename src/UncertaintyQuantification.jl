@@ -6,6 +6,7 @@ using DataFrames
 using Dates
 using Dierckx
 using Distributed
+using FastGaussQuadrature
 using FiniteDifferences
 using Formatting
 using LinearAlgebra
@@ -14,6 +15,7 @@ using Primes
 using QuasiMonteCarlo
 using Random
 using Reexport
+using SparseGrids
 
 @reexport using Distributions
 
@@ -47,11 +49,13 @@ export UQType
 export ExternalModel
 export Extractor
 export GaussianCopula
+export GaussQuadrature
 export HaltonSampling
 export HermiteBasis
 export JointDistribution
 export LatinHypercubeSampling
 export LatticeRuleSampling
+export LeastSquares
 export LegendreBasis
 export LineSampling
 export Model
@@ -62,6 +66,7 @@ export PolyharmonicSpline
 export RandomVariable
 export SobolSampling
 export Solver
+export SparseQuadrature
 export SubSetSimulation
 
 # Methods
@@ -72,6 +77,7 @@ export evaluate!
 export gradient
 export gradient_in_standard_normal_space
 export mean
+export polynomialchaos
 export probability_of_failure
 export qmc_samples
 export rand
