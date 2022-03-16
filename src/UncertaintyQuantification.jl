@@ -15,7 +15,7 @@ using Primes
 using QuasiMonteCarlo
 using Random
 using Reexport
-using SparseGrids
+using Symbolics
 
 @reexport using Distributions
 
@@ -51,7 +51,6 @@ export Extractor
 export GaussianCopula
 export GaussQuadrature
 export HaltonSampling
-export HermiteBasis
 export JointDistribution
 export LatinHypercubeSampling
 export LatticeRuleSampling
@@ -61,12 +60,12 @@ export LineSampling
 export Model
 export MonteCarlo
 export Parameter
+export PolynomialChaosBasis
 export PolynomialChaosExpansion
 export PolyharmonicSpline
 export RandomVariable
 export SobolSampling
 export Solver
-export SparseQuadrature
 export SubSetSimulation
 
 # Methods
@@ -101,7 +100,9 @@ include("solvers/extractor.jl")
 include("models/externalmodel.jl")
 include("models/model.jl")
 include("models/polyharmonicspline.jl")
-include("models/polynomialchaosexpansion.jl")
+
+include("models/pce/pcebases.jl")
+include("models/pce/polynomialchaosexpansion.jl")
 
 include("sensitivity/gradient.jl")
 
