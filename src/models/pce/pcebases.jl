@@ -82,3 +82,25 @@ end
 function map_to_bases(Ψ::PolynomialChaosBasis, x::AbstractMatrix)
     return hcat([map_to_base(Ψ.bases[i], x[:, i]) for i in 1:length(Ψ.bases)]...)
 end
+
+function map_from_base(_::LegendreBasis, x::AbstractVector)
+    return quantile.(Normal(), cdf.(Uniform(-1, 1), x))
+end
+
+function map_from_bases(Ψ::PolynomialChaosBasis, x::AbstractMatrix)
+    return hcat([map_from_base(Ψ.bases[i], x[:, i]) for i in 1:length(Ψ.bases)]...)
+end
+
+function quadrature_nodes(n::Int, _::LegendreBasis)
+    x, _ = gausslegendre(n)
+    return x
+end
+
+function quadrature_weights(n::Int, _::LegendreBasis)
+    _, w = gausslegendre(n)
+    return w
+end
+
+function sample(n::Int, _::LegendreBasis)
+    return rand(Uniform(-1, 1), n)
+end

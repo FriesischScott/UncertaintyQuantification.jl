@@ -13,16 +13,13 @@ struct GaussQuadrature end
 
 function polynomialchaos(
     inputs::Vector{<:UQInput},
-    models::Vector{<:UQModel},
+    model::UQModel,
     Ψ::PolynomialChaosBasis,
     output::Symbol,
     ls::LeastSquares,
 )
     samples = sample(inputs, ls.sim)
-
-    for m in models
-        evaluate!(m, samples)
-    end
+    evaluate!(model, samples)
 
     random_inputs = filter(i -> isa(i, RandomUQInput), inputs)
     random_names = names(random_inputs)
@@ -43,7 +40,7 @@ end
 
 function polynomialchaos(
     inputs::Vector{<:UQInput},
-    models::Vector{<:UQModel},
+    model::UQModel,
     Ψ::PolynomialChaosBasis,
     output::Symbol,
     _::GaussQuadrature,
@@ -53,55 +50,43 @@ function polynomialchaos(
 
     samples = DataFrame()
 
-    if Ψ isa LegendreBasis
-        _x, _w = gausslegendre(Ψ.p + 1)
-    else
-        _x, _w = gausshermite(Ψ.p + 1)
-    end
-
     nodes =
-        mapreduce(
-            collect,
-            hcat,
-            Iterators.product(Iterators.repeated(_x, length(random_inputs))...),
-        )'
-    weights = map(prod, Iterators.product(Iterators.repeated(_w, length(random_inputs))...))
+        mapreduce(collect, hcat, Iterators.product(quadrature_nodes.(Ψ.p + 1, Ψ.bases)...))'
+    weights = map(prod, Iterators.product(quadrature_weights.(Ψ.p + 1, Ψ.bases)...))
 
-    samples = DataFrame(nodes, random_names)
-    inverse_isoprobabilistic_transform!(samples, inputs, Ψ)
+    samples = map_from_bases(Ψ, nodes)
+    samples = DataFrame(samples, random_names)
+    to_physical_space!(random_inputs, samples)
 
-    for m in models
-        evaluate!(m, samples)
-    end
+    evaluate!(model, samples)
 
-    y = zeros(length(Ψ.indices))
+    y = zeros(length(Ψ.α))
 
     for (x, w, f) in zip(eachrow(nodes), weights, samples[:, output])
-        y +=
-            f * w * evaluate(collect(x), Ψ) /
-            (length(random_inputs) * length(random_inputs))
+        y += f * w * evaluate(Ψ, collect(x)) / length(random_inputs)^2
     end
 
     return PolynomialChaosExpansion(y, Ψ, output, inputs), samples
 end
 
 function evaluate!(pce::PolynomialChaosExpansion, df::DataFrame)
-    random_inputs = filter(i -> isa(i, RandomUQInput), pce.inputs)
-    random_names = names(random_inputs)
+    data = df[:, names(pce.inputs)]
+    to_standard_normal_space!(pce.inputs, data)
 
-    data = df[:, random_names]
-    isoprobabilistic_transform!(data, pce.inputs, pce.Ψ)
+    data = map_to_bases(pce.Ψ, Matrix(data))
 
-    out = map(row -> dot(pce.y, evaluate(collect(row), pce.Ψ)), eachrow(data))
+    out = map(row -> dot(pce.y, evaluate(pce.Ψ, collect(row))), eachrow(data))
     df[!, pce.output] = out
     return nothing
 end
 
-function sample(pce::PolynomialChaosExpansion, N::Integer)
-    samps = DataFrame(randn(N, length(pce.n)), pce.n)
-    out = map(row -> dot(pce.y, evaluate(collect(row), pce.Ψ)), eachrow(data))
+function sample(pce::PolynomialChaosExpansion, n::Integer)
+    samps = map_from_bases(pce.Ψ, hcat(sample.(n, pce.Ψ.bases)...))
+    out = map(row -> dot(pce.y, evaluate(pce.Ψ, collect(row))), eachrow(samps))
 
+    samps = DataFrame(samps, names(pce.inputs))
     to_physical_space!(pce.inputs, samps)
+
     samps[!, pce.output] = out
     return samps
 end
