@@ -20,7 +20,7 @@ using Symbolics
 @reexport using Distributions
 
 import Base: rand, names, copy, run
-import Statistics: mean
+import Statistics: mean, var
 
 abstract type UQType end
 
