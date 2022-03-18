@@ -19,7 +19,7 @@ using Symbolics
 
 @reexport using Distributions
 
-import Base: rand, names, copy, run
+import Base: rand, names, copy, run, length
 import Statistics: mean, var
 
 abstract type UQType end
@@ -72,13 +72,17 @@ export SubSetSimulation
 export calc
 export count_rvs
 export dimensions
+export evaluate
 export evaluate!
 export gradient
 export gradient_in_standard_normal_space
 export mean
+export multivariate_indices
 export polynomialchaos
 export probability_of_failure
 export qmc_samples
+export quadrature_nodes
+export quadrature_weights
 export rand
 export sample
 export sobolindices

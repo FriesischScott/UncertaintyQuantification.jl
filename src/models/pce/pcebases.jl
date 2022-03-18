@@ -13,7 +13,7 @@ struct PolynomialChaosBasis
 end
 
 function evaluate(Ψ::PolynomialChaosBasis, x::AbstractVector{Float64})
-    return float.(Symbolics.value.([prod(evaluate.(Ψ.bases, x, α)) for α in Ψ.α]))
+    return [prod(evaluate.(Ψ.bases, x, α)) for α in Ψ.α]
 end
 
 struct LegendreBasis <: AbstractOrthogonalBasis
@@ -23,8 +23,12 @@ struct LegendreBasis <: AbstractOrthogonalBasis
     LegendreBasis(p::Int, normalize::Bool=true) = new(p, legendre(p, normalize))
 end
 
+function evaluate(Ψ::AbstractOrthogonalBasis, x::AbstractVector{<:Real}, d::Int)
+    return [evaluate(Ψ, xᵢ, d) for xᵢ in x]
+end
+
 function evaluate(Ψ::LegendreBasis, x::Real, d::Int)
-    return Ψ.P[d + 1](x)
+    return float(Symbolics.value(Ψ.P[d + 1](x)))
 end
 
 function legendre(p::Int, normalize::Bool=true)
