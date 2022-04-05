@@ -121,7 +121,8 @@ function probability_of_failure(
 end
 
 function candidatesamples(θ::AbstractMatrix, proposal::Sampleable{Univariate})
-    Φ = MvNormal(size(θ, 2), 1.0)
+    d = size(θ, 2)
+    Φ = MvNormal(Diagonal(Matrix{Float64}(I, d, d)))
 
     ξ = θ + rand(proposal, size(θ)...)
     α = pdf(Φ, transpose(ξ)) ./ pdf(Φ, transpose(θ))
