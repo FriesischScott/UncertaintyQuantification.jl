@@ -81,10 +81,10 @@ function evaluate!(pce::PolynomialChaosExpansion, df::DataFrame)
 end
 
 function sample(pce::PolynomialChaosExpansion, n::Integer)
-    samps = map_from_bases(pce.Ψ, hcat(sample.(n, pce.Ψ.bases)...))
+    samps = hcat(sample.(n, pce.Ψ.bases)...)
     out = map(row -> dot(pce.y, evaluate(pce.Ψ, collect(row))), eachrow(samps))
 
-    samps = DataFrame(samps, names(pce.inputs))
+    samps = DataFrame(map_from_bases(pce.Ψ, samps), names(pce.inputs))
     to_physical_space!(pce.inputs, samps)
 
     samps[!, pce.output] = out

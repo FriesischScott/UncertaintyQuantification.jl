@@ -22,4 +22,26 @@
         @test mean(pce) ≈ 2 / 3
         @test var(pce) ≈ 2.9313966486926053
     end
+
+    @testset "evaluate" begin
+        gq = GaussQuadrature()
+        pce, samples = polynomialchaos(x, model, Ψ, :y, gq)
+
+        data = copy(samples)
+        evaluate!(pce, data)
+
+        @test sum((samples.y .- data.y) .^ 2) ≈ 0.0 atol = 0.01
+    end
+
+    @testset "sample" begin
+        gq = GaussQuadrature()
+        pce, _ = polynomialchaos(x, model, Ψ, :y, gq)
+
+        samples = sample(pce, 100)
+        data = copy(samples)
+
+        evaluate!(model, data)
+
+        @test sum((samples.y .- data.y) .^ 2) ≈ 0.0 atol = 0.01
+    end
 end
