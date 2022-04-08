@@ -14,6 +14,7 @@ using Primes
 using QuasiMonteCarlo
 using Random
 using Reexport
+using StatsBase
 
 @reexport using Distributions
 
@@ -78,6 +79,13 @@ export to_copula_space
 export to_physical_space!
 export to_standard_normal_space
 export to_standard_normal_space!
+export mh
+export gibbssample
+export smc
+export tmcmc
+export grconvergence
+export calcequaltails
+
 
 include("inputs/inputs.jl")
 include("inputs/parameter.jl")
@@ -95,6 +103,7 @@ include("models/polyharmonicspline.jl")
 
 include("sensitivity/gradient.jl")
 
+include("simulations/bayesianinference.jl")
 include("simulations/linesampling.jl")
 include("simulations/montecarlo.jl")
 include("simulations/subset.jl")
