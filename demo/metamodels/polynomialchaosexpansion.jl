@@ -28,17 +28,18 @@ println("GQ Variance: $(var(pceGQ))")
 println("--------------------------")
 
 # Estimation by MC
-sampsMC = sample(x, 10^6)
-evaluate!(model, sampsMC)
+samplesMC = sample(x, 10^5)
+evaluate!(model, samplesMC)
 
-println("MC Mean: $(mean(sampsMC[!,:y]))")
-println("MC Variance: $(var(sampsMC[!,:y]))")
-
+println("MC Mean: $(mean(samplesMC.y))")
+println("MC Variance: $(var(samplesMC.y))")
 
 # Plots 3 histograms
-sampsLS = sample(pceLS, 10^5)
-sampsGQ = sample(pceGQ, 10^5)
+samplesLS = sample(pceLS, 10^5)
+samplesGQ = sample(pceGQ, 10^5)
 
-histogram(sampsLS[!,:y], alpha = 0.5, label = "Least squares", normalize = :probability, bins = 100)
-histogram!(sampsGQ[!,:y], alpha = 0.5, label = "Quadrature", normalize = :probability, bins = 100)
-histogram!(sampsMC[!,:y], alpha = 0.5, label = "Monte Carlo", normalize = :probability, bins = 100)
+histogram(
+    samplesLS.y; alpha=0.5, label="Least squares", normalize=:probability, bins=100
+)
+histogram!(samplesGQ.y; alpha=0.5, label="Quadrature", normalize=:probability, bins=100)
+histogram!(samplesMC.y; alpha=0.5, label="Monte Carlo", normalize=:probability, bins=100)
