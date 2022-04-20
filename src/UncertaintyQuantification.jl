@@ -51,6 +51,7 @@ export Extractor
 export GaussianCopula
 export GaussQuadrature
 export HaltonSampling
+export HermiteBasis
 export JointDistribution
 export LatinHypercubeSampling
 export LatticeRuleSampling

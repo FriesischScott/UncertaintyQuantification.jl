@@ -20,7 +20,31 @@
 
         x, w = gausslegendre(10)
         @test quadrature_nodes(10, Ψ) == x
-        @test quadrature_weights(10, Ψ) == w
+        @test quadrature_weights(10, Ψ) == w ./ 2
+    end
+
+    @testset "HermiteBasis" begin
+        x = range(-3, 3; length=10)
+
+        Ψ = HermiteBasis(4, false)
+
+        @test evaluate(Ψ, x, 0) == ones(10)
+        @test evaluate(Ψ, x, 1) == x
+        @test evaluate(Ψ, x, 2) ≈ x .^ 2 .- 1
+        @test evaluate(Ψ, x, 3) ≈ x .^ 3 .- 3x
+        @test evaluate(Ψ, x, 4) ≈ x .^ 4 .- 6x .^ 2 .+ 3
+
+        Ψ = HermiteBasis(4, true)
+
+        @test evaluate(Ψ, x, 0) == ones(10)
+        @test evaluate(Ψ, x, 1) == x
+        @test evaluate(Ψ, x, 2) ≈ (x .^ 2 .- 1) / sqrt(2)
+        @test evaluate(Ψ, x, 3) ≈ (x .^ 3 .- 3x) / sqrt(6)
+        @test evaluate(Ψ, x, 4) ≈ (x .^ 4 .- 6x .^ 2 .+ 3) / sqrt(24)
+
+        x, w = gausshermite(10)
+        @test quadrature_nodes(10, Ψ) == sqrt(2) .* x
+        @test quadrature_weights(10, Ψ) == w ./ sqrt(π)
     end
 
     @testset "multivariate_indices" begin

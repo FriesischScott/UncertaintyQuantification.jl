@@ -63,7 +63,7 @@ function polynomialchaos(
     y = zeros(length(Ψ.α))
 
     for (x, w, f) in zip(eachrow(nodes), weights, samples[:, output])
-        y += f * w * evaluate(Ψ, collect(x)) / length(random_inputs)^2
+        y += f * w * evaluate(Ψ, collect(x))
     end
 
     return PolynomialChaosExpansion(y, Ψ, output, inputs), samples

@@ -23,12 +23,23 @@ struct LegendreBasis <: AbstractOrthogonalBasis
     LegendreBasis(p::Int, normalize::Bool=true) = new(p, legendre(p, normalize))
 end
 
+struct HermiteBasis <: AbstractOrthogonalBasis
+    p::Int
+    He::Vector{Num}
+
+    HermiteBasis(p::Int, normalize::Bool=true) = new(p, hermite(p, normalize))
+end
+
 function evaluate(Ψ::AbstractOrthogonalBasis, x::AbstractVector{<:Real}, d::Int)
     return [evaluate(Ψ, xᵢ, d) for xᵢ in x]
 end
 
 function evaluate(Ψ::LegendreBasis, x::Real, d::Int)
     return float(Symbolics.value(Ψ.P[d + 1](x)))
+end
+
+function evaluate(Ψ::HermiteBasis, x::Real, d::Int)
+    return float(Symbolics.value(Ψ.He[d + 1](x)))
 end
 
 function legendre(p::Int, normalize::Bool=true)
@@ -51,6 +62,26 @@ function legendre(p::Int, normalize::Bool=true)
     end
 
     return build_function.(P, x, expression=false)
+end
+
+function hermite(p::Int, normalize::Bool=true)
+    @variables x
+
+    He = Vector(undef, p + 1)
+    He[1] = 1
+    He[2] = x
+
+    for n in 2:(p)
+        He[n + 1] = x * He[n] - (n - 1) * He[n - 1]
+    end
+
+    if normalize
+        for n in 2:(p)
+            He[n + 1] = He[n + 1] / sqrt(factorial(n))
+        end
+    end
+
+    return build_function.(He, x, expression=false)
 end
 
 function multivariate_indices(p::Int, d::Int)
@@ -83,12 +114,20 @@ function map_to_base(_::LegendreBasis, x::AbstractVector)
     return quantile.(Uniform(-1, 1), cdf.(Normal(), x))
 end
 
+function map_to_base(_::HermiteBasis, x::AbstractVector)
+    return x
+end
+
 function map_to_bases(Ψ::PolynomialChaosBasis, x::AbstractMatrix)
     return hcat([map_to_base(Ψ.bases[i], x[:, i]) for i in 1:length(Ψ.bases)]...)
 end
 
 function map_from_base(_::LegendreBasis, x::AbstractVector)
     return quantile.(Normal(), cdf.(Uniform(-1, 1), x))
+end
+
+function map_from_base(_::HermiteBasis, x::AbstractVector)
+    return x
 end
 
 function map_from_bases(Ψ::PolynomialChaosBasis, x::AbstractMatrix)
@@ -102,9 +141,23 @@ end
 
 function quadrature_weights(n::Int, _::LegendreBasis)
     _, w = gausslegendre(n)
-    return w
+    return w ./ 2
+end
+
+function quadrature_nodes(n::Int, _::HermiteBasis)
+    x, _ = gausshermite(n)
+    return sqrt(2) * x
+end
+
+function quadrature_weights(n::Int, _::HermiteBasis)
+    _, w = gausshermite(n)
+    return w / sqrt(π)
 end
 
 function sample(n::Int, _::LegendreBasis)
     return rand(Uniform(-1, 1), n)
+end
+
+function sample(n::Int, _::HermiteBasis)
+    return rand(Normal(), n)
 end
