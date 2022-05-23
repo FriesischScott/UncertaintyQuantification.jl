@@ -38,8 +38,6 @@ println("MC Variance: $(var(samplesMC.y))")
 samplesLS = sample(pceLS, 10^5)
 samplesGQ = sample(pceGQ, 10^5)
 
-histogram(
-    samplesLS.y; alpha=0.5, label="Least squares", normalize=:probability, bins=100
-)
+histogram(samplesLS.y; alpha=0.5, label="Least squares", normalize=:probability, bins=100)
 histogram!(samplesGQ.y; alpha=0.5, label="Quadrature", normalize=:probability, bins=100)
 histogram!(samplesMC.y; alpha=0.5, label="Monte Carlo", normalize=:probability, bins=100)
