@@ -36,7 +36,7 @@ max_displacement = 0.01
 # Compute probability of failure using standard Monte Carlo
 mc = MonteCarlo(10^6)
 
-mc_pf, mc_samples = probability_of_failure(
+mc_pf, mc_cov, mc_samples = probability_of_failure(
     [inertia, displacement], df -> max_displacement .- df.w, inputs, mc
 )
 
@@ -45,9 +45,9 @@ println(
 )
 
 # Compute probability of failure using Line Sampling
-ls = LineSampling(50)
+ls = LineSampling(200)
 
-ls_pf, ls_samples = probability_of_failure(
+ls_pf, ls_cov, ls_samples = probability_of_failure(
     [inertia, displacement], df -> max_displacement .- df.w, inputs, ls
 )
 
