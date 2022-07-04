@@ -52,6 +52,7 @@ function probability_of_failure(
 
     threshold = zeros(sim.levels, 1)
     pf = ones(sim.levels, 1)
+    CoV = zeros(sim.levels, 1)
 
     for i in 1:(sim.levels)
         sorted_performance = sort(performance[end])
@@ -64,8 +65,9 @@ function probability_of_failure(
             mean(performance[end] .<= threshold[i])
         end
 
-        if threshold[i] <= 0 || i == sim.levels
-            break
+        ## Std MC covariance
+        if i == 1
+            CoV[i] = sqrt((pf[i] - pf[i]^2) / (sim.n * pf[i]))
         end
 
         nextlevelsamples = [samples[end][sorted_indices[1:number_of_chains], :]]
@@ -77,20 +79,30 @@ function probability_of_failure(
 
             to_standard_normal_space!(inputs, chainsamples)
 
-            chainsamples[:, rvs] = candidatesamples(
+            chainsamples[:, rvs], α_accept = candidatesamples(
                 Matrix{Float64}(chainsamples[:, rvs]), sim.proposal
             )
 
             to_physical_space!(inputs, chainsamples)
 
-            evaluate!(models, chainsamples)
+            ## Evaluating model just for new samples
+            α_accept_indices = findall(x -> x == true, α_accept)
+            if length(α_accept_indices) != 0
+                to_eval = chainsamples[α_accept, :]
+                evaluate!(models, to_eval)
 
-            chainperformance = performancefunction(chainsamples)
-
-            reject = chainperformance .> threshold[i]
-
-            chainperformance[reject] = nextlevelperformance[end][reject]
-            chainsamples[reject, rvs] = nextlevelsamples[end][reject, rvs]
+                to_evalperformance = performancefunction(to_eval)
+                performance_accept = to_evalperformance .< threshold[i]
+                chainsamples = copy(nextlevelsamples[end])
+                chainperformance = copy(nextlevelperformance[end])
+                chainsamples[α_accept_indices[performance_accept], :] = to_eval[
+                    performance_accept, :
+                ]
+                chainperformance[α_accept_indices[performance_accept]] = to_evalperformance[performance_accept]
+            else
+                chainsamples = copy(nextlevelsamples[end])
+                chainperformance = copy(nextlevelperformance[end])
+            end
 
             if c == 1
                 nextlevelsamples = [chainsamples]
@@ -106,6 +118,36 @@ function probability_of_failure(
 
         push!(samples, nextlevelsamples)
         push!(performance, nextlevelperformance)
+
+        if i > 1
+            Mindicator_i = transpose(Mindicator_i .< max(threshold[i], 0))
+            ## Compute CoV of the indicator function across different chainsamples
+            # Eq 29
+            Ri = zeros(1, Int(samples_per_chain))
+            for k in 1:Int(samples_per_chain)
+                for j in 1:number_of_chains
+                    for l in 1:(Int(samples_per_chain - (k - 1)))
+                        Ri[k] = Ri[k] + Mindicator_i[l, j] * Mindicator_i[l + k - 1, j]
+                    end
+                end
+                Ri[k] = Ri[k] / (sim.n - (k - 1) * number_of_chains) - pf[i]^2
+            end
+            # Eq 25
+            ρ = Ri / Ri[1]
+            # Eq 27
+            γ_i = 0
+            for k in 1:(Int(samples_per_chain) - 1)
+                γ_i = γ_i + (1 - k * n_markovChain / sim.n) * ρ[k]
+            end
+            γ_i = 2 * γ_i
+            #Eq 28
+            CoV[i] = sqrt((1 - pf[i]) / (pf[i] * sim.n) * (1 + γ_i))
+        end
+
+        ## Break the loop
+        if threshold[i] <= 0 || i == sim.levels
+            break
+        end
     end
 
     # add level to each dataframe
@@ -130,5 +172,5 @@ function candidatesamples(θ::AbstractMatrix, proposal::Sampleable{Univariate})
     accept = α .>= rand(size(α)...)
     θ[accept, :] = ξ[accept, :]
 
-    return θ
+    return θ, accept
 end
