@@ -60,17 +60,13 @@ function probability_of_failure(models::Union{Array{<:UQModel},UQModel},performa
             mean(performance[end] .<= threshold[i])
         end
 
-        ## Std MC covariance
-        if i == 1
-            cov[i] = sqrt((pf[i] - pf[i]^2) / sim.n) / pf[i]
-        end
-
         nextlevelsamples = [samples[end][sorted_indices[1:number_of_chains], :]]
         nextlevelperformance = [sorted_performance[1:number_of_chains]]
 
         # Modified metropolis hastings to generate samples for the next intermediate failure region
         for c in 1:samples_per_chain
             chainsamples = copy(nextlevelsamples[end])
+            chainperformance = copy(nextlevelperformance[end])
 
             to_standard_normal_space!(inputs, chainsamples)
 
@@ -79,20 +75,17 @@ function probability_of_failure(models::Union{Array{<:UQModel},UQModel},performa
             to_physical_space!(inputs, chainsamples)
 
             ## Evaluating model just for new samples
-            α_accept_indices = findall(x -> x == true, α_accept)
-            if length(α_accept_indices) != 0
-                to_eval = chainsamples[α_accept, :]
-                evaluate!(models, to_eval)
+            α_accept_indices = findall(α_accept)
+            if any(α_accept)
+                new_samples = chainsamples[α_accept, :]
+                evaluate!(models, new_samples)
 
-                to_evalperformance = performancefunction(to_eval)
-                performance_accept = to_evalperformance .< threshold[i]
+                new_samplesperformance = performancefunction(new_samples)
+                performance_accept = new_samplesperformance .< threshold[i]
                 chainsamples = copy(nextlevelsamples[end])
                 chainperformance = copy(nextlevelperformance[end])
-                chainsamples[α_accept_indices[performance_accept], :] = to_eval[performance_accept, :]
-                chainperformance[α_accept_indices[performance_accept]] = to_evalperformance[performance_accept]
-            else
-                chainsamples = copy(nextlevelsamples[end])
-                chainperformance = copy(nextlevelperformance[end])
+                chainsamples[α_accept_indices[performance_accept], :] = new_samples[performance_accept, :]
+                chainperformance[α_accept_indices[performance_accept]] = new_samplesperformance[performance_accept]
             end
 
             if c == 1
@@ -110,8 +103,13 @@ function probability_of_failure(models::Union{Array{<:UQModel},UQModel},performa
         push!(samples, nextlevelsamples)
         push!(performance, nextlevelperformance)
 
-        if i > 1
-            cov[i] = chaincovi(nextlevelperformance, number_of_chains, samples_per_chain, threshold[i], pf[i], sim.n)
+        ## Std MC coefficient of variation
+        if i == 1
+            cov[i] = sqrt((pf[i] - pf[i]^2) / sim.n) / pf[i]
+        ## MarkovChain coefficient of variation
+        else
+            Iᵢ = reshape(nextlevelperformance .< max(threshold[i], 0), samples_per_chain, number_of_chains)
+            cov[i] = estimate_chain_cov(Iᵢ, pf[i], sim.n)
         end
         ## Break the loop
         if threshold[i] <= 0 || i == sim.levels
@@ -123,13 +121,13 @@ function probability_of_failure(models::Union{Array{<:UQModel},UQModel},performa
     for i in eachindex(samples)
         samples[i][!, :level] .= i
     end
-    # merge (vcat) all saÊmples
+    # merge (vcat) all samples
     samples = reduce(vcat, samples)
 
     pf = prod(pf)
-    cov_pf = sqrt(sum((cov .^ 2)))
+    cov = sqrt(sum((cov .^ 2)))
 
-    return pf, samples, cov_pf
+    return pf, cov, samples
 end
 
 function candidatesamples(θ::AbstractMatrix, proposal::Sampleable{Univariate})
@@ -145,32 +143,27 @@ function candidatesamples(θ::AbstractMatrix, proposal::Sampleable{Univariate})
     return θ, accept
 end
 
-function chaincovi(nextlevelperformance::Vector{Float64}, number_of_chains::Int64, samples_per_chain::Int64, threshold::Float64, pf::Float64, sim_n::Int64)
-    # Building indicator Matrix (Boolean)
-    indicator = reshape(nextlevelperformance, number_of_chains, samples_per_chain)
-    indicator = transpose(indicator .< max(threshold, 0))
-    ```Estimation of small failure probabilities in high dimensions by subset simulation
-    ```
-    # Eq 29 - covariance vecotr between indicator(l) and indicator(l+k) -> ri
-    ri = zeros(1, samples_per_chain)
-    for k in 1:samples_per_chain
-        for j in 1:number_of_chains
-            for l in 1:(Int(samples_per_chain - (k - 1)))
-                ri[k] = ri[k] + indicator[l, j] * indicator[l + k - 1, j]
-            end
-        end
-        ri[k] = ri[k] / (sim_n - (k - 1) * number_of_chains) - pf^2
-    end
-    # Eq 25 - correlation coefficient vector ρ
-    ρ = ri / ri[1]
-    # Eq 27 - γ_i Bernoulli coefficient 
-    γ_i = 0
-    for k in 1:(samples_per_chain - 1)
-        γ_i = γ_i + (1 - k * number_of_chains / sim_n) * ρ[k]
-    end
-    γ_i = 2 * γ_i
-    #Eq 28 - i-level coefficient of variation (Metropolis Markov Chain)
-    cov_i = sqrt((1 - pf) / (pf * sim_n) * (1 + γ_i))
-    return cov_i
-end
+"""
+	sample(inputs::Array{<:UQInput}, n::Integer)
 
+Evaluates coefficient of variation of each subset simulation's level.
+Reference: 'Estimation of small failure probabilities in high dimensions by subset simulation' - Siu-Kui Au, James L. Beck
+        - Eq 29 - covariance vecotr between indicator(l) and indicator(l+k) -> ri
+        - Eq 25 - correlation coefficient vector ρ
+        - Eq 27 - γᵢ Bernoulli coefficient 
+        - Eq 28 - i-level coefficient of varᵢation (Metropolis Markov Chain)
+"""
+function estimate_chain_cov(Iᵢ, pf::Float64, n::Int64)
+    (samples_per_chain, Nc) = size(Iᵢ)
+    rᵢ = zeros(samples_per_chain)
+    for k in 1:samples_per_chain
+        for j in 1:Nc, l in 1:(samples_per_chain - (k - 1))
+                rᵢ[k] = rᵢ[k] + I[l, j] * I[l + k - 1, j]
+        end
+        rᵢ[k] = rᵢ[k] / (n - (k - 1) * Nc) - pf^2
+    end
+    ρ = rᵢ / rᵢ[1]
+    γᵢ= 2 * sum((1 .- ((1:(samples_per_chain-1)) .* Nc ./ n)) .* ρ[1:end-1])
+    δᵢ = sqrt((1 - pf) / (pf * n) * (1 + γᵢ))
+    return δᵢ
+end
