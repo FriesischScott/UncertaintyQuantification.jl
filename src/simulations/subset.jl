@@ -31,8 +31,12 @@ function sample(inputs::Array{<:UQInput}, sim::SubSetSimulation)
     return samples
 end
 
-function probability_of_failure(models::Union{Array{<:UQModel},UQModel},performancefunction::Function,inputs::Union{Array{T},T} where {T<:UQInput},sim::SubSetSimulation)
-
+function probability_of_failure(
+    models::Union{Array{<:UQModel},UQModel},
+    performancefunction::Function,
+    inputs::Union{Array{T},T} where {T<:UQInput},
+    sim::SubSetSimulation,
+)
     random_inputs = filter(i -> isa(i, RandomUQInput), inputs)
     rvs = names(random_inputs)
 
@@ -106,9 +110,13 @@ function probability_of_failure(models::Union{Array{<:UQModel},UQModel},performa
         ## Std MC coefficient of variation
         if i == 1
             cov[i] = sqrt((pf[i] - pf[i]^2) / sim.n) / pf[i]
-        ## MarkovChain coefficient of variation
+            ## MarkovChain coefficient of variation
         else
-            Iᵢ = reshape(nextlevelperformance .< max(threshold[i], 0), samples_per_chain, number_of_chains)
+            Iᵢ = reshape(
+                nextlevelperformance .< max(threshold[i], 0),
+                samples_per_chain,
+                number_of_chains,
+            )
             cov[i] = estimate_chain_cov(Iᵢ, pf[i], sim.n)
         end
         ## Break the loop
@@ -158,12 +166,12 @@ function estimate_chain_cov(Iᵢ, pf::Float64, n::Int64)
     rᵢ = zeros(samples_per_chain)
     for k in 1:samples_per_chain
         for j in 1:Nc, l in 1:(samples_per_chain - (k - 1))
-                rᵢ[k] = rᵢ[k] + I[l, j] * I[l + k - 1, j]
+            rᵢ[k] = rᵢ[k] + I[l, j] * I[l + k - 1, j]
         end
         rᵢ[k] = rᵢ[k] / (n - (k - 1) * Nc) - pf^2
     end
     ρ = rᵢ / rᵢ[1]
-    γᵢ= 2 * sum((1 .- ((1:(samples_per_chain-1)) .* Nc ./ n)) .* ρ[1:end-1])
+    γᵢ = 2 * sum((1 .- ((1:(samples_per_chain - 1)) .* Nc ./ n)) .* ρ[1:(end - 1)])
     δᵢ = sqrt((1 - pf) / (pf * n) * (1 + γᵢ))
     return δᵢ
 end
