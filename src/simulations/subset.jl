@@ -74,7 +74,9 @@ function probability_of_failure(
 
             to_standard_normal_space!(inputs, chainsamples)
 
-            chainsamples[:, rvs], α_accept = candidatesamples(Matrix{Float64}(chainsamples[:, rvs]), sim.proposal)
+            chainsamples[:, rvs], α_accept = candidatesamples(
+                Matrix{Float64}(chainsamples[:, rvs]), sim.proposal
+            )
 
             to_physical_space!(inputs, chainsamples)
 
@@ -85,11 +87,13 @@ function probability_of_failure(
                 evaluate!(models, new_samples)
 
                 new_samplesperformance = performancefunction(new_samples)
-                performance_accept = new_samplesperformance .< threshold[i]
-                chainsamples = copy(nextlevelsamples[end])
-                chainperformance = copy(nextlevelperformance[end])
-                chainsamples[α_accept_indices[performance_accept], :] = new_samples[performance_accept, :]
-                chainperformance[α_accept_indices[performance_accept]] = new_samplesperformance[performance_accept]
+                reject = new_samplesperformance .> threshold[i]
+
+                new_samples[reject, :] = nextlevelsamples[end][α_accept_indices[reject], :]
+                new_samplesperformance[reject] = nextlevelperformance[end][α_accept_indices[reject]]
+
+                chainsamples[α_accept_indices, :] = new_samples
+                chainperformance[α_accept_indices] = new_samplesperformance
             end
 
             if c == 1
@@ -152,26 +156,26 @@ function candidatesamples(θ::AbstractMatrix, proposal::Sampleable{Univariate})
 end
 
 """
-	sample(inputs::Array{<:UQInput}, n::Integer)
+	estimate_chain_cov(Iᵢ::AbstractMatrix, pf::Float64, n::Int64)
 
 Evaluates coefficient of variation of each subset simulation's level.
 Reference: 'Estimation of small failure probabilities in high dimensions by subset simulation' - Siu-Kui Au, James L. Beck
-        - Eq 29 - covariance vecotr between indicator(l) and indicator(l+k) -> ri
-        - Eq 25 - correlation coefficient vector ρ
-        - Eq 27 - γᵢ Bernoulli coefficient 
-        - Eq 28 - i-level coefficient of varᵢation (Metropolis Markov Chain)
+    - Eq 29 - covariance vector between indicator(l) and indicator(l+k) -> ri
+    - Eq 25 - correlation coefficient vector ρ
+    - Eq 27 - γᵢ Bernoulli coefficient
+    - Eq 28 - i-level coefficient of varᵢation (Metropolis Markov Chain)
 """
-function estimate_chain_cov(Iᵢ, pf::Float64, n::Int64)
-    (samples_per_chain, Nc) = size(Iᵢ)
-    rᵢ = zeros(samples_per_chain)
-    for k in 1:samples_per_chain
-        for j in 1:Nc, l in 1:(samples_per_chain - (k - 1))
+function estimate_chain_cov(Iᵢ::AbstractMatrix, pf::Float64, n::Int64)
+    Ns, Nc = size(Iᵢ) # Number of samples per chain, number of chains
+    rᵢ = zeros(Ns)
+    for k in 1:Ns
+        for j in 1:Nc, l in 1:(Ns - (k - 1))
             rᵢ[k] = rᵢ[k] + I[l, j] * I[l + k - 1, j]
         end
         rᵢ[k] = rᵢ[k] / (n - (k - 1) * Nc) - pf^2
     end
     ρ = rᵢ / rᵢ[1]
-    γᵢ = 2 * sum((1 .- ((1:(samples_per_chain - 1)) .* Nc ./ n)) .* ρ[1:(end - 1)])
+    γᵢ = 2 * sum((1 .- ((1:(Ns - 1)) .* Nc ./ n)) .* ρ[1:(end - 1)])
     δᵢ = sqrt((1 - pf) / (pf * n) * (1 + γᵢ))
     return δᵢ
 end
