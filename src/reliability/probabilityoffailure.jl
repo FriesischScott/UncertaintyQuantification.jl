@@ -10,7 +10,10 @@ function probability_of_failure(
     # Probability of failure
     pf = sum(performance(samples) .< 0) / sim.n
 
-    return pf, samples
+    variance = (pf - pf^2) / sim.n
+    cov = sqrt(variance) / pf
+
+    return pf, cov, samples
 end
 
 function probability_of_failure(
@@ -34,30 +37,32 @@ function probability_of_failure(
     p = reshape(performance(samples), length(sim.points), sim.lines)
 
     ϕ = Normal()
-    pf = 0
-    roots_found = 0
+    ξ = zeros(sim.lines)
     x = median(sim.points)
     for i in 1:(sim.lines)
         if all(p[:, i] .< 0)
+            ξ[i] = 1.0
             @warn "All samples for line $i are inside the failure domain"
             continue
         elseif all(p[:, i] .> 0)
+            ξ[i] = 0.0
             @warn "All samples for line $i are outside the failure domain"
             continue
         end
         spl = Spline1D(sim.points, p[:, i])
         try
             root = Dierckx.roots(spl)[1]
-            pf += cdf.(ϕ, -1 * root)
-            roots_found += 1
+            ξ[i] = cdf.(ϕ, -root)
         catch e
             @warn "Intersection with failure domain not found for line $i ($e)"
         end
     end
 
-    pf /= roots_found
+    pf = mean(ξ)
+    variance = var(ξ) / sim.lines
+    cov = sqrt(variance) / pf
 
-    return pf, samples
+    return pf, cov, samples
 end
 
 # Allow to calculate the pf using only a performance function but no model
