@@ -4,7 +4,7 @@ struct ExternalModel <: UQModel
     extras::Vector{String}
     formats::Dict{Symbol,FormatSpec}
     workdir::String
-    extractors::Array{Extractor,1}
+    extractors::Vector{Extractor}
     solver::Solver
     cleanup::Bool
 
@@ -14,7 +14,7 @@ struct ExternalModel <: UQModel
         extras::Vector{String},
         formats::Dict{Symbol,FormatSpec},
         workdir::String,
-        extractors::Array{Extractor,1},
+        extractors::Vector{Extractor},
         solver::Solver,
         cleanup::Bool=false
     )
