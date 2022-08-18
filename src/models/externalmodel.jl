@@ -48,11 +48,11 @@ function evaluate!(m::ExternalModel, df::DataFrame)
 
         run(m.solver, path)
 
-        sim_result = map(e -> e.f(path), m.extractors)
+        result = map(e -> e.f(path), m.extractors)
         if m.cleanup
             rm(path, recursive=true)
         end
-        return sim_result
+        return result
     end
 
     results = transpose(hcat(results...))
