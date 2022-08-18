@@ -33,13 +33,12 @@
     df = sample([x, y], 1)
 
     @testset "No Cleanup" begin
-        workdir_nocleanup = tempdir()
         ext = ExternalModel(
             sourcedir,
             sourcefiles,
             extrafiles,
             numberformats,
-            workdir_nocleanup,
+            tempname(), 
             [r],
             opensees,
             false,
@@ -47,15 +46,16 @@
         evaluate!(ext, df)
         @test length(readdir(readdir(ext.workdir; join=true)[1])) != 0
     end
+    @test isapprox(df.r, sqrt.(df.x .^ 2 + df.y .^ 2))
+
 
     @testset "Cleanup" begin
-        workdir_cleanup = tempname()
         ext = ExternalModel(
             sourcedir,
             sourcefiles,
             extrafiles,
             numberformats,
-            workdir_cleanup,
+            tempname(),
             [r],
             opensees,
             true,
