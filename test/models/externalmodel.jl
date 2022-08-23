@@ -38,16 +38,15 @@
             sourcefiles,
             extrafiles,
             numberformats,
-            tempname(), 
+            tempname(),
             [r],
             opensees,
             false,
         )
         evaluate!(ext, df)
         @test length(readdir(readdir(ext.workdir; join=true)[1])) != 0
+        @test isapprox(df.r, sqrt.(df.x .^ 2 + df.y .^ 2))
     end
-    @test isapprox(df.r, sqrt.(df.x .^ 2 + df.y .^ 2))
-
 
     @testset "Cleanup" begin
         ext = ExternalModel(
@@ -62,7 +61,6 @@
         )
         evaluate!(ext, df)
         @test length(readdir(readdir(ext.workdir; join=true)[1])) == 0
+        @test isapprox(df.r, sqrt.(df.x .^ 2 + df.y .^ 2))
     end
-
-    @test isapprox(df.r, sqrt.(df.x .^ 2 + df.y .^ 2))
 end
