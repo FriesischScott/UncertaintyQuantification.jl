@@ -53,4 +53,17 @@
         @test all(isapprox(si.FirstOrder, firstorder_analytical; rtol=0.1))
         @test all(isapprox(si.TotalEffect, totaleffect_analytical; rtol=0.1))
     end
+
+    @testset "Polynomial Chaos Expansion" begin
+        p = 6
+        Ψ = PolynomialChaosBasis(LegendreBasis.([p, p, p]), p)
+
+        gq = GaussQuadrature()
+        pce, _ = polynomialchaos(x, ishigami, Ψ, :f, gq)
+
+        si = sobolindices(pce)
+
+        @test all(isapprox(si.FirstOrder, firstorder_analytical; rtol=0.1))
+        @test all(isapprox(si.TotalEffect, totaleffect_analytical; rtol=0.1))
+    end
 end
