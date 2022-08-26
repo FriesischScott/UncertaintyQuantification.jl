@@ -10,15 +10,16 @@ UncertaintyQuantification.jl
 
 A Julia package for uncertainty quantification. Current functionality includes:
 
- * Simulation-based reliability analysis
-   * Monte Carlo simulation
-   * Quasi Monte Carlo simulation (Sobol, Halton, Latin Hypercube, Lattice Rule)
-   * Line Sampling
-   * Subset Simulation
- * Sensitivity analysis
-   * Gradients
-   * Sobol indices
- * Metamodeling
-   * Polyharmonic splines
- * Third-party solvers
-   * Connect to any solver by injecting random samples into source files
+* Simulation-based reliability analysis
+  * Monte Carlo simulation
+  * Quasi Monte Carlo simulation (Sobol, Halton, Latin Hypercube, Lattice Rule)
+  * Line Sampling
+  * Subset Simulation
+* Sensitivity analysis
+  * Gradients
+  * Sobol indices
+* Metamodeling
+  * Polyharmonic splines
+  * Polynomial Chaos Expansion
+* Third-party solvers
+  * Connect to any solver by injecting random samples into source files

@@ -15,8 +15,10 @@ evaluate!(ishigami, data)
 
 phs = PolyharmonicSpline(data, 2, :y)
 
-si, _ = sobolindices([ishigami], inputs, :y, MonteCarlo(10000))
-si_phs, _ = sobolindices([phs], inputs, :y, SobolSampling(10000))
+si = sobolindices([ishigami], inputs, :y, MonteCarlo(10000))
+si_phs = sobolindices([phs], inputs, :y, SobolSampling(10000))
 
-println("First order sobol indices of the ishigami function: $si")
-println("First order sobol indices of the polyharmonic spline meta mode: $si_phs")
+println("First order sobol indices of the ishigami function: $(si.FirstOrder)")
+println(
+    "First order sobol indices of the polyharmonic spline meta mode: $(si_phs.FirstOrder)"
+)

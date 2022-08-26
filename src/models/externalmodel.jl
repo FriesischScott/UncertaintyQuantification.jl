@@ -1,11 +1,25 @@
 struct ExternalModel <: UQModel
     sourcedir::String
-    sources::Array{String,1}
-    extras::Array{String,1}
+    sources::Vector{String}
+    extras::Vector{String}
     formats::Dict{Symbol,FormatSpec}
     workdir::String
-    extractors::Array{Extractor,1}
+    extractors::Vector{Extractor}
     solver::Solver
+    cleanup::Bool
+
+    function ExternalModel(    
+        sourcedir::String,
+        sources::Vector{String},
+        extras::Vector{String},
+        formats::Dict{Symbol,FormatSpec},
+        workdir::String,
+        extractors::Vector{Extractor},
+        solver::Solver,
+        cleanup::Bool=false
+    )
+    return new(sourcedir, sources, extras, formats, workdir, extractors, solver, cleanup)       
+    end
 end
 
 function evaluate!(m::ExternalModel, df::DataFrame)
@@ -34,7 +48,11 @@ function evaluate!(m::ExternalModel, df::DataFrame)
 
         run(m.solver, path)
 
-        return map(e -> e.f(path), m.extractors)
+        result = map(e -> e.f(path), m.extractors)
+        if m.cleanup
+            rm(path, recursive=true)
+        end
+        return result
     end
 
     results = transpose(hcat(results...))
