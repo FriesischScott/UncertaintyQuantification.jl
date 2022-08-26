@@ -1,7 +1,7 @@
 name = "UncertaintyQuantification"
 uuid = "7183a548-a887-11e9-15ce-a56ab60bad7a"
 authors = ["Jasper Behrensdorf <behrensdorf@irz.uni-hannover.de>", "Ander Gray <ander.gray@liverpool.ac.uk>"]
-version = "0.2.2"
+version = "0.3.0"
 
 [deps]
 Accessors = "7d9f7c33-5ae7-4f3b-8dc6-eff91059b697"
