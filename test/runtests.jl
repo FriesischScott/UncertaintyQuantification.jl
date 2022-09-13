@@ -20,6 +20,7 @@ include("models/polyharmonicspline.jl")
 include("models/pce/pcebases.jl")
 include("models/pce/polynomialchaosexpansion.jl")
 
+include("reliability/form.jl")
 include("reliability/probabilityoffailure.jl")
 
 include("sensitivity/gradient.jl")

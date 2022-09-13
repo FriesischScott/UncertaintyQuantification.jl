@@ -48,6 +48,7 @@ export UQType
 # Structs
 export ExternalModel
 export Extractor
+export FORM
 export GaussianCopula
 export GaussQuadrature
 export HaltonSampling
@@ -73,7 +74,6 @@ export SubSetSimulation
 export calc
 export count_rvs
 export dimensions
-export FORM
 export evaluate
 export evaluate!
 export gradient
@@ -116,6 +116,7 @@ include("simulations/linesampling.jl")
 include("simulations/montecarlo.jl")
 include("simulations/subset.jl")
 
+include("reliability/form.jl")
 include("reliability/probabilityoffailure.jl")
 include("sensitivity/sobolindices.jl")
 

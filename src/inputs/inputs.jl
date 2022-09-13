@@ -16,12 +16,6 @@ function to_physical_space!(inputs::Array{<:UQInput}, x::DataFrame)
     return nothing
 end
 
-function to_physical_space(inputs::Array{<:UQInput}, x::DataFrame)
-    y = copy(x)
-    to_physical_space!(inputs, y)
-    return y
-end
-
 function to_standard_normal_space!(inputs::Array{<:UQInput}, x::DataFrame)
     for i in inputs
         to_standard_normal_space!(i, x)
