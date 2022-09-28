@@ -22,23 +22,22 @@ function gradient(
 end
 
 function gradient_in_standard_normal_space(
-    models::Array{<:UQModel}, inputs::Array{<:UQInput}, reference::DataFrame, output::Symbol
+    models::Array{<:UQModel}, inputs::Array{<:UQInput}, x::DataFrame, output::Symbol
 )
-    samples = copy(reference)
-
     random_names = names(filter(i -> isa(i, RandomUQInput), inputs))
-    to_standard_normal_space!(inputs, samples)
 
     function f(x)
-        samples[:, random_names] .= x
-        to_physical_space!(inputs, samples)
+        sample = DataFrame(random_names .=> x)
+        to_physical_space!(inputs, sample)
 
-        evaluate!(models, samples)
+        evaluate!(models, sample)
 
-        return samples[:, output][1]
+        return sample[1, output][1]
     end
 
-    reference = Array{Float64,2}(samples[:, random_names])
+    reference = copy(x)
+    to_standard_normal_space!(inputs, reference)
+    reference = vec(Matrix(reference[:, random_names]))
 
     g = grad(forward_fdm(2, 1), f, reference)[1]
 
