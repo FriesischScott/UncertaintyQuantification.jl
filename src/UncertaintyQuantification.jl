@@ -57,6 +57,7 @@ export MonteCarlo
 export Parameter
 export PolyharmonicSpline
 export RandomVariable
+export ResponseSurface
 export SobolSampling
 export Solver
 export SubSetSimulation
@@ -92,6 +93,7 @@ include("solvers/extractor.jl")
 include("models/externalmodel.jl")
 include("models/model.jl")
 include("models/polyharmonicspline.jl")
+include("models/responsesurface.jl")
 
 include("sensitivity/gradient.jl")
 
