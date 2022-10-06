@@ -15,7 +15,7 @@ sourcedir = joinpath(pwd(), "demo/models")
 sourcefiles = ["supported-beam.tcl"]
 
 # These files will be copied to the working directory without injecting values
-extrafiles = []
+extrafiles = String[]
 
 # Dictionary to map FormatSpecs (Formatting.jl) to variables
 numberformats = Dict(:E => FormatSpec(".8e"))

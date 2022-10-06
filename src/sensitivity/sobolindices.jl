@@ -60,3 +60,21 @@ function sobolindices(
 
     return indices
 end
+
+function sobolindices(pce::PolynomialChaosExpansion)
+    random_names = names(pce.inputs)
+    indices = DataFrame()
+    indices.Variables = random_names
+    indices.FirstOrder =
+        [
+            sum(pce.y[findall(α -> α[i] != 0 && sum(α) == α[i], pce.Ψ.α)] .^ 2) for
+            i in 1:length(random_names)
+        ] ./ var(pce)
+    indices.TotalEffect =
+        [
+            sum(pce.y[findall(α -> α[i] != 0, pce.Ψ.α)] .^ 2) for
+            i in 1:length(random_names)
+        ] ./ var(pce)
+
+    return indices
+end

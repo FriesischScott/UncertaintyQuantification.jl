@@ -1,11 +1,9 @@
 @testset "ExternalModel" begin
     sourcedir = tempdir()
     sourcefiles = ["in.txt"]
-    extrafiles = []
+    extrafiles = String[]
 
     numberformats = Dict(:x => FormatSpec(".8e"), :* => FormatSpec(".8e"))
-
-    workdir = joinpath(tempdir(), "external-model-test")
 
     r = Extractor(
         base -> begin
@@ -24,10 +22,6 @@
 
     opensees = Solver(binary, "", "in.txt")
 
-    ext = ExternalModel(
-        sourcedir, sourcefiles, extrafiles, numberformats, workdir, [r], opensees
-    )
-
     open(joinpath(sourcedir, "in.txt"), "w") do input
         println(input, "{{{ :x }}}")
         println(input, "{{{ :y }}}")
@@ -38,7 +32,35 @@
 
     df = sample([x, y], 1)
 
-    evaluate!(ext, df)
+    @testset "No Cleanup" begin
+        ext = ExternalModel(
+            sourcedir,
+            sourcefiles,
+            extrafiles,
+            numberformats,
+            tempname(),
+            [r],
+            opensees,
+            false,
+        )
+        evaluate!(ext, df)
+        @test length(readdir(readdir(ext.workdir; join=true)[1])) != 0
+        @test isapprox(df.r, sqrt.(df.x .^ 2 + df.y .^ 2))
+    end
 
-    @test isapprox(df.r, sqrt.(df.x .^ 2 + df.y .^ 2))
+    @testset "Cleanup" begin
+        ext = ExternalModel(
+            sourcedir,
+            sourcefiles,
+            extrafiles,
+            numberformats,
+            tempname(),
+            [r],
+            opensees,
+            true,
+        )
+        evaluate!(ext, df)
+        @test length(readdir(readdir(ext.workdir; join=true)[1])) == 0
+        @test isapprox(df.r, sqrt.(df.x .^ 2 + df.y .^ 2))
+    end
 end

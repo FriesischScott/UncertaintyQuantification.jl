@@ -6,6 +6,7 @@ using DataFrames
 using Dates
 using Dierckx
 using Distributed
+using FastGaussQuadrature
 using FiniteDifferences
 using Formatting
 using LinearAlgebra
@@ -14,11 +15,12 @@ using Primes
 using QuasiMonteCarlo
 using Random
 using Reexport
+using Symbolics
 
 @reexport using Distributions
 
-import Base: rand, names, copy, run
-import Statistics: mean
+import Base: rand, names, copy, run, length
+import Statistics: mean, var
 
 abstract type UQType end
 
@@ -47,14 +49,20 @@ export UQType
 export ExternalModel
 export Extractor
 export GaussianCopula
+export GaussQuadrature
 export HaltonSampling
+export HermiteBasis
 export JointDistribution
 export LatinHypercubeSampling
 export LatticeRuleSampling
+export LeastSquares
+export LegendreBasis
 export LineSampling
 export Model
 export MonteCarlo
 export Parameter
+export PolynomialChaosBasis
+export PolynomialChaosExpansion
 export PolyharmonicSpline
 export RandomVariable
 export ResponseSurface
@@ -66,12 +74,17 @@ export SubSetSimulation
 export calc
 export count_rvs
 export dimensions
+export evaluate
 export evaluate!
 export gradient
 export gradient_in_standard_normal_space
 export mean
+export multivariate_indices
+export polynomialchaos
 export probability_of_failure
 export qmc_samples
+export quadrature_nodes
+export quadrature_weights
 export rand
 export sample
 export sobolindices
@@ -94,6 +107,9 @@ include("models/externalmodel.jl")
 include("models/model.jl")
 include("models/polyharmonicspline.jl")
 include("models/responsesurface.jl")
+
+include("models/pce/pcebases.jl")
+include("models/pce/polynomialchaosexpansion.jl")
 
 include("sensitivity/gradient.jl")
 
