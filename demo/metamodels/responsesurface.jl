@@ -1,21 +1,23 @@
 using UncertaintyQuantification
 using DataFrames
 
-x = RandomVariable.(Uniform(-10 , 10), [:x1, :x2])
 
-inputs = [x[1]; x[2]]
+
+
+
+x = RandomVariable.(Uniform(-10 , 10), [:x1, :x2])
 
 polynomial = Model(
     df ->
-    2 *(df.x1).^2 .+ 0.5 * (df.x2).^2 .+ df.x1 .* df.x2 .+ df.x1 .+ 8 * df.x2 .+ 5,
+    2 .*(df.x1).^2 .+ 0.5 .* (df.x2).^2 .+ df.x1 .* df.x2 .+ df.x1 .* sin.(0.2 .* df.x1) .+ 8 .* df.x2 .+ 5 ,
     :y,
 )
 
-training_data = sample(inputs, 100)
+training_data = sample(x, 100)
 
 evaluate!(polynomial, training_data)
 
-rs = ResponseSurface(training_data, :y, 2, 3)
+rs = ResponseSurface(training_data, :y, 2)
 
 test_data = sample(x, 1000)
 evaluate!(rs, test_data)
