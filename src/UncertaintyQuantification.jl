@@ -6,6 +6,7 @@ using DataFrames
 using Dates
 using Dierckx
 using Distributed
+using DynamicPolynomials
 using FastGaussQuadrature
 using FiniteDifferences
 using Formatting
