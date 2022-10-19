@@ -22,8 +22,8 @@ julia> data = DataFrame(x = 1:10, y = [1, 4, 10, 15, 24, 37, 50, 62, 80, 101])
    9 │     9     80
   10 │    10    101
 
-julia> rs = ResponseSurface(data, :y, 2, 2)
-ResponseSurface([0.4833333333331211, -0.23863636363637397, 1.018939393939391], :y, 2, 2)
+julia> rs = ResponseSurface(data, :y, 2)
+ResponseSurface([1.018939393939398, -0.23863636363631713, 0.4833333333332348], :y, [:x], 2, Monomial{true}[x₁², x₁, 1])
 ```
 """
 struct ResponseSurface <: UQModel
@@ -31,7 +31,6 @@ struct ResponseSurface <: UQModel
     y::Symbol
     names::Array{Symbol}
     deg::Int64
-    dim::Int64
     monomial::DynamicPolynomials.MonomialVector{true}
 
     function ResponseSurface(data::DataFrame, dependendVarName::Symbol, deg::Int64)
@@ -46,8 +45,8 @@ struct ResponseSurface <: UQModel
         names = propertynames(data[:, Not(dependendVarName)])
 
         params = multiDimensionalPolynomialRegression(data, dependendVarName, monomial)
-        println("params--------$params")
-        return new(params, dependendVarName, names, deg, size(data, 2), monomial)
+
+        return new(params, dependendVarName, names, deg, monomial)
     end
 end
 
@@ -57,13 +56,13 @@ end
 function multiDimensionalPolynomialRegression(data::DataFrame, y::Symbol, monomial::DynamicPolynomials.MonomialVector{true})
     Y = data[:, y]
     x_data = Matrix{Float64}(data[:, Not(String(y))]) # convert to matrix
-    M = zeros(size(data, 1), size(monomial, 1))
+    M = zeros(size(data, 1), size(monomial, 1))#prepare matrix
 
     for i in 1 : size(M, 1)
-        M[i, :] = map(m -> m(convert(Array, x_data[i, :])), monomial')
+        M[i, :] = map(m -> m(convert(Array, x_data[i, :])), monomial') #fill matrix with monomials filled with given data
     end
 
-    return inv(transpose(M) * M) * transpose(M) * Y
+    return inv(transpose(M) * M) * transpose(M) * Y #regression formula
 end
 
 
@@ -103,20 +102,9 @@ julia> data = DataFrame(x = 1:10, y = [1, 4, 10, 15, 24, 37, 50, 62, 80, 101])
 julia> rs = ResponseSurface(data, :y, 2, 2)
 ResponseSurface([0.4833333333331211, -0.23863636363637397, 1.018939393939391], :y, 2, 2)
 julia> evaluate!(rs, [2.5, 11, 15])
-
-#output
-
-3×2 DataFrame
- Row │ x        y
-     │ Float64  Float64   
-─────┼────────────────────
-   1 │     2.5    6.25511
-   2 │    11.0  121.15
-   3 │    15.0  226.165
 ```
 """
 function evaluate!(rs::ResponseSurface, data::DataFrame)
-
     x = Matrix{Float64}(data[:, rs.names]) # convert to matrix, sort by rs.names
     out = map(row -> (calc(convert(Array, row), rs)), eachrow(x)) # fill monomial, evaluate given data with ResponseSurface
     data[!, rs.y] = out

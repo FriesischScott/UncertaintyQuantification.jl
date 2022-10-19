@@ -5,11 +5,11 @@ using DataFrames
 
 
 
-x = RandomVariable.(Uniform(-10 , 10), [:x1, :x2])
+x = RandomVariable.(Uniform(-π ,π), [:x1, :x2, :x3])
 
 polynomial = Model(
     df ->
-    2 .*(df.x1).^2 .+ 0.5 .* (df.x2).^2 .+ df.x1 .* df.x2 .+ df.x1 .* sin.(0.2 .* df.x1) .+ 8 .* df.x2 .+ 5 ,
+        2 .* df.x1.^2 .+ df.x1 .* df.x2 + df.x1 .* df.x3 .+ 3 .* df.x2.^2 .+ df.x2 .* df.x3 .+ 4 .* df.x3.^2 + df.x1 .+ df.x2 .+ df.x3 .+ 3,
     :y,
 )
 

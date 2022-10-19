@@ -3,7 +3,7 @@ using Test
 using DataFrames
 
 @testset "ResponseSurface" begin
-    x = RandomVariable.(Uniform(-10 , 10), [:x1, :x2, :x3])
+    x = RandomVariable.(Uniform(-π ,π), [:x1, :x2, :x3])
     a = 7
     b = 0.1
 
@@ -17,13 +17,12 @@ using DataFrames
 
     evaluate!(ishigami, data)
 
-    rs = ResponseSurface(data, :y, 4)
+    rs = ResponseSurface(data, :y, 6)
 
     rs_data = select(data, Not(:y))
     evaluate!(rs, rs_data)
 
     mse = mean((data.y .- rs_data.y) .^ 2)
-    println("mse-----------$mse")
 
     @test isapprox(mse, 0; atol=eps(Float64))
 end
