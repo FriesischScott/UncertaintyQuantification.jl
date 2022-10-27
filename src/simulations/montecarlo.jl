@@ -54,7 +54,9 @@ end
 function qmc_samples(sim::HaltonSampling, rvs::Integer)
     coprimes = [prime(i) for i in 1:rvs]
     return transpose(
-        QuasiMonteCarlo.sample(sim.n, zeros(rvs), ones(rvs), LowDiscrepancySample(coprimes))
+        QuasiMonteCarlo.sample(
+            sim.n, zeros(rvs), ones(rvs), LowDiscrepancySample(coprimes, false)
+        ),
     )
 end
 
