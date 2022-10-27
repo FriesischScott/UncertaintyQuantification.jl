@@ -1,8 +1,7 @@
-using DynamicPolynomials
 """
     ResponseSurface(data::DataFrame, dependendVarName::Symbol, deg::Int64, dim::Int64)
 
-Creates a response surface using polynomial least squares regression with given degree and dimension
+Creates a response surface using polynomial least squares regression with given degree.
 
 # Examples
 ```jldoctest
@@ -27,42 +26,42 @@ ResponseSurface([1.018939393939398, -0.23863636363631713, 0.4833333333332348], :
 ```
 """
 struct ResponseSurface <: UQModel
-    parameters::Array
+    β::Array
     y::Symbol
     names::Array{Symbol}
-    deg::Int64
-    monomial::DynamicPolynomials.MonomialVector{true}
+    p::Int64
+    monomials::MonomialVector{true}
 
-    function ResponseSurface(data::DataFrame, dependendVarName::Symbol, deg::Int64)
-        if deg < 0
-            print("degree must be non negative")
-            return nothing
+    function ResponseSurface(data::DataFrame, output::Symbol, p::Int64)
+        if p < 0
+            error("Degree(p) of ResponseSurface must be non-negative.")
         end
 
         @polyvar x[1:size(data, 2) - 1]
-        monomial = monomials(x, 0:deg)
+        m = monomials(x, 0:p)
 
-        names = propertynames(data[:, Not(dependendVarName)])
+        names = propertynames(data[:, Not(output)])
 
-        params = multiDimensionalPolynomialRegression(data, dependendVarName, monomial)
+        X = Matrix{Float64}(data[:, names]) # convert to matrix, sort by rs.names
+        y = Vector{Float64}(data[:, output])
 
-        return new(params, dependendVarName, names, deg, monomial)
+        β = multi_dimensional_polynomial_regression(X, y, m)
+
+        return new(β, output, names, p, m)
     end
 end
 
 
 
 # only to be called internally by constructor
-function multiDimensionalPolynomialRegression(data::DataFrame, y::Symbol, monomial::DynamicPolynomials.MonomialVector{true})
-    Y = data[:, y]
-    x_data = Matrix{Float64}(data[:, Not(String(y))]) # convert to matrix
-    M = zeros(size(data, 1), size(monomial, 1))#prepare matrix
+function multi_dimensional_polynomial_regression(X::Matrix, y::Vector, monomials::MonomialVector{true})
 
-    for i in 1 : size(M, 1)
-        M[i, :] = map(m -> m(convert(Array, x_data[i, :])), monomial') #fill matrix with monomials filled with given data
-    end
+    #fill monomials with the given x values for each row
+    M = mapreduce(row -> begin
+        return map(m -> m(row), monomials)'
+    end, vcat, eachrow(X))
 
-    return inv(transpose(M) * M) * transpose(M) * Y #regression formula
+    return M \ y   #β
 end
 
 
@@ -70,19 +69,23 @@ end
 #called internally by evaluate!
 #evaluates one datapoint using a given ResponseSurface
 function calc(row::Array, rs::ResponseSurface)
-    map(m -> m(row), rs.monomial') * rs.parameters
+    map(m -> m(row), rs.monomials') * rs.β
 end
 
 
 
 """
-evaluate!(rs::ResponseSurface, data::DataFrame)
-    evaluating data by using a previously trained ResponseSurface
+    evaluate!(rs::ResponseSurface, data::DataFrame)
+
+evaluating data by using a previously trained ResponseSurface.
 
 
-#Examples
+
+
+# Examples
 
 ```jldoctest
+
 julia> data = DataFrame(x = 1:10, y = [1, 4, 10, 15, 24, 37, 50, 62, 80, 101])
 10×2 DataFrame
  Row │ x      y     

@@ -1,8 +1,6 @@
 using UncertaintyQuantification
 using DataFrames
-
-
-
+using DynamicPolynomials
 
 
 x = RandomVariable.(Uniform(-π ,π), [:x1, :x2, :x3])
@@ -14,7 +12,6 @@ polynomial = Model(
 )
 
 training_data = sample(x, 100)
-
 evaluate!(polynomial, training_data)
 
 rs = ResponseSurface(training_data, :y, 2)
