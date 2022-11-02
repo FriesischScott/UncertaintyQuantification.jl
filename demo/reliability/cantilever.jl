@@ -57,7 +57,7 @@ println(
 
 subset = UncertaintyQuantification.SubSetSimulation(2000, 0.1, 10, Uniform(-0.5, 0.5))
 
-subset_pf, subset_cov, subset_samples= probability_of_failure(
+subset_pf, subset_cov, subset_samples = probability_of_failure(
     [inertia, displacement], df -> max_displacement .- df.w, inputs, subset
 )
 

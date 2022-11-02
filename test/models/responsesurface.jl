@@ -1,12 +1,10 @@
 @testset "ResponseSurface" begin
-    x = RandomVariable.(Uniform(-π ,π), [:x1, :x2, :x3])
+    x = RandomVariable.(Uniform(-π, π), [:x1, :x2, :x3])
     a = 7
     b = 0.1
 
     ishigami = Model(
-        df ->
-            sin.(df.x1) .+ a .* sin.(df.x2) .^ 2 .+ b .* (df.x3 .^ 4) .* sin.(df.x1),
-        :y,
+        df -> sin.(df.x1) .+ a .* sin.(df.x2) .^ 2 .+ b .* (df.x3 .^ 4) .* sin.(df.x1), :y
     )
 
     data = sample(x, SobolSampling(100))

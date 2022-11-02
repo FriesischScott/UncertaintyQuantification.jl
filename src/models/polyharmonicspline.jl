@@ -7,12 +7,12 @@ creates a polyharmonic spline that is trained by given data
 ```jldoctest
 
 julia> data = DataFrame(x = 1:10, y = [1, -5, -10, -12, -8, -1, 5, 12, 23, 50])
-10×2 DataFrame      
- Row │ x      y     
-     │ Int64  Int64 
+10×2 DataFrame
+ Row │ x      y
+     │ Int64  Int64
 ─────┼──────────────
-   1 │     1      1 
-   2 │     2     -5 
+   1 │     1      1
+   2 │     2     -5
    3 │     3    -10
    4 │     4    -12
    5 │     5     -8
@@ -82,7 +82,6 @@ function calc(ps::PolyharmonicSpline, x::Array{Float64,1})
     f = sum(ϕ.(r, ps.k) .* ps.w)
     return f += (transpose(ps.v) * [1; x])[1]
 end
-
 
 """
     evaluate!(ps::PolyharmonicSpline, df::DataFrame)

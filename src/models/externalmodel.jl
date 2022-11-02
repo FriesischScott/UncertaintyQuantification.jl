@@ -8,7 +8,7 @@ struct ExternalModel <: UQModel
     solver::Solver
     cleanup::Bool
 
-    function ExternalModel(    
+    function ExternalModel(
         sourcedir::String,
         sources::Vector{String},
         extras::Vector{String},
@@ -16,9 +16,11 @@ struct ExternalModel <: UQModel
         workdir::String,
         extractors::Vector{Extractor},
         solver::Solver,
-        cleanup::Bool=false
+        cleanup::Bool=false,
     )
-    return new(sourcedir, sources, extras, formats, workdir, extractors, solver, cleanup)       
+        return new(
+            sourcedir, sources, extras, formats, workdir, extractors, solver, cleanup
+        )
     end
 end
 
@@ -50,7 +52,7 @@ function evaluate!(m::ExternalModel, df::DataFrame)
 
         result = map(e -> e.f(path), m.extractors)
         if m.cleanup
-            rm(path, recursive=true)
+            rm(path; recursive=true)
         end
         return result
     end

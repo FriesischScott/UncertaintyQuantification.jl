@@ -7,8 +7,8 @@ Creates a response surface using polynomial least squares regression with given 
 ```jldoctest
 julia> data = DataFrame(x = 1:10, y = [1, 4, 10, 15, 24, 37, 50, 62, 80, 101])
 10×2 DataFrame
- Row │ x      y     
-     │ Int64  Int64 
+ Row │ x      y
+     │ Int64  Int64
 ─────┼──────────────
    1 │     1      1
    2 │     2      4
@@ -37,7 +37,7 @@ struct ResponseSurface <: UQModel
             error("Degree(p) of ResponseSurface must be non-negative.")
         end
 
-        @polyvar x[1:size(data, 2) - 1]
+        @polyvar x[1:(size(data, 2) - 1)]
         m = monomials(x, 0:p)
 
         names = propertynames(data[:, Not(output)])
@@ -51,10 +51,10 @@ struct ResponseSurface <: UQModel
     end
 end
 
-
-
 # only to be called internally by constructor
-function multi_dimensional_polynomial_regression(X::Matrix, y::Vector, monomials::MonomialVector{true})
+function multi_dimensional_polynomial_regression(
+    X::Matrix, y::Vector, monomials::MonomialVector{true}
+)
 
     #fill monomials with the given x values for each row
     M = mapreduce(row -> begin
@@ -64,15 +64,11 @@ function multi_dimensional_polynomial_regression(X::Matrix, y::Vector, monomials
     return M \ y   #β
 end
 
-
-
 #called internally by evaluate!
 #evaluates one datapoint using a given ResponseSurface
 function calc(row::Array, rs::ResponseSurface)
-    map(m -> m(row), rs.monomials') * rs.β
+    return map(m -> m(row), rs.monomials') * rs.β
 end
-
-
 
 """
     evaluate!(rs::ResponseSurface, data::DataFrame)
@@ -88,8 +84,8 @@ evaluating data by using a previously trained ResponseSurface.
 
 julia> data = DataFrame(x = 1:10, y = [1, 4, 10, 15, 24, 37, 50, 62, 80, 101])
 10×2 DataFrame
- Row │ x      y     
-     │ Int64  Int64 
+ Row │ x      y
+     │ Int64  Int64
 ─────┼──────────────
    1 │     1      1
    2 │     2      4
@@ -113,4 +109,3 @@ function evaluate!(rs::ResponseSurface, data::DataFrame)
     data[!, rs.y] = out
     return nothing
 end
-
