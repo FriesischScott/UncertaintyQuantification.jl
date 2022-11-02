@@ -17,7 +17,7 @@
 
     mse = mean((data.y .- rs_data.y) .^ 2)
 
-    @test isapprox(mse, 0; atol=0.02064568539852385)
+    @test isapprox(mse, 0.02064568539852385; rtol=1e-5)
 
     @test_throws ErrorException("Degree(p) of ResponseSurface must be non-negative.") ResponseSurface(
         data, :y, -3
