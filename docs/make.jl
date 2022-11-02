@@ -23,6 +23,8 @@ makedocs(;
             "Inputs" => "api/inputs.md",
             "Parameter" => "api/parameter.md",
             "RandomVariable" => "api/randomvariable.md",
+            "ResponseSurface" => "api/responsesurface.md",
+            "PolyharmonicSpline" => "api/polyharmonicspline.md",
         ],
     ],
 )
