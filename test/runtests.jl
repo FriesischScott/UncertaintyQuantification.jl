@@ -1,5 +1,4 @@
 using DataFrames
-using FastGaussQuadrature
 using Formatting
 using InteractiveUtils
 using QuasiMonteCarlo
