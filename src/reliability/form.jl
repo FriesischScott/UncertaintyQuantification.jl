@@ -62,5 +62,6 @@ function probability_of_failure(
     dp = DataFrame(random_names .=> y)
     to_physical_space!(inputs, dp)
 
+    dp = (; zip(random_names, collect(dp[1, :]))...)
     return pf, β, dp
 end
