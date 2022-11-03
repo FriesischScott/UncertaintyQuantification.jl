@@ -1,5 +1,4 @@
 using DataFrames
-using FastGaussQuadrature
 using Formatting
 using InteractiveUtils
 using QuasiMonteCarlo
@@ -19,6 +18,7 @@ include("models/model.jl")
 include("models/polyharmonicspline.jl")
 include("models/pce/pcebases.jl")
 include("models/pce/polynomialchaosexpansion.jl")
+include("models/responsesurface.jl")
 
 include("reliability/form.jl")
 include("reliability/probabilityoffailure.jl")

@@ -21,5 +21,6 @@ A Julia package for uncertainty quantification. Current functionality includes:
 * Metamodeling
   * Polyharmonic splines
   * Polynomial Chaos Expansion
+  * Response Surface Methodology
 * Third-party solvers
   * Connect to any solver by injecting random samples into source files

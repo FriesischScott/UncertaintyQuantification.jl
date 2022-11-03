@@ -28,7 +28,7 @@ function polynomialchaos(
     x = map_to_bases(Ψ, Matrix(samples[:, random_names]))
 
     A = mapreduce(row -> evaluate(Ψ, vec(row)), hcat, eachrow(x))'
-    y = inv(transpose(A) * A) * transpose(A) * samples[:, output]
+    y = A \ samples[:, output]
 
     ϵ = samples[:, output] - A * y
     mse = dot(ϵ, ϵ)
@@ -48,23 +48,22 @@ function polynomialchaos(
     random_inputs = filter(i -> isa(i, RandomUQInput), inputs)
     random_names = names(random_inputs)
 
-    samples = DataFrame()
-
     nodes =
         mapreduce(collect, hcat, Iterators.product(quadrature_nodes.(Ψ.p + 1, Ψ.bases)...))'
     weights = map(prod, Iterators.product(quadrature_weights.(Ψ.p + 1, Ψ.bases)...))
 
-    samples = map_from_bases(Ψ, nodes)
-    samples = DataFrame(samples, random_names)
+    samples = DataFrame(map_from_bases(Ψ, nodes), random_names)
     to_physical_space!(random_inputs, samples)
 
     evaluate!(model, samples)
 
-    y = zeros(length(Ψ.α))
-
-    for (x, w, f) in zip(eachrow(nodes), weights, samples[:, output])
-        y += f * w * evaluate(Ψ, collect(x))
-    end
+    y = mapreduce(
+        (x, w, f) -> f * w * evaluate(Ψ, collect(x)),
+        +,
+        eachrow(nodes),
+        weights,
+        samples[:, output],
+    )
 
     return PolynomialChaosExpansion(y, Ψ, output, inputs), samples
 end
