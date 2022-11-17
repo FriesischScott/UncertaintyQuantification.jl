@@ -37,17 +37,13 @@ function probability_of_failure(
     inputs::Union{Array{T},T} where {T<:UQInput},
     sim::SubSetSimulation,
 )
-    random_inputs = filter(i -> isa(i, RandomUQInput), inputs)
-    rvs = names(random_inputs)
-
     samples = [sample(inputs, sim)]
 
     evaluate!(models, samples[end])
 
     performance = [performancefunction(samples[end])]
 
-    number_of_chains = Int64(max(1, ceil(sim.n * sim.target)))
-    samples_per_chain = Int64(floor(sim.n / number_of_chains))
+    number_of_seeds = Int64(max(1, ceil(sim.n * sim.target)))
 
     threshold = zeros(sim.levels, 1)
     pf = ones(sim.levels, 1)
@@ -57,59 +53,25 @@ function probability_of_failure(
         sorted_performance = sort(performance[end])
         sorted_indices = sortperm(performance[end])
 
-        threshold[i] = sorted_performance[number_of_chains]
+        threshold[i] = sorted_performance[number_of_seeds]
         pf[i] = if threshold[i] <= 0
             mean(performance[end] .<= 0)
         else
             mean(performance[end] .<= threshold[i])
         end
 
-        nextlevelsamples = [samples[end][sorted_indices[1:number_of_chains], :]]
-        nextlevelperformance = [sorted_performance[1:number_of_chains]]
+        nextsamples, nextperformance = nextlevelsamples(
+            samples[end][sorted_indices[1:number_of_seeds], :],
+            sorted_performance[1:number_of_seeds],
+            threshold[i],
+            models,
+            performancefunction,
+            inputs,
+            sim,
+        )
 
-        # Modified metropolis hastings to generate samples for the next intermediate failure region
-        for c in 1:samples_per_chain
-            chainsamples = copy(nextlevelsamples[end])
-            chainperformance = copy(nextlevelperformance[end])
-
-            to_standard_normal_space!(inputs, chainsamples)
-
-            chainsamples[:, rvs], α_accept = candidatesamples(
-                Matrix{Float64}(chainsamples[:, rvs]), sim.proposal
-            )
-
-            to_physical_space!(inputs, chainsamples)
-
-            ## Evaluating model just for new samples
-            α_accept_indices = findall(α_accept)
-            if any(α_accept)
-                new_samples = chainsamples[α_accept, :]
-                evaluate!(models, new_samples)
-
-                new_samplesperformance = performancefunction(new_samples)
-                reject = new_samplesperformance .> threshold[i]
-
-                new_samples[reject, :] = nextlevelsamples[end][α_accept_indices[reject], :]
-                new_samplesperformance[reject] = nextlevelperformance[end][α_accept_indices[reject]]
-
-                chainsamples[α_accept_indices, :] = new_samples
-                chainperformance[α_accept_indices] = new_samplesperformance
-            end
-
-            if c == 1
-                nextlevelsamples = [chainsamples]
-                nextlevelperformance = [chainperformance]
-            else
-                push!(nextlevelsamples, chainsamples)
-                push!(nextlevelperformance, chainperformance)
-            end
-        end
-
-        nextlevelsamples = reduce(vcat, nextlevelsamples)
-        nextlevelperformance = reduce(vcat, nextlevelperformance)
-
-        push!(samples, nextlevelsamples)
-        push!(performance, nextlevelperformance)
+        push!(samples, nextsamples)
+        push!(performance, nextperformance)
 
         ## Std MC coefficient of variation
         if i == 1
@@ -117,9 +79,9 @@ function probability_of_failure(
             ## MarkovChain coefficient of variation
         else
             Iᵢ = reshape(
-                nextlevelperformance .< max(threshold[i], 0),
-                samples_per_chain,
-                number_of_chains,
+                nextperformance .< max(threshold[i], 0),
+                Int64(floor(sim.n / number_of_seeds)),
+                number_of_seeds,
             )
             cov[i] = estimate_chain_cov(Iᵢ, pf[i], sim.n)
         end
@@ -142,17 +104,69 @@ function probability_of_failure(
     return pf, cov, samples
 end
 
-function candidatesamples(θ::AbstractMatrix, proposal::Sampleable{Univariate})
-    d = size(θ, 2)
+function nextlevelsamples(
+    samples::DataFrame,
+    performance::Vector{<:Real},
+    threshold::Real,
+    models::Union{Array{<:UQModel},UQModel},
+    performancefunction::Function,
+    inputs::Union{Array{T},T} where {T<:UQInput},
+    sim::SubSetSimulation,
+)
+    nextlevelsamples = [samples]
+    nextlevelperformance = [performance]
+
+    random_inputs = filter(i -> isa(i, RandomUQInput), inputs)
+    rvs = names(random_inputs)
+
+    number_of_chains = nrow(samples)
+    samples_per_chain = Int64(floor(sim.n / number_of_chains))
+
+    d = length(rvs)
     Φ = MvNormal(Diagonal(Matrix{Float64}(I, d, d)))
 
-    ξ = θ + rand(proposal, size(θ)...)
-    α = pdf(Φ, transpose(ξ)) ./ pdf(Φ, transpose(θ))
+    # Modified metropolis hastings to generate samples for the next intermediate failure region
+    for _ in 1:samples_per_chain
+        chainsamples = copy(nextlevelsamples[end])
+        chainperformance = copy(nextlevelperformance[end])
 
-    accept = α .>= rand(size(α)...)
-    θ[accept, :] = ξ[accept, :]
+        to_standard_normal_space!(inputs, chainsamples)
 
-    return θ, accept
+        θ = Matrix{Float64}(chainsamples[:, rvs])
+
+        ξ = θ + rand(sim.proposal, size(θ)...)
+        α = pdf(Φ, transpose(ξ)) ./ pdf(Φ, transpose(θ))
+
+        α_accept = α .>= rand(size(α)...)
+        chainsamples[α_accept, rvs] = ξ[α_accept, :]
+
+        to_physical_space!(inputs, chainsamples)
+
+        ## Evaluating model just for new samples
+        α_accept_indices = findall(α_accept)
+        if any(α_accept)
+            new_samples = chainsamples[α_accept, :]
+            evaluate!(models, new_samples)
+
+            new_samplesperformance = performancefunction(new_samples)
+            reject = new_samplesperformance .> threshold
+
+            new_samples[reject, :] = nextlevelsamples[end][α_accept_indices[reject], :]
+            new_samplesperformance[reject] = nextlevelperformance[end][α_accept_indices[reject]]
+
+            chainsamples[α_accept_indices, :] = new_samples
+            chainperformance[α_accept_indices] = new_samplesperformance
+        end
+
+        push!(nextlevelsamples, chainsamples)
+        push!(nextlevelperformance, chainperformance)
+    end
+
+    # reduce and discard seeds
+    nextlevelsamples = reduce(vcat, nextlevelsamples[2:end])
+    nextlevelperformance = reduce(vcat, nextlevelperformance[2:end])
+
+    return nextlevelsamples, nextlevelperformance
 end
 
 """
@@ -163,7 +177,7 @@ Reference: 'Estimation of small failure probabilities in high dimensions by subs
     - Eq 29 - covariance vector between indicator(l) and indicator(l+k) -> ri
     - Eq 25 - correlation coefficient vector ρ
     - Eq 27 - γᵢ Bernoulli coefficient
-    - Eq 28 - i-level coefficient of varᵢation (Metropolis Markov Chain)
+    - Eq 28 - i-level coefficient of variation (Metropolis Markov Chain)
 """
 function estimate_chain_cov(Iᵢ::AbstractMatrix, pf::Float64, n::Int64)
     Ns, Nc = size(Iᵢ) # Number of samples per chain, number of chains
