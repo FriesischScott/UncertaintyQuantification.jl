@@ -1,10 +1,3 @@
-```@meta
-CurrentModule = UncertaintyQuantification
-DocTestSetup = quote
-    using UncertaintyQuantification
-end
-```
-
 # Parameter
 
 ## Index

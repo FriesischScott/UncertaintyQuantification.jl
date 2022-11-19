@@ -25,12 +25,10 @@ Generates n samples from a random variable. Returns a DataFrame.
 
 # Examples
 
-```jldoctest
-x = RandomVariable(Normal(), :x)
-sample(x, 3)
+```@repl
+julia> x = RandomVariable(Normal(), :x)
 
-# output
-
+julia> sample(x, 3)
 3×1 DataFrame
  Row │ x
      │ Float64

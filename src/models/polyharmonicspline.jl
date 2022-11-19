@@ -8,7 +8,7 @@ Creates a polyharmonic spline that is trained by given data.
 julia> data = DataFrame(x = 1:10, y = [1, -5, -10, -12, -8, -1, 5, 12, 23, 50]);
 
 julia> PolyharmonicSpline(data, 2, :y)
-PolyharmonicSpline([1.1473268119780278; -0.44960947031466086; … ; -5.331010776968267; 3.8862763174093313], [-112.00528786482354; 6.844431546357826], [1.0; 2.0; … ; 9.0; 10.0], 2, [:x], :y)
+PolyharmonicSpline([1.1473268119780484; -0.4496094703147227; … ; -5.331010776968249; 3.886276317409325;;], [-112.00528786482374; 6.844431546357884;;], [1.0; 2.0; … ; 9.0; 10.0;;], 2, [:x], :y)
 ```
 """
 struct PolyharmonicSpline <: UQModel
@@ -86,8 +86,8 @@ julia> df.y
 4-element Vector{Float64}:
   -7.754272281066534
    8.290831024829075
-  84.4685159898265
- 260.4367316915062
+  84.46851598982659
+ 260.4367316915123
 ```
 """
 function evaluate!(ps::PolyharmonicSpline, df::DataFrame)
