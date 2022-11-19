@@ -83,7 +83,7 @@ function probability_of_failure(
                 Int64(floor(sim.n / number_of_seeds)),
                 number_of_seeds,
             )
-            cov[i] = estimate_chain_cov(Iᵢ, pf[i], sim.n)
+            cov[i] = estimate_cov(Iᵢ, pf[i], sim.n)
         end
         ## Break the loop
         if threshold[i] <= 0 || i == sim.levels
@@ -169,18 +169,56 @@ function nextlevelsamples(
     return nextlevelsamples, nextlevelperformance
 end
 
+function nextlevelsamples(
+    samples::DataFrame,
+    performance::Vector{<:Real},
+    threshold::Real,
+    models::Union{Array{<:UQModel},UQModel},
+    performancefunction::Function,
+    inputs::Union{Array{T},T} where {T<:UQInput},
+    sim::SubSetInfinity,
+)
+    samples_per_seed = Int64(floor(sim.n / nrow(samples)))
+
+    random_inputs = filter(i -> isa(i, RandomUQInput), inputs)
+    rvs = names(random_inputs)
+
+    to_standard_normal_space!(inputs, samples)
+
+    samples = repeat(samples, samples_per_seed)
+    performance = repeat(performance, samples_per_seed)
+
+    means = Matrix{Float64}(samples[:, rvs]) .* sqrt(1 - sim.s^2)
+
+    nextlevelsamples = copy(samples)
+    nextlevelsamples[:, rvs] = randn(size(means)) .* sim.s .+ means
+
+    to_physical_space!(inputs, nextlevelsamples)
+
+    evaluate!(models, nextlevelsamples)
+
+    nextlevelperformance = performancefunction(nextlevelsamples)
+
+    reject = nextlevelperformance .> threshold
+
+    nextlevelsamples[reject, :] = samples[reject, :]
+    nextlevelperformance[reject] = performance[reject]
+
+    return nextlevelsamples, nextlevelperformance
+end
+
 """
-	estimate_chain_cov(Iᵢ::AbstractMatrix, pf::Float64, n::Int64)
+	estimate_cov(Iᵢ::AbstractMatrix, pf::Float64, n::Int64)
 
 Evaluates coefficient of variation of each subset simulation's level.
 Reference: 'Estimation of small failure probabilities in high dimensions by subset simulation' - Siu-Kui Au, James L. Beck
     - Eq 29 - covariance vector between indicator(l) and indicator(l+k) -> ri
     - Eq 25 - correlation coefficient vector ρ
     - Eq 27 - γᵢ Bernoulli coefficient
-    - Eq 28 - i-level coefficient of variation (Metropolis Markov Chain)
+    - Eq 28 - i-level coefficient of variation
 """
-function estimate_chain_cov(Iᵢ::AbstractMatrix, pf::Float64, n::Int64)
-    Ns, Nc = size(Iᵢ) # Number of samples per chain, number of chains
+function estimate_cov(Iᵢ::AbstractMatrix, pf::Float64, n::Int64)
+    Ns, Nc = size(Iᵢ) # Number of samples per seed, number of seeds
     rᵢ = zeros(Ns - 1)
     for k in 1:(Ns - 1)
         for j in 1:Nc, l in 1:(Ns - k)
