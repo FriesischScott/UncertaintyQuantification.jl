@@ -1,30 +1,13 @@
 """
     PolyharmonicSpline(data::DataFrame, k::Int64, output::Symbol)
 
-creates a polyharmonic spline that is trained by given data
+Creates a polyharmonic spline that is trained by given data.
 
 #Examples
 ```jldoctest
-
-julia> data = DataFrame(x = 1:10, y = [1, -5, -10, -12, -8, -1, 5, 12, 23, 50])
-10×2 DataFrame
- Row │ x      y
-     │ Int64  Int64
-─────┼──────────────
-   1 │     1      1
-   2 │     2     -5
-   3 │     3    -10
-   4 │     4    -12
-   5 │     5     -8
-   6 │     6     -1
-   7 │     7      5
-   8 │     8     12
-   9 │     9     23
-  10 │    10     50
-
-  julia> PolyharmonicSpline(data, 2, :y)
-PolyharmonicSpline([1.1473268119780278; -0.44960947031466086; … ; -5.331010776968267; 3.8862763174093313;;],
-     [-112.00528786482354; 6.844431546357826;;], [1.0; 2.0; … ; 9.0; 10.0;;], 2, [:x], :y)
+julia> data = DataFrame(x = 1:10, y = [1, -5, -10, -12, -8, -1, 5, 12, 23, 50]);
+julia> PolyharmonicSpline(data, 2, :y)
+PolyharmonicSpline([1.1473268119780278; -0.44960947031466086; … ; -5.331010776968267; 3.8862763174093313;;], [-112.00528786482354; 6.844431546357826;;], [1.0; 2.0; … ; 9.0; 10.0;;], 2, [:x], :y)
 ```
 """
 struct PolyharmonicSpline <: UQModel
@@ -86,26 +69,20 @@ end
 """
     evaluate!(ps::PolyharmonicSpline, df::DataFrame)
 
-    evaluates given data using a previously contructed PolyharmonicSpline
+Evaluate given data using a previously contructed PolyharmonicSpline metamodel.
 
 #Examples
 ```jldoctest
-
-data = DataFrame(x = 1:10, y = [1, -5, -10, -12, -8, -1, 5, 12, 23, 50])
-
-ps = PolyharmonicSpline(data, 2, :y)
-
-df = DataFrame( x = [2.5, 7.5, 12, 30])
-
-evaluate!(ps, df)
-
-# output
-
+julia>data = DataFrame(x = 1:10, y = [1, -5, -10, -12, -8, -1, 5, 12, 23, 50]);
+julia>ps = PolyharmonicSpline(data, 2, :y);
+julia>df = DataFrame( x = [2.5, 7.5, 12, 30]);
+julia>evaluate!(ps, df);
+julia>df.y
 4-element Vector{Float64}:
   -7.754272281066534
    8.290831024829075
-  84.4685159898265
- 260.4367316915062
+  84.46851598982659
+ 260.4367316915123
 ```
 """
 function evaluate!(ps::PolyharmonicSpline, df::DataFrame)
