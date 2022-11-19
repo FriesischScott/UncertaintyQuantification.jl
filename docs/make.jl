@@ -28,6 +28,7 @@ makedocs(;
             "Simulations" => "api/simulations.md",
         ],
     ],
+    strict=:doctest,
 )
 
 deploydocs(;
