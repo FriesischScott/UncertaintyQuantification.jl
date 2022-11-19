@@ -1,5 +1,19 @@
 abstract type AbstractSubSetSimulation end
 
+"""
+    SubSetSimulation(n::Integer, target::Float64, levels::Integer, proposal::Sampleable{Univariate})
+
+Defines the properties of a Subset simulation where `n` is the number of initial samples,
+`target` is the target probability of failure at each level, `levels` is the maximum number
+of levels and `proposal` is the proposal distribution for the markov chain monte carlo.
+
+# Examples
+
+```jldoctest
+julia> SubSetSimulation(100, 0.1, 10, Uniform(-0.2, 0.2))
+SubSetSimulation(100, 0.1, 10, Uniform{Float64}(a=-0.2, b=0.2))
+```
+"""
 struct SubSetSimulation <: AbstractSubSetSimulation
     n::Integer
     target::Float64
@@ -16,6 +30,20 @@ struct SubSetSimulation <: AbstractSubSetSimulation
     end
 end
 
+"""
+    SubSetInfinity(n::Integer, target::Float64, levels::Integer, s::Real)
+
+Defines the properties of a Subset-∞ simulation where `n` is the number of initial samples,
+`target` is the target probability of failure at each level, `levels` is the maximum number
+of levels and `s` is the standard deviation for the proposal samples.
+
+# Examples
+
+```jldoctest
+julia> SubSetInfinity(100, 0.1, 10, 0.5)
+SubSetSimulation(100, 0.1, 10, 0.5)
+```
+"""
 struct SubSetInfinity <: AbstractSubSetSimulation
     n::Integer
     target::Float64
@@ -224,24 +252,25 @@ end
 """
 	estimate_cov(Iᵢ::AbstractMatrix, pf::Float64, n::Int64)
 
-Evaluates coefficient of variation of each subset simulation's level.
-Reference: 'Estimation of small failure probabilities in high dimensions by subset simulation' - Siu-Kui Au, James L. Beck
-    - Eq 29 - covariance vector between indicator(l) and indicator(l+k) -> ri
-    - Eq 25 - correlation coefficient vector ρ
-    - Eq 27 - γᵢ Bernoulli coefficient
-    - Eq 28 - i-level coefficient of variation
+Evaluates the coefficient of variation at a subset simulation level.
+
+Reference: Au & Beck, (2001), 'Estimation of small failure probabilities in high dimensions by subset simulation'
 """
 function estimate_cov(Iᵢ::AbstractMatrix, pf::Float64, n::Int64)
     Ns, Nc = size(Iᵢ) # Number of samples per seed, number of seeds
     rᵢ = zeros(Ns - 1)
+    # Eq 29 - covariance vector between indicator(l) and indicator(l+k) -> ri
     for k in 1:(Ns - 1)
         for j in 1:Nc, l in 1:(Ns - k)
             rᵢ[k] += Iᵢ[l, j] * Iᵢ[l + k, j]
         end
         rᵢ[k] /= (n - k * Nc) - pf^2
     end
+    # Eq 25 - correlation coefficient vector ρ
     ρ = rᵢ / pf * (1 - pf)
+    # Eq 27 - γᵢ Bernoulli coefficient
     γᵢ = 2 * sum([(1 - k * Nc / n) * ρ[k] for k in 1:(Ns - 1)])
+    # Eq 28 - i-level coefficient of variation
     δᵢ = sqrt((1 - pf) / (pf * n) * (1 + γᵢ))
     return δᵢ
 end
