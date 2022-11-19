@@ -181,15 +181,15 @@ Reference: 'Estimation of small failure probabilities in high dimensions by subs
 """
 function estimate_chain_cov(Iᵢ::AbstractMatrix, pf::Float64, n::Int64)
     Ns, Nc = size(Iᵢ) # Number of samples per chain, number of chains
-    rᵢ = zeros(Ns)
-    for k in 1:Ns
-        for j in 1:Nc, l in 1:(Ns - (k - 1))
-            rᵢ[k] = rᵢ[k] + I[l, j] * I[l + k - 1, j]
+    rᵢ = zeros(Ns - 1)
+    for k in 1:(Ns - 1)
+        for j in 1:Nc, l in 1:(Ns - k)
+            rᵢ[k] += Iᵢ[l, j] * Iᵢ[l + k, j]
         end
-        rᵢ[k] = rᵢ[k] / (n - (k - 1) * Nc) - pf^2
+        rᵢ[k] /= (n - k * Nc) - pf^2
     end
-    ρ = rᵢ / rᵢ[1]
-    γᵢ = 2 * sum((1 .- ((1:(Ns - 1)) .* Nc ./ n)) .* ρ[1:(end - 1)])
+    ρ = rᵢ / pf * (1 - pf)
+    γᵢ = 2 * sum([(1 - k * Nc / n) * ρ[k] for k in 1:(Ns - 1)])
     δᵢ = sqrt((1 - pf) / (pf * n) * (1 + γᵢ))
     return δᵢ
 end
