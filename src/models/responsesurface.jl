@@ -5,22 +5,7 @@ Creates a response surface using polynomial least squares regression with given 
 
 # Examples
 ```jldoctest
-julia> data = DataFrame(x = 1:10, y = [1, 4, 10, 15, 24, 37, 50, 62, 80, 101])
-10×2 DataFrame
- Row │ x      y
-     │ Int64  Int64
-─────┼──────────────
-   1 │     1      1
-   2 │     2      4
-   3 │     3     10
-   4 │     4     15
-   5 │     5     24
-   6 │     6     37
-   7 │     7     50
-   8 │     8     62
-   9 │     9     80
-  10 │    10    101
-
+julia> data = DataFrame(x = 1:10, y = [1, 4, 10, 15, 24, 37, 50, 62, 80, 101]);
 julia> rs = ResponseSurface(data, :y, 2)
 ResponseSurface([1.018939393939398, -0.23863636363631713, 0.4833333333332348], :y, [:x], 2, Monomial{true}[x₁², x₁, 1])
 ```
@@ -82,25 +67,15 @@ evaluating data by using a previously trained ResponseSurface.
 
 ```jldoctest
 
-julia> data = DataFrame(x = 1:10, y = [1, 4, 10, 15, 24, 37, 50, 62, 80, 101])
-10×2 DataFrame
- Row │ x      y
-     │ Int64  Int64
-─────┼──────────────
-   1 │     1      1
-   2 │     2      4
-   3 │     3     10
-   4 │     4     15
-   5 │     5     24
-   6 │     6     37
-   7 │     7     50
-   8 │     8     62
-   9 │     9     80
-  10 │    10    101
-
-julia> rs = ResponseSurface(data, :y, 2, 2)
-ResponseSurface([0.4833333333331211, -0.23863636363637397, 1.018939393939391], :y, 2, 2)
-julia> evaluate!(rs, [2.5, 11, 15])
+julia> data = DataFrame(x = 1:10, y = [1, 4, 10, 15, 24, 37, 50, 62, 80, 101]);
+julia> rs = ResponseSurface(data, :y, 2);
+julia> df = DataFrame(x = [2.5, 11, 15]);
+julia> evaluate!(rs, [2.5, 11, 15]);
+julia> df.y
+3-element Vector{Float64}:
+   6.255113636363634
+ 121.14999999999999
+ 226.16515151515148
 ```
 """
 function evaluate!(rs::ResponseSurface, data::DataFrame)

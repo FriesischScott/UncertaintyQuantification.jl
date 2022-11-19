@@ -41,7 +41,7 @@ of levels and `s` is the standard deviation for the proposal samples.
 
 ```jldoctest
 julia> SubSetInfinity(100, 0.1, 10, 0.5)
-SubSetSimulation(100, 0.1, 10, 0.5)
+SubSetInfinity(100, 0.1, 10, 0.5)
 ```
 """
 struct SubSetInfinity <: AbstractSubSetSimulation
