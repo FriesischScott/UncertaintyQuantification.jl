@@ -53,5 +53,11 @@
         pf, _ = probability_of_failure(g, F, [x1, x2, y], subset)
 
         @test 1e-10 <= pf < 1e-9
+
+        subset = SubSetInfinity(10^3, 0.1, 10, 0.5)
+
+        pf, _ = probability_of_failure(g, F, [x1, x2, y], subset)
+
+        @test 1e-10 <= pf < 1e-9
     end
 end
