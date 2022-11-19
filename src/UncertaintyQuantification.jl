@@ -70,6 +70,7 @@ export RandomVariable
 export ResponseSurface
 export SobolSampling
 export Solver
+export SubSetInfinity
 export SubSetSimulation
 
 # Methods

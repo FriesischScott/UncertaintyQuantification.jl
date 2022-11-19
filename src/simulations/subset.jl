@@ -1,4 +1,6 @@
-struct SubSetSimulation
+abstract type AbstractSubSetSimulation end
+
+struct SubSetSimulation <: AbstractSubSetSimulation
     n::Integer
     target::Float64
     levels::Integer
@@ -14,7 +16,19 @@ struct SubSetSimulation
     end
 end
 
-function sample(inputs::Array{<:UQInput}, sim::SubSetSimulation)
+struct SubSetInfinity <: AbstractSubSetSimulation
+    n::Integer
+    target::Float64
+    levels::Integer
+    s::Real
+
+    function SubSetInfinity(n::Integer, target::Float64, levels::Integer, s::Real)
+        (0 <= s <= 1) || error("standard deviation must be between 0.0")
+        return new(n, target, levels, s)
+    end
+end
+
+function sample(inputs::Array{<:UQInput}, sim::AbstractSubSetSimulation)
     random_inputs = filter(i -> isa(i, RandomUQInput), inputs)
     deterministic_inputs = filter(i -> isa(i, DeterministicUQInput), inputs)
 
@@ -35,7 +49,7 @@ function probability_of_failure(
     models::Union{Array{<:UQModel},UQModel},
     performancefunction::Function,
     inputs::Union{Array{T},T} where {T<:UQInput},
-    sim::SubSetSimulation,
+    sim::AbstractSubSetSimulation,
 )
     samples = [sample(inputs, sim)]
 
@@ -44,6 +58,7 @@ function probability_of_failure(
     performance = [performancefunction(samples[end])]
 
     number_of_seeds = Int64(max(1, ceil(sim.n * sim.target)))
+    samples_per_seed = Int64(floor(sim.n / number_of_seeds))
 
     threshold = zeros(sim.levels, 1)
     pf = ones(sim.levels, 1)
@@ -60,6 +75,22 @@ function probability_of_failure(
             mean(performance[end] .<= threshold[i])
         end
 
+        ## Std MC coefficient of variation
+        if i == 1
+            cov[i] = sqrt((pf[i] - pf[i]^2) / sim.n) / pf[i]
+            ## MarkovChain coefficient of variation
+        else
+            Iᵢ = reshape(
+                performance[end] .< max(threshold[i], 0), samples_per_seed, number_of_seeds
+            )
+            cov[i] = estimate_cov(Iᵢ, pf[i], sim.n)
+        end
+
+        ## Break the loop
+        if threshold[i] <= 0 || i == sim.levels
+            break
+        end
+
         nextsamples, nextperformance = nextlevelsamples(
             samples[end][sorted_indices[1:number_of_seeds], :],
             sorted_performance[1:number_of_seeds],
@@ -72,23 +103,6 @@ function probability_of_failure(
 
         push!(samples, nextsamples)
         push!(performance, nextperformance)
-
-        ## Std MC coefficient of variation
-        if i == 1
-            cov[i] = sqrt((pf[i] - pf[i]^2) / sim.n) / pf[i]
-            ## MarkovChain coefficient of variation
-        else
-            Iᵢ = reshape(
-                nextperformance .< max(threshold[i], 0),
-                Int64(floor(sim.n / number_of_seeds)),
-                number_of_seeds,
-            )
-            cov[i] = estimate_cov(Iᵢ, pf[i], sim.n)
-        end
-        ## Break the loop
-        if threshold[i] <= 0 || i == sim.levels
-            break
-        end
     end
 
     # add level to each dataframe
