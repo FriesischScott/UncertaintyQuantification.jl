@@ -7,8 +7,8 @@ Creates a response surface using polynomial least squares regression with given 
 ```jldoctest
 julia> data = DataFrame(x = 1:10, y = [1, 4, 10, 15, 24, 37, 50, 62, 80, 101]);
 
-julia> rs = ResponseSurface(data, :y, 2)
-ResponseSurface([1.0189393939393936, -0.23863636363636026, 0.48333333333332457], :y, [:x], 2, DynamicPolynomials.Monomial{true}[x₁², x₁, 1])
+julia> rs = ResponseSurface(data, :y, 2) |> DisplayAs.withcontext(:compact => true)
+ResponseSurface([1.01894, -0.238636, 0.483333], :y, [:x], 2, DynamicPolynomials.Monomial{true}[x₁², x₁, 1])
 ```
 """
 struct ResponseSurface <: UQModel
@@ -75,11 +75,11 @@ julia> df = DataFrame(x = [2.5, 11, 15]);
 
 julia> evaluate!(rs, df);
 
-julia> df.y
+julia> df.y |> DisplayAs.withcontext(:compact => true)
 3-element Vector{Float64}:
-   6.255113636363634
- 121.14999999999999
- 226.16515151515148
+   6.25511
+ 121.15
+ 226.165
 ```
 """
 function evaluate!(rs::ResponseSurface, data::DataFrame)

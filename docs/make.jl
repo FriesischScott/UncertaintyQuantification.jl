@@ -3,8 +3,7 @@ using Documenter, UncertaintyQuantification
 DocMeta.setdocmeta!(
     UncertaintyQuantification,
     :DocTestSetup,
-    :(using UncertaintyQuantification, DataFrames);
-    recursive=true,
+    :(using UncertaintyQuantification, DataFrames, DisplayAs, Random; Random.seed!(8128)),
 )
 
 makedocs(;
