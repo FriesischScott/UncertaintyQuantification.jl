@@ -1,4 +1,4 @@
-using Documenter, UncertaintyQuantification
+using Documenter, UncertaintyQuantification, DataFrames
 
 DocMeta.setdocmeta!(
     UncertaintyQuantification,
