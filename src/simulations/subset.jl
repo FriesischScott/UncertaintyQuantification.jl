@@ -13,6 +13,10 @@ of levels and `proposal` is the proposal distribution for the markov chain monte
 julia> SubSetSimulation(100, 0.1, 10, Uniform(-0.2, 0.2))
 SubSetSimulation(100, 0.1, 10, Uniform{Float64}(a=-0.2, b=0.2))
 ```
+
+# References
+
+[auEstimationSmallFailure2001](@cite)
 """
 struct SubSetSimulation <: AbstractSubSetSimulation
     n::Integer
@@ -43,6 +47,12 @@ of levels and `s` is the standard deviation for the proposal samples.
 julia> SubSetInfinity(100, 0.1, 10, 0.5)
 SubSetInfinity(100, 0.1, 10, 0.5)
 ```
+
+# References
+
+[auRareEventSimulation2016](@cite)
+
+[patelliEfficientMonteCarlo2015](@cite)
 """
 struct SubSetInfinity <: AbstractSubSetSimulation
     n::Integer

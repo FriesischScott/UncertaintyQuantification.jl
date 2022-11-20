@@ -25,18 +25,7 @@ Generates n samples from a random variable. Returns a DataFrame.
 
 # Examples
 
-```jldoctest
-julia> x = RandomVariable(Normal(), :x)
-RandomVariable(Normal{Float64}(μ=0.0, σ=1.0), :x)
-julia> sample(x, 3)
-3×1 DataFrame
- Row │ x
-     │ Float64
-─────┼───────────
-   1 │  0.24933
-   2 │ -0.372662
-   3 │  2.02772
-```
+
 
 See also: [`RandomVariable`](@ref)
 """

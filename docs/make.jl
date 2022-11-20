@@ -1,4 +1,7 @@
-using Documenter, UncertaintyQuantification, DataFrames
+using DataFrames
+using Documenter
+using DocumenterCitations
+using UncertaintyQuantification
 
 DocMeta.setdocmeta!(
     UncertaintyQuantification,
@@ -6,7 +9,10 @@ DocMeta.setdocmeta!(
     :(using UncertaintyQuantification, DataFrames, DisplayAs, Random; Random.seed!(8128)),
 )
 
-makedocs(;
+bib = CitationBibliography(joinpath(@__DIR__, "references.bib"))
+
+makedocs(
+    bib;
     modules=[UncertaintyQuantification],
     format=Documenter.HTML(; prettyurls=get(ENV, "CI", nothing) == "true"),
     sitename="UncertaintyQuantification.jl",
@@ -26,6 +32,7 @@ makedocs(;
             "PolyharmonicSpline" => "api/polyharmonicspline.md",
             "Simulations" => "api/simulations.md",
         ],
+        "References" => "references.md",
     ],
     strict=:doctest,
 )
