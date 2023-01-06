@@ -20,7 +20,12 @@ makedocs(;
             "Reliability Analysis" => "manual/reliability.md",
         ],
         "API" => [
+            "ExternalModel" => "externalmodel.md",
+            "GaussianCopula" => "api/gaussian.md",
             "Inputs" => "api/inputs.md",
+            "JointDistribution" => "api/jointdistribution.md",
+            "Model" => "api/model.md",
+            "PolynomialChaosExpansion" => "polynomialchaosexpansion.md",
             "Parameter" => "api/parameter.md",
             "RandomVariable" => "api/randomvariable.md",
             "ResponseSurface" => "api/responsesurface.md",

@@ -36,7 +36,10 @@ abstract type Copula <: UQType end
 abstract type AbstractMonteCarlo end
 abstract type AbstractQuasiMonteCarlo <: AbstractMonteCarlo end
 
+abstract type AbstractDesignOfExperiments end
+
 # Types
+export AbstractDesignOfExperiments
 export AbstractMonteCarlo
 export AbstractQuasiMonteCarlo
 export Copula
@@ -47,8 +50,12 @@ export UQModel
 export UQType
 
 # Structs
+export BoxBehnken
+export CentralComposite
+export CentralCompositeFaceCentered
 export ExternalModel
 export Extractor
+export FullFactorial
 export GaussianCopula
 export GaussQuadrature
 export HaltonSampling
@@ -70,6 +77,7 @@ export ResponseSurface
 export SobolSampling
 export Solver
 export SubSetSimulation
+export TwoLevelFactorial
 
 # Methods
 export calc
@@ -104,6 +112,7 @@ include("inputs/copulas/gaussian.jl")
 include("solvers/solver.jl")
 include("solvers/extractor.jl")
 
+include("models/doe.jl")
 include("models/externalmodel.jl")
 include("models/model.jl")
 include("models/polyharmonicspline.jl")
