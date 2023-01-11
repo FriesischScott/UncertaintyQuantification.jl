@@ -57,11 +57,10 @@ function evaluate!(m::ExternalModel, df::DataFrame)
         return result
     end
 
-    results = transpose(hcat(results...))
-    vars = names(m.extractors)
+    results = hcat(results...)
 
     for (i, name) in enumerate(names(m.extractors))
-        df[!, name] = results[:, i]
+        df[!, name] = results[i, :]
     end
 end
 
