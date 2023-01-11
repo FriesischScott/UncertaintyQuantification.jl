@@ -1,6 +1,4 @@
 using UncertaintyQuantification
-using DataFrames
-using DynamicPolynomials
 
 x = RandomVariable.(Uniform(-π, π), [:x1, :x2, :x3])
 
@@ -32,7 +30,7 @@ rs = ResponseSurface(training_data, :y, 2)
 test_data = sample(x, 1000)
 evaluate!(rs, test_data)
 
-p_data = test_data[:, Not(:y)]
+p_data = test_data[:, [:x1, :x2, :x3]]
 evaluate!(polynomial, p_data)
 
 mse = mean((p_data.y .- test_data.y) .^ 2)

@@ -55,6 +55,7 @@ export CentralComposite
 export CentralCompositeFaceCentered
 export ExternalModel
 export Extractor
+export FORM
 export FullFactorial
 export GaussianCopula
 export GaussQuadrature
@@ -76,6 +77,7 @@ export RandomVariable
 export ResponseSurface
 export SobolSampling
 export Solver
+export SubSetInfinity
 export SubSetSimulation
 export TwoLevelFactorial
 
@@ -127,6 +129,7 @@ include("simulations/linesampling.jl")
 include("simulations/montecarlo.jl")
 include("simulations/subset.jl")
 
+include("reliability/form.jl")
 include("reliability/probabilityoffailure.jl")
 include("sensitivity/sobolindices.jl")
 

@@ -22,9 +22,9 @@ function gradient(
 end
 
 function gradient_in_standard_normal_space(
-    models::Array{<:UQModel}, inputs::Array{<:UQInput}, x::DataFrame, output::Symbol
+    models::Array{<:UQModel}, inputs::Array{<:UQInput}, reference::DataFrame, output::Symbol
 )
-    samples = copy(x)
+    samples = copy(reference)
 
     random_names = names(filter(i -> isa(i, RandomUQInput), inputs))
     to_standard_normal_space!(inputs, samples)

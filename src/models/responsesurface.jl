@@ -5,24 +5,10 @@ Creates a response surface using polynomial least squares regression with given 
 
 # Examples
 ```jldoctest
-julia> data = DataFrame(x = 1:10, y = [1, 4, 10, 15, 24, 37, 50, 62, 80, 101])
-10×2 DataFrame
- Row │ x      y     
-     │ Int64  Int64 
-─────┼──────────────
-   1 │     1      1
-   2 │     2      4
-   3 │     3     10
-   4 │     4     15
-   5 │     5     24
-   6 │     6     37
-   7 │     7     50
-   8 │     8     62
-   9 │     9     80
-  10 │    10    101
+julia> data = DataFrame(x = 1:10, y = [1, 4, 10, 15, 24, 37, 50, 62, 80, 101]);
 
-julia> rs = ResponseSurface(data, :y, 2)
-ResponseSurface([1.018939393939398, -0.23863636363631713, 0.4833333333332348], :y, [:x], 2, Monomial{true}[x₁², x₁, 1])
+julia> rs = ResponseSurface(data, :y, 2) |> DisplayAs.withcontext(:compact => true)
+ResponseSurface([1.01894, -0.238636, 0.483333], :y, [:x], 2, DynamicPolynomials.Monomial{true}[x₁², x₁, 1])
 ```
 """
 struct ResponseSurface <: UQModel
@@ -37,7 +23,7 @@ struct ResponseSurface <: UQModel
             error("Degree(p) of ResponseSurface must be non-negative.")
         end
 
-        @polyvar x[1:size(data, 2) - 1]
+        @polyvar x[1:(size(data, 2) - 1)]
         m = monomials(x, 0:p)
 
         names = propertynames(data[:, Not(output)])
@@ -51,10 +37,10 @@ struct ResponseSurface <: UQModel
     end
 end
 
-
-
 # only to be called internally by constructor
-function multi_dimensional_polynomial_regression(X::Matrix, y::Vector, monomials::MonomialVector{true})
+function multi_dimensional_polynomial_regression(
+    X::Matrix, y::Vector, monomials::MonomialVector{true}
+)
 
     #fill monomials with the given x values for each row
     M = mapreduce(row -> begin
@@ -64,15 +50,11 @@ function multi_dimensional_polynomial_regression(X::Matrix, y::Vector, monomials
     return M \ y   #β
 end
 
-
-
 #called internally by evaluate!
 #evaluates one datapoint using a given ResponseSurface
 function calc(row::Array, rs::ResponseSurface)
-    map(m -> m(row), rs.monomials') * rs.β
+    return map(m -> m(row), rs.monomials') * rs.β
 end
-
-
 
 """
     evaluate!(rs::ResponseSurface, data::DataFrame)
@@ -85,26 +67,19 @@ evaluating data by using a previously trained ResponseSurface.
 # Examples
 
 ```jldoctest
+julia> data = DataFrame(x = 1:10, y = [1, 4, 10, 15, 24, 37, 50, 62, 80, 101]);
 
-julia> data = DataFrame(x = 1:10, y = [1, 4, 10, 15, 24, 37, 50, 62, 80, 101])
-10×2 DataFrame
- Row │ x      y     
-     │ Int64  Int64 
-─────┼──────────────
-   1 │     1      1
-   2 │     2      4
-   3 │     3     10
-   4 │     4     15
-   5 │     5     24
-   6 │     6     37
-   7 │     7     50
-   8 │     8     62
-   9 │     9     80
-  10 │    10    101
+julia> rs = ResponseSurface(data, :y, 2);
 
-julia> rs = ResponseSurface(data, :y, 2, 2)
-ResponseSurface([0.4833333333331211, -0.23863636363637397, 1.018939393939391], :y, 2, 2)
-julia> evaluate!(rs, [2.5, 11, 15])
+julia> df = DataFrame(x = [2.5, 11, 15]);
+
+julia> evaluate!(rs, df);
+
+julia> df.y |> DisplayAs.withcontext(:compact => true)
+3-element Vector{Float64}:
+   6.25511
+ 121.15
+ 226.165
 ```
 """
 function evaluate!(rs::ResponseSurface, data::DataFrame)
@@ -113,4 +88,3 @@ function evaluate!(rs::ResponseSurface, data::DataFrame)
     data[!, rs.y] = out
     return nothing
 end
-

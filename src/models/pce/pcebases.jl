@@ -31,22 +31,22 @@ struct HermiteBasis <: AbstractOrthogonalBasis
 end
 
 function evaluate(Ψ::AbstractOrthogonalBasis, x::AbstractVector{<:Real}, d::Int)
-    return [evaluate(Ψ, xᵢ, d) for xᵢ in x]
+    return map(xᵢ -> evaluate(Ψ, xᵢ, d), x)
 end
 
 function evaluate(Ψ::LegendreBasis, x::Real, d::Int)
-    return float(Symbolics.value(Ψ.P[d + 1](x)))
+    return Ψ.P[d + 1](x).val
 end
 
 function evaluate(Ψ::HermiteBasis, x::Real, d::Int)
-    return float(Symbolics.value(Ψ.He[d + 1](x)))
+    return Ψ.He[d + 1](x).val
 end
 
 function legendre(p::Int, normalize::Bool=true)
     @variables x
 
-    P = Vector(undef, p + 1)
-    P[1] = 1
+    P = Vector{Num}(undef, p + 1)
+    P[1] = 1.0
     P[2] = x
 
     for n in 2:(p)
@@ -61,14 +61,14 @@ function legendre(p::Int, normalize::Bool=true)
         end
     end
 
-    return build_function.(P, x, expression=false)
+    return eval.(build_function.(P, x))
 end
 
 function hermite(p::Int, normalize::Bool=true)
     @variables x
 
-    He = Vector(undef, p + 1)
-    He[1] = 1
+    He = Vector{Num}(undef, p + 1)
+    He[1] = 1.0
     He[2] = x
 
     for n in 2:(p)
@@ -81,7 +81,7 @@ function hermite(p::Int, normalize::Bool=true)
         end
     end
 
-    return build_function.(He, x, expression=false)
+    return eval.(build_function.(He, x))
 end
 
 function multivariate_indices(p::Int, d::Int)
@@ -119,7 +119,7 @@ function map_to_base(_::HermiteBasis, x::AbstractVector)
 end
 
 function map_to_bases(Ψ::PolynomialChaosBasis, x::AbstractMatrix)
-    return hcat([map_to_base(Ψ.bases[i], x[:, i]) for i in 1:length(Ψ.bases)]...)
+    return mapreduce((b, xᵢ) -> map_to_base(b, xᵢ), hcat, Ψ.bases, eachcol(x))
 end
 
 function map_from_base(_::LegendreBasis, x::AbstractVector)
@@ -131,7 +131,7 @@ function map_from_base(_::HermiteBasis, x::AbstractVector)
 end
 
 function map_from_bases(Ψ::PolynomialChaosBasis, x::AbstractMatrix)
-    return hcat([map_from_base(Ψ.bases[i], x[:, i]) for i in 1:length(Ψ.bases)]...)
+    return mapreduce((b, xᵢ) -> map_from_base(b, xᵢ), hcat, Ψ.bases, eachcol(x))
 end
 
 function quadrature_nodes(n::Int, _::LegendreBasis)
