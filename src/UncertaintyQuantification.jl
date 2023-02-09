@@ -16,6 +16,7 @@ using Primes
 using QuasiMonteCarlo
 using Random
 using Reexport
+using StatsBase
 using Symbolics
 
 @reexport using Distributions
@@ -47,6 +48,7 @@ export UQModel
 export UQType
 
 # Structs
+export EmpiricalDistribution
 export ExternalModel
 export Extractor
 export FORM
@@ -96,6 +98,7 @@ export to_physical_space!
 export to_standard_normal_space
 export to_standard_normal_space!
 
+include("inputs/empiricaldistribution.jl")
 include("inputs/inputs.jl")
 include("inputs/parameter.jl")
 include("inputs/randomvariable.jl")
