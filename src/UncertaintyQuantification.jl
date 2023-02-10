@@ -22,6 +22,7 @@ using Symbolics
 @reexport using Distributions
 
 import Base: rand, names, copy, run, length
+import Distributions: cdf, quantile, pdf, logpdf
 import Statistics: mean, var
 
 abstract type UQType end
