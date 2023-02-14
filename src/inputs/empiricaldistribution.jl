@@ -2,22 +2,15 @@ struct EmpiricalDistribution <: ContinuousUnivariateDistribution
     data::Vector{<:Real}
     cdf::ECDF
     quantile::Spline1D
-    pdf::Spline1D
+    pdf::InterpKDE
 
-    function EmpiricalDistribution(x::Vector{<:Real}, nbins::Integer=10)
+    function EmpiricalDistribution(x::Vector{<:Real}, kernel=Normal)
         cdf = ecdf(x)
 
         f = cdf.(cdf.sorted_values)
         quantile = Spline1D(f, cdf.sorted_values)
 
-        h = fit(Histogram, x; nbins=nbins)
-        h = normalize(h; mode=:density)
-
-        r = h.edges[1]
-        pdfx = (first(r) + step(r) / 2):step(r):last(r)
-        pdfy = (h.weights ./ length(x))
-
-        pdf = Spline1D(pdfx, pdfy)
+        pdf = InterpKDE(kde_lscv(x; kernel=kernel))
         return new(x, cdf, quantile, pdf)
     end
 end
@@ -31,7 +24,7 @@ function quantile(d::EmpiricalDistribution, x::Real)
 end
 
 function pdf(d::EmpiricalDistribution, x::Real)
-    return insupport(d, x) ? d.pdf(x) : zero(x)
+    return insupport(d, x) ? pdf(d.pdf, x) : zero(x)
 end
 
 function logpdf(d::EmpiricalDistribution, x::Real)
@@ -42,6 +35,7 @@ function rand(rng::AbstractRNG, d::EmpiricalDistribution)
     return quantile(d, rand(rng))
 end
 
+insupport(d::EmpiricalDistribution, x::Real) = minimum(d) <= x <= maximum(d)
 minimum(d::EmpiricalDistribution) = minimum(d.data)
 maximum(d::EmpiricalDistribution) = maximum(d.data)
 mean(d::EmpiricalDistribution) = mean(d.data)

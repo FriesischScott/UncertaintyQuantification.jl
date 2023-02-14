@@ -1,11 +1,13 @@
 using DataFrames
 using Formatting
+using HypothesisTests
 using InteractiveUtils
 using QuasiMonteCarlo
 using Random
 using Test
 using UncertaintyQuantification
 
+include("inputs/empericaldistribution.jl")
 include("inputs/parameter.jl")
 include("inputs/randomvariable.jl");
 include("inputs/jointdistribution.jl");

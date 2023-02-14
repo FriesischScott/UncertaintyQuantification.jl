@@ -10,6 +10,7 @@ using DynamicPolynomials
 using FastGaussQuadrature
 using FiniteDifferences
 using Formatting
+using KernelDensity
 using LinearAlgebra
 using Mustache
 using Primes
@@ -22,7 +23,7 @@ using Symbolics
 @reexport using Distributions
 
 import Base: rand, names, copy, run, length
-import Distributions: cdf, quantile, pdf, logpdf
+import Distributions: cdf, quantile, pdf, logpdf, minimum, maximum, insupport
 import Statistics: mean, var
 
 abstract type UQType end
