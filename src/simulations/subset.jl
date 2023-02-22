@@ -1,7 +1,7 @@
 abstract type AbstractSubSetSimulation end
 
 """
-    SubSetSimulation(n::Integer, target::Float64, levels::Integer, proposal::Sampleable{Univariate})
+    SubSetSimulation(n::Integer, target::Float64, levels::Integer, proposal::UnivariateDistribution)
 
 Defines the properties of a Subset simulation where `n` is the number of initial samples,
 `target` is the target probability of failure at each level, `levels` is the maximum number
@@ -22,10 +22,10 @@ struct SubSetSimulation <: AbstractSubSetSimulation
     n::Integer
     target::Float64
     levels::Integer
-    proposal::Sampleable{Univariate}
+    proposal::UnivariateDistribution
 
     function SubSetSimulation(
-        n::Integer, target::Float64, levels::Integer, proposal::Sampleable{Univariate}
+        n::Integer, target::Float64, levels::Integer, proposal::UnivariateDistribution
     )
         skewness(proposal) != 0.0 && error("proposal must be a symmetric distribution")
         mean(proposal) != median(proposal) &&
@@ -209,6 +209,9 @@ function nextlevelsamples(
             chainsamples[α_accept_indices, :] = new_samples
             chainperformance[α_accept_indices] = new_samplesperformance
         end
+
+        # chainsamples = chainsamples[α_accept_indices, :]
+        # chainperformance = chainperformance[α_accept_indices]
 
         push!(nextlevelsamples, chainsamples)
         push!(nextlevelperformance, chainperformance)

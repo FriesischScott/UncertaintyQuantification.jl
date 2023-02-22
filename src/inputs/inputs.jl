@@ -42,4 +42,4 @@ function count_rvs(inputs::Array{<:UQInput})
     return mapreduce(dimensions, +, random_inputs)
 end
 
-mean(inputs::Array{<:UQInput}) = mapreduce(mean, hcat, inputs)
+mean(inputs::Array{<:UQInput}) = mapreduce(mean, vcat, inputs)
