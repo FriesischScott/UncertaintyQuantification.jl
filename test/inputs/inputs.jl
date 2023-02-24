@@ -17,11 +17,11 @@ inputs = [pi, jd, z]
 
     @testset "mean" begin
         means = mean(inputs)
-        @test size(means) == (1, 4)
-        @test means.π[1] == 3.14
-        @test means.x[1] == 0
-        @test means.y[1] == 1
-        @test means.z[1] == 0
+        @test size(means) == (4,)
+        @test means[1] == 3.14
+        @test means[2] == 0
+        @test means[3] == 1
+        @test means[4] == 0
     end
 
     @testset "names" begin
