@@ -63,6 +63,7 @@ export LegendreBasis
 export LineSampling
 export Model
 export MonteCarlo
+export ParallelModel
 export Parameter
 export PolynomialChaosBasis
 export PolynomialChaosExpansion
