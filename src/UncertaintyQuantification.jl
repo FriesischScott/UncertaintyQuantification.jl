@@ -22,6 +22,7 @@ using Symbolics
 
 import Base: rand, names, copy, run, length
 import Statistics: mean, var
+import Distributions: logpdf, pdf, cdf, quantile, minimum, maximum, insupport, mean, var
 
 abstract type UQType end
 
