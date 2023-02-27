@@ -8,9 +8,9 @@ struct FORM
 end
 
 function probability_of_failure(
-    models::Union{Array{<:UQModel},UQModel},
+    models::Union{Vector{<:UQModel},UQModel},
     performance::Function,
-    inputs::Union{Array{<:UQInput},UQInput},
+    inputs::Union{Vector{<:UQInput},UQInput},
     sim::FORM,
 )
     # create reference point in standard normal space origin

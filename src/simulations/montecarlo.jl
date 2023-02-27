@@ -23,11 +23,11 @@ struct LatticeRuleSampling <: AbstractQuasiMonteCarlo
     LatticeRuleSampling(n) = n > 0 ? new(n) : error("n must be greater than zero")
 end
 
-function sample(inputs::Array{<:UQInput}, sim::MonteCarlo)
+function sample(inputs::Vector{<:UQInput}, sim::MonteCarlo)
     return sample(inputs, sim.n)
 end
 
-function sample(inputs::Array{<:UQInput}, sim::AbstractQuasiMonteCarlo)
+function sample(inputs::Vector{<:UQInput}, sim::AbstractQuasiMonteCarlo)
     random_inputs = filter(i -> isa(i, RandomUQInput), inputs)
     deterministic_inputs = filter(i -> isa(i, DeterministicUQInput), inputs)
 

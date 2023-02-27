@@ -66,7 +66,7 @@ struct SubSetInfinity <: AbstractSubSetSimulation
     end
 end
 
-function sample(inputs::Array{<:UQInput}, sim::AbstractSubSetSimulation)
+function sample(inputs::Vector{<:UQInput}, sim::AbstractSubSetSimulation)
     random_inputs = filter(i -> isa(i, RandomUQInput), inputs)
     deterministic_inputs = filter(i -> isa(i, DeterministicUQInput), inputs)
 
@@ -84,9 +84,9 @@ function sample(inputs::Array{<:UQInput}, sim::AbstractSubSetSimulation)
 end
 
 function probability_of_failure(
-    models::Union{Array{<:UQModel},UQModel},
+    models::Union{Vector{<:UQModel},UQModel},
     performancefunction::Function,
-    inputs::Union{Array{T},T} where {T<:UQInput},
+    inputs::Union{Vector{<:UQInput},UQInput},
     sim::AbstractSubSetSimulation,
 )
     samples = [sample(inputs, sim)]
@@ -160,9 +160,9 @@ function nextlevelsamples(
     samples::DataFrame,
     performance::Vector{<:Real},
     threshold::Real,
-    models::Union{Array{<:UQModel},UQModel},
+    models::Union{Vector{<:UQModel},UQModel},
     performancefunction::Function,
-    inputs::Union{Array{T},T} where {T<:UQInput},
+    inputs::Union{Vector{<:UQInput},UQInput},
     sim::SubSetSimulation,
 )
     nextlevelsamples = [samples]
@@ -228,9 +228,9 @@ function nextlevelsamples(
     samples::DataFrame,
     performance::Vector{<:Real},
     threshold::Real,
-    models::Union{Array{<:UQModel},UQModel},
+    models::Union{Vector{<:UQModel},UQModel},
     performancefunction::Function,
-    inputs::Union{Array{T},T} where {T<:UQInput},
+    inputs::Union{Vector{<:UQInput},UQInput},
     sim::SubSetInfinity,
 )
     samples_per_seed = Int64(floor(sim.n / nrow(samples)))

@@ -12,7 +12,7 @@ mutable struct LineSampling
     end
 end
 
-function sample(inputs::Array{<:UQInput}, sim::LineSampling)
+function sample(inputs::Vector{<:UQInput}, sim::LineSampling)
     random_inputs = filter(i -> isa(i, RandomUQInput), inputs)
     deterministic_inputs = filter(i -> isa(i, DeterministicUQInput), inputs)
 
