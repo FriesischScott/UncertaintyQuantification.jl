@@ -14,7 +14,7 @@ B = Model(
 
 mc = MonteCarlo(10000)
 
-s_mc = sobolindices([B], [X; ω], :B, mc)
+s_mc = sobolindices([B], [X; ω], [:B], mc)
 
 # Compare with analytical solution
 VB = sum(σx .^ 2 .* σω .^ 2)

@@ -13,45 +13,45 @@
     @testset "Monte Carlo" begin
         Random.seed!(8128)
 
-        si = sobolindices([ishigami], x, :f, MonteCarlo(n))
+        si = sobolindices([ishigami], x, [:f], MonteCarlo(n))
 
         Random.seed!()
 
-        @test all(isapprox(si.FirstOrder, firstorder_analytical; rtol=0.1))
-        @test all(isapprox(si.TotalEffect, totaleffect_analytical; rtol=0.1))
+        @test all(isapprox(si[:f].FirstOrder, firstorder_analytical; rtol=0.1))
+        @test all(isapprox(si[:f].TotalEffect, totaleffect_analytical; rtol=0.1))
     end
 
     @testset "Sobol" begin
         Random.seed!(8128)
 
-        si = sobolindices([ishigami], x, :f, SobolSampling(n))
+        si = sobolindices([ishigami], x, [:f], SobolSampling(n))
 
         Random.seed!()
 
-        @test all(isapprox(si.FirstOrder, firstorder_analytical; rtol=0.1))
-        @test all(isapprox(si.TotalEffect, totaleffect_analytical; rtol=0.1))
+        @test all(isapprox(si[:f].FirstOrder, firstorder_analytical; rtol=0.1))
+        @test all(isapprox(si[:f].TotalEffect, totaleffect_analytical; rtol=0.1))
     end
 
     @testset "Halton" begin
         Random.seed!(8128)
 
-        si = sobolindices([ishigami], x, :f, MonteCarlo(n))
+        si = sobolindices([ishigami], x, [:f], MonteCarlo(n))
 
         Random.seed!()
 
-        @test all(isapprox(si.FirstOrder, firstorder_analytical; rtol=0.1))
-        @test all(isapprox(si.TotalEffect, totaleffect_analytical; rtol=0.1))
+        @test all(isapprox(si[:f].FirstOrder, firstorder_analytical; rtol=0.1))
+        @test all(isapprox(si[:f].TotalEffect, totaleffect_analytical; rtol=0.1))
     end
 
     @testset "Latin Hypercube" begin
         Random.seed!(8128)
 
-        si = sobolindices([ishigami], x, :f, MonteCarlo(n))
+        si = sobolindices([ishigami], x, [:f], MonteCarlo(n))
 
         Random.seed!()
 
-        @test all(isapprox(si.FirstOrder, firstorder_analytical; rtol=0.1))
-        @test all(isapprox(si.TotalEffect, totaleffect_analytical; rtol=0.1))
+        @test all(isapprox(si[:f].FirstOrder, firstorder_analytical; rtol=0.1))
+        @test all(isapprox(si[:f].TotalEffect, totaleffect_analytical; rtol=0.1))
     end
 
     @testset "Polynomial Chaos Expansion" begin
