@@ -18,17 +18,17 @@ function sobolindices(
     A = samples[1:(sim.n), :]
     B = samples[(sim.n + 1):end, :]
 
-    fA = DataFrame()
-    fB = DataFrame()
+    fA = zeros(sim.n, length(output))
+    fB = zeros(sim.n, length(output))
     VY = Dict{Symbol,Number}()
-    for quantity in output
-        fA[!, quantity] = A[:, quantity]
-        fB[!, quantity] = B[:, quantity]
+    for i in range(1, length(output))
+        fA[:, i] = A[:, output[i]]
+        fB[:, i] = B[:, output[i]]
 
-        fA[!, quantity] .-= mean(fA[!, quantity])
-        fB[!, quantity] .-= mean(fB[!, quantity])
+        fA[:, i] .-= mean(fA[:, i])
+        fB[:, i] .-= mean(fB[:, i])
 
-        VY[quantity] = var([fA[!, quantity]; fB[!, quantity]])
+        VY[output[i]] = var([fA[:, i]; fB[:, i]])
     end
 
     Si = zeros(length(random_names), 2)
@@ -42,30 +42,29 @@ function sobolindices(
             evaluate!(m, ABi)
         end
 
-        for quantity in output
-            ABi[:, quantity] .-= mean(ABi[:, quantity])
+        for j in range(1, length(output))
+            ABi[:, output[j]] .-= mean(ABi[:, output[j]])
 
-            first_order =
-                x -> mean(fB[!, quantity] .* (x .- fA[!, quantity])) / VY[quantity] # Saltelli 2009
+            first_order = x -> mean(fB[:, j] .* (x .- fA[:, j])) / VY[output[j]] # Saltelli 2009
             total_effect =
-                x -> (1 / (2 * sim.n)) * sum((fA[!, quantity] .- x) .^ 2) / VY[quantity] # Saltelli 2009
+                x -> (1 / (2 * sim.n)) * sum((fA[:, j] .- x) .^ 2) / VY[output[j]] # Saltelli 2009
 
             # First order effects
-            Si[i, 1] = first_order(ABi[:, quantity])
-            bs = bootstrap(first_order, ABi[:, quantity], BasicSampling(1000))
+            Si[i, 1] = first_order(ABi[:, output[j]])
+            bs = bootstrap(first_order, ABi[:, output[j]], BasicSampling(1000))
             Si[i, 2] = stderror(bs)[1]
 
             # Total effects
-            STi[i, 1] = total_effect(ABi[:, quantity])
-            bs = bootstrap(total_effect, ABi[:, quantity], BasicSampling(1000))
+            STi[i, 1] = total_effect(ABi[:, output[j]])
+            bs = bootstrap(total_effect, ABi[:, output[j]], BasicSampling(1000))
             STi[i, 2] = stderror(bs)[1]
 
-            indices[quantity] = DataFrame()
-            indices[quantity].Variables = random_names
-            indices[quantity].FirstOrder = Si[:, 1]
-            indices[quantity].FirstOrderStdError = Si[:, 2]
-            indices[quantity].TotalEffect = STi[:, 1]
-            indices[quantity].TotalEffectStdError = STi[:, 2]
+            indices[output[j]] = DataFrame()
+            indices[output[j]].Variables = random_names
+            indices[output[j]].FirstOrder = Si[:, 1]
+            indices[output[j]].FirstOrderStdError = Si[:, 2]
+            indices[output[j]].TotalEffect = STi[:, 1]
+            indices[output[j]].TotalEffectStdError = STi[:, 2]
         end
     end
 
