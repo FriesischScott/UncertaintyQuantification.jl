@@ -92,5 +92,5 @@ function sobolindices(pce::PolynomialChaosExpansion)
             i in 1:length(random_names)
         ] ./ var(pce)
 
-    return Si, STi
+    return indices
 end
