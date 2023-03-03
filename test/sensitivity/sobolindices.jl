@@ -25,19 +25,21 @@
 
         @test all(isapprox(si[:f1].FirstOrder, firstorder_analytical1; rtol=0.1))
         @test all(isapprox(si[:f1].TotalEffect, totaleffect_analytical1; rtol=0.1))
-        @test all(isapprox(si[:f2].FirstOrder.firstorder_analytical2; rtol=0.1))
+        @test all(isapprox(si[:f2].FirstOrder, firstorder_analytical2; rtol=0.1))
         @test all(isapprox(si[:f2].TotalEffect, totaleffect_analytical2; rtol=0.1))
     end
 
     @testset "Sobol" begin
         Random.seed!(8128)
 
-        si = sobolindices([ishigami1], x, [:f1], SobolSampling(n))
+        si = sobolindices([ishigami1, ishigami2], x, [:f1, :f2], SobolSampling(n))
 
         Random.seed!()
 
         @test all(isapprox(si[:f1].FirstOrder, firstorder_analytical1; rtol=0.1))
         @test all(isapprox(si[:f1].TotalEffect, totaleffect_analytical1; rtol=0.1))
+        @test all(isapprox(si[:f2].FirstOrder, firstorder_analytical2; rtol=0.1))
+        @test all(isapprox(si[:f2].TotalEffect, totaleffect_analytical2; rtol=0.1))
     end
 
     @testset "Halton" begin
@@ -47,9 +49,9 @@
 
         Random.seed!()
 
-        @test all(isapprox(si[:f].FirstOrder, firstorder_analytical1; rtol=0.1))
-        @test all(isapprox(si[:f].TotalEffect, totaleffect_analytical1; rtol=0.1))
-        @test all(isapprox(si[:f2].FirstOrder.firstorder_analytical2; rtol=0.1))
+        @test all(isapprox(si[:f1].FirstOrder, firstorder_analytical1; rtol=0.1))
+        @test all(isapprox(si[:f1].TotalEffect, totaleffect_analytical1; rtol=0.1))
+        @test all(isapprox(si[:f2].FirstOrder, firstorder_analytical2; rtol=0.1))
         @test all(isapprox(si[:f2].TotalEffect, totaleffect_analytical2; rtol=0.1))
     end
 
@@ -62,7 +64,7 @@
 
         @test all(isapprox(si[:f1].FirstOrder, firstorder_analytical1; rtol=0.1))
         @test all(isapprox(si[:f1].TotalEffect, totaleffect_analytical1; rtol=0.1))
-        @test all(isapprox(si[:f2].FirstOrder.firstorder_analytical2; rtol=0.1))
+        @test all(isapprox(si[:f2].FirstOrder, firstorder_analytical2; rtol=0.1))
         @test all(isapprox(si[:f2].TotalEffect, totaleffect_analytical2; rtol=0.1))
     end
 
