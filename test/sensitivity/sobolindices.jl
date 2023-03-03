@@ -71,11 +71,11 @@
         Ψ = PolynomialChaosBasis(LegendreBasis.([p, p, p]), p)
 
         gq = GaussQuadrature()
-        pce, _ = polynomialchaos(x, ishigami, Ψ, :f, gq)
+        pce, _ = polynomialchaos(x, ishigami1, Ψ, :f1, gq)
 
         si = sobolindices(pce)
 
-        @test all(isapprox(si.FirstOrder, firstorder_analytical; rtol=0.1))
-        @test all(isapprox(si.TotalEffect, totaleffect_analytical; rtol=0.1))
+        @test all(isapprox(si.FirstOrder, firstorder_analytical1; rtol=0.1))
+        @test all(isapprox(si.TotalEffect, totaleffect_analytical1; rtol=0.1))
     end
 end
