@@ -21,14 +21,14 @@ function sobolindices(
     fA = zeros(sim.n, length(output))
     fB = zeros(sim.n, length(output))
     VY = Dict{Symbol,Number}()
-    for i in range(1, length(output))
-        fA[:, i] = A[:, output[i]]
-        fB[:, i] = B[:, output[i]]
+    for (i, qty) in enumerate(output)
+        fA[:, i] = A[:, qty]
+        fB[:, i] = B[:, qty]
 
         fA[:, i] .-= mean(fA[:, i])
         fB[:, i] .-= mean(fB[:, i])
 
-        VY[output[i]] = var([fA[:, i]; fB[:, i]])
+        VY[qty] = var([fA[:, i]; fB[:, i]])
     end
 
     Si = zeros(length(random_names), 2)
@@ -42,29 +42,28 @@ function sobolindices(
             evaluate!(m, ABi)
         end
 
-        for j in range(1, length(output))
-            ABi[:, output[j]] .-= mean(ABi[:, output[j]])
+        for (j, qty) in enumerate(output)
+            ABi[:, qty] .-= mean(ABi[:, qty])
 
-            first_order = x -> mean(fB[:, j] .* (x .- fA[:, j])) / VY[output[j]] # Saltelli 2009
-            total_effect =
-                x -> (1 / (2 * sim.n)) * sum((fA[:, j] .- x) .^ 2) / VY[output[j]] # Saltelli 2009
+            first_order = x -> mean(fB[:, j] .* (x .- fA[:, j])) / VY[qty] # Saltelli 2009
+            total_effect = x -> (1 / (2 * sim.n)) * sum((fA[:, j] .- x) .^ 2) / VY[qty] # Saltelli 2009
 
             # First order effects
-            Si[i, 1] = first_order(ABi[:, output[j]])
-            bs = bootstrap(first_order, ABi[:, output[j]], BasicSampling(1000))
+            Si[i, 1] = first_order(ABi[:, qty])
+            bs = bootstrap(first_order, ABi[:, qty], BasicSampling(1000))
             Si[i, 2] = stderror(bs)[1]
 
             # Total effects
-            STi[i, 1] = total_effect(ABi[:, output[j]])
-            bs = bootstrap(total_effect, ABi[:, output[j]], BasicSampling(1000))
+            STi[i, 1] = total_effect(ABi[:, qty])
+            bs = bootstrap(total_effect, ABi[:, qty], BasicSampling(1000))
             STi[i, 2] = stderror(bs)[1]
 
-            indices[output[j]] = DataFrame()
-            indices[output[j]].Variables = random_names
-            indices[output[j]].FirstOrder = Si[:, 1]
-            indices[output[j]].FirstOrderStdError = Si[:, 2]
-            indices[output[j]].TotalEffect = STi[:, 1]
-            indices[output[j]].TotalEffectStdError = STi[:, 2]
+            indices[qty] = DataFrame()
+            indices[qty].Variables = random_names
+            indices[qty].FirstOrder = Si[:, 1]
+            indices[qty].FirstOrderStdError = Si[:, 2]
+            indices[qty].TotalEffect = STi[:, 1]
+            indices[qty].TotalEffectStdError = STi[:, 2]
         end
     end
 
