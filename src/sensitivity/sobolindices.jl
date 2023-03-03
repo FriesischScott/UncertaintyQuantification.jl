@@ -21,6 +21,8 @@ function sobolindices(
     fA = zeros(sim.n, length(output))
     fB = zeros(sim.n, length(output))
     VY = Dict{Symbol,Number}()
+    Si = Dict()
+    STi = Dict()
     for (i, qty) in enumerate(output)
         fA[:, i] = A[:, qty]
         fB[:, i] = B[:, qty]
@@ -29,12 +31,19 @@ function sobolindices(
         fB[:, i] .-= mean(fB[:, i])
 
         VY[qty] = var([fA[:, i]; fB[:, i]])
+        indices[qty] = DataFrame(;
+            Variables=Any[],
+            FirstOrder=Float64[],
+            FirstOrderStdError=Float64[],
+            TotalEffect=Float64[],
+            TotalEffectStdError=Float64[],
+        )
     end
 
-    Si = zeros(length(random_names), 2)
-    STi = zeros(length(random_names), 2)
-
     for (i, name) in enumerate(random_names)
+        Si[name] = zeros(2, length(output))
+        STi[name] = zeros(2, length(output))
+
         ABi = select(A, Not(name))
         ABi[:, name] = B[:, name]
 
@@ -49,21 +58,19 @@ function sobolindices(
             total_effect = x -> (1 / (2 * sim.n)) * sum((fA[:, j] .- x) .^ 2) / VY[qty] # Saltelli 2009
 
             # First order effects
-            Si[i, 1] = first_order(ABi[:, qty])
+            Si[name][1, j] = first_order(ABi[:, qty])
             bs = bootstrap(first_order, ABi[:, qty], BasicSampling(1000))
-            Si[i, 2] = stderror(bs)[1]
+            Si[name][2, j] = stderror(bs)[1]
 
             # Total effects
-            STi[i, 1] = total_effect(ABi[:, qty])
+            STi[name][1, j] = total_effect(ABi[:, qty])
             bs = bootstrap(total_effect, ABi[:, qty], BasicSampling(1000))
-            STi[i, 2] = stderror(bs)[1]
+            STi[name][2, j] = stderror(bs)[1]
 
-            indices[qty] = DataFrame()
-            indices[qty].Variables = random_names
-            indices[qty].FirstOrder = Si[:, 1]
-            indices[qty].FirstOrderStdError = Si[:, 2]
-            indices[qty].TotalEffect = STi[:, 1]
-            indices[qty].TotalEffectStdError = STi[:, 2]
+            push!(
+                indices[qty],
+                [name, Si[name][1, j], Si[name][2, j], STi[name][1, j], STi[name][2, j]],
+            )
         end
     end
 
@@ -85,5 +92,5 @@ function sobolindices(pce::PolynomialChaosExpansion)
             i in 1:length(random_names)
         ] ./ var(pce)
 
-    return indices
+    return Si, STi
 end
