@@ -1,7 +1,7 @@
 function probability_of_failure(
-    models::Union{Array{<:UQModel},UQModel},
+    models::Union{Vector{<:UQModel},UQModel},
     performance::Function,
-    inputs::Union{Array{<:UQInput},UQInput},
+    inputs::Union{Vector{<:UQInput},UQInput},
     sim::AbstractMonteCarlo,
 )
     samples = sample(inputs, sim)
@@ -17,16 +17,16 @@ function probability_of_failure(
 end
 
 function probability_of_failure(
-    models::Union{Array{<:UQModel},UQModel},
+    models::Union{Vector{<:UQModel},UQModel},
     performance::Function,
-    inputs::Union{Array{<:UQInput},UQInput},
+    inputs::Union{Vector{<:UQInput},UQInput},
     sim::LineSampling,
 )
     if isempty(sim.direction)
         sim.direction = gradient_in_standard_normal_space(
             [models..., Model(x -> -1 * performance(x), :performance)],
             inputs,
-            mean(inputs),
+            DataFrame(names(inputs) .=> mean(inputs)),
             :performance,
         )
     end
@@ -67,7 +67,7 @@ end
 
 # Allow to calculate the pf using only a performance function but no model
 function probability_of_failure(
-    performance::Function, inputs::Union{Array{<:UQInput},UQInput}, sim::Any
+    performance::Function, inputs::Union{Vector{<:UQInput},UQInput}, sim::Any
 )
     return probability_of_failure(UQModel[], performance, inputs, sim)
 end

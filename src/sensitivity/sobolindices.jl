@@ -1,6 +1,6 @@
 function sobolindices(
-    models::Array{<:UQModel},
-    inputs::Array{<:UQInput},
+    models::Vector{<:UQModel},
+    inputs::Vector{<:UQInput},
     output::Symbol,
     sim::AbstractMonteCarlo,
 )

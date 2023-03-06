@@ -1,7 +1,7 @@
 abstract type AbstractSubSetSimulation end
 
 """
-    SubSetSimulation(n::Integer, target::Float64, levels::Integer, proposal::Sampleable{Univariate})
+    SubSetSimulation(n::Integer, target::Float64, levels::Integer, proposal::UnivariateDistribution)
 
 Defines the properties of a Subset simulation where `n` is the number of initial samples,
 `target` is the target probability of failure at each level, `levels` is the maximum number
@@ -22,10 +22,10 @@ struct SubSetSimulation <: AbstractSubSetSimulation
     n::Integer
     target::Float64
     levels::Integer
-    proposal::Sampleable{Univariate}
+    proposal::UnivariateDistribution
 
     function SubSetSimulation(
-        n::Integer, target::Float64, levels::Integer, proposal::Sampleable{Univariate}
+        n::Integer, target::Float64, levels::Integer, proposal::UnivariateDistribution
     )
         skewness(proposal) != 0.0 && error("proposal must be a symmetric distribution")
         mean(proposal) != median(proposal) &&
@@ -66,7 +66,7 @@ struct SubSetInfinity <: AbstractSubSetSimulation
     end
 end
 
-function sample(inputs::Array{<:UQInput}, sim::AbstractSubSetSimulation)
+function sample(inputs::Vector{<:UQInput}, sim::AbstractSubSetSimulation)
     random_inputs = filter(i -> isa(i, RandomUQInput), inputs)
     deterministic_inputs = filter(i -> isa(i, DeterministicUQInput), inputs)
 
@@ -84,9 +84,9 @@ function sample(inputs::Array{<:UQInput}, sim::AbstractSubSetSimulation)
 end
 
 function probability_of_failure(
-    models::Union{Array{<:UQModel},UQModel},
+    models::Union{Vector{<:UQModel},UQModel},
     performancefunction::Function,
-    inputs::Union{Array{T},T} where {T<:UQInput},
+    inputs::Union{Vector{<:UQInput},UQInput},
     sim::AbstractSubSetSimulation,
 )
     samples = [sample(inputs, sim)]
@@ -160,9 +160,9 @@ function nextlevelsamples(
     samples::DataFrame,
     performance::Vector{<:Real},
     threshold::Real,
-    models::Union{Array{<:UQModel},UQModel},
+    models::Union{Vector{<:UQModel},UQModel},
     performancefunction::Function,
-    inputs::Union{Array{T},T} where {T<:UQInput},
+    inputs::Union{Vector{<:UQInput},UQInput},
     sim::SubSetSimulation,
 )
     nextlevelsamples = [samples]
@@ -210,6 +210,9 @@ function nextlevelsamples(
             chainperformance[α_accept_indices] = new_samplesperformance
         end
 
+        # chainsamples = chainsamples[α_accept_indices, :]
+        # chainperformance = chainperformance[α_accept_indices]
+
         push!(nextlevelsamples, chainsamples)
         push!(nextlevelperformance, chainperformance)
     end
@@ -225,9 +228,9 @@ function nextlevelsamples(
     samples::DataFrame,
     performance::Vector{<:Real},
     threshold::Real,
-    models::Union{Array{<:UQModel},UQModel},
+    models::Union{Vector{<:UQModel},UQModel},
     performancefunction::Function,
-    inputs::Union{Array{T},T} where {T<:UQInput},
+    inputs::Union{Vector{<:UQInput},UQInput},
     sim::SubSetInfinity,
 )
     samples_per_seed = Int64(floor(sim.n / nrow(samples)))

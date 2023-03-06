@@ -14,7 +14,7 @@ ResponseSurface([1.01894, -0.238636, 0.483333], :y, [:x], 2, DynamicPolynomials.
 struct ResponseSurface <: UQModel
     β::Array
     y::Symbol
-    names::Array{Symbol}
+    names::Vector{Symbol}
     p::Int64
     monomials::MonomialVector{true}
 
