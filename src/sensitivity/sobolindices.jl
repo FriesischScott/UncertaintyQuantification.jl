@@ -1,7 +1,7 @@
 function sobolindices(
     models::Vector{<:UQModel},
     inputs::Vector{<:UQInput},
-    output::Vector{Symbol},
+    outputs::Vector{Symbol},
     sim::AbstractMonteCarlo,
 )
     sim_double_samples = @set sim.n = 2 * sim.n
@@ -18,32 +18,16 @@ function sobolindices(
     A = samples[1:(sim.n), :]
     B = samples[(sim.n + 1):end, :]
 
-    fA = zeros(sim.n, length(output))
-    fB = zeros(sim.n, length(output))
-    VY = Dict{Symbol,Number}()
-    Si = Dict()
-    STi = Dict()
-    for (i, qty) in enumerate(output)
-        fA[:, i] = A[:, qty]
-        fB[:, i] = B[:, qty]
+    fA = Matrix(A[!, names(A, outputs)])
+    fB = Matrix(B[!, names(B, outputs)])
+    fA = fA .- mean(eachrow(fA))'
+    fB = fB .- mean(eachrow(fB))'
+    VY = var.(collect(eachcol(vcat(fA, fB))))
+    Si = zeros(length(outputs), length(random_names), 2)
+    STi = zeros(length(outputs), length(random_names), 2)
 
-        fA[:, i] .-= mean(fA[:, i])
-        fB[:, i] .-= mean(fB[:, i])
-
-        VY[qty] = var([fA[:, i]; fB[:, i]])
-        indices[qty] = DataFrame(;
-            Variables=Any[],
-            FirstOrder=Float64[],
-            FirstOrderStdError=Float64[],
-            TotalEffect=Float64[],
-            TotalEffectStdError=Float64[],
-        )
-    end
-
+    ## Use Matrices for Si and STi (if only one output keep previous df)
     for (i, name) in enumerate(random_names)
-        Si[name] = zeros(2, length(output))
-        STi[name] = zeros(2, length(output))
-
         ABi = select(A, Not(name))
         ABi[:, name] = B[:, name]
 
@@ -51,29 +35,33 @@ function sobolindices(
             evaluate!(m, ABi)
         end
 
-        for (j, qty) in enumerate(output)
+        for (j, qty) in enumerate(outputs)
             ABi[:, qty] .-= mean(ABi[:, qty])
 
-            first_order = x -> mean(fB[:, j] .* (x .- fA[:, j])) / VY[qty] # Saltelli 2009
-            total_effect = x -> (1 / (2 * sim.n)) * sum((fA[:, j] .- x) .^ 2) / VY[qty] # Saltelli 2009
+            first_order = x -> mean(fB[:, j] .* (x .- fA[:, j])) / VY[j] # Saltelli 2009
+            total_effect = x -> (1 / (2 * sim.n)) * sum((fA[:, j] .- x) .^ 2) / VY[j] # Saltelli 2009
 
             # First order effects
-            Si[name][1, j] = first_order(ABi[:, qty])
+            Si[j, i, 1] = first_order(ABi[:, qty])
             bs = bootstrap(first_order, ABi[:, qty], BasicSampling(1000))
-            Si[name][2, j] = stderror(bs)[1]
-
+            Si[j, i, 2] = stderror(bs)[1]
             # Total effects
-            STi[name][1, j] = total_effect(ABi[:, qty])
+            STi[j, i, 1] = total_effect(ABi[:, qty])
             bs = bootstrap(total_effect, ABi[:, qty], BasicSampling(1000))
-            STi[name][2, j] = stderror(bs)[1]
-
-            push!(
-                indices[qty],
-                [name, Si[name][1, j], Si[name][2, j], STi[name][1, j], STi[name][2, j]],
-            )
+            STi[j, i, 2] = stderror(bs)[1]
         end
     end
 
+    indices = Dict()
+    for (i, output) in enumerate(outputs)
+        indices[output] = DataFrame(
+            Variables = random_names,
+            FirstOrder = Si[i, :, 1],
+            FirstOrderStdError = Si[i, :, 2],
+            TotalEffect = STi[i, :, 1],
+            TotalEffectStdError = STi[i, :, 2]
+        )
+    end
     return indices
 end
 
