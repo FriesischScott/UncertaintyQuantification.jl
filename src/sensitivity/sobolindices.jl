@@ -18,15 +18,14 @@ function sobolindices(
     A = samples[1:(sim.n), :]
     B = samples[(sim.n + 1):end, :]
 
-    fA = Matrix(A[!, names(A, outputs)])
-    fB = Matrix(B[!, names(B, outputs)])
+    fA = Matrix(A[!, outputs])
+    fB = Matrix(B[!, outputs])
     fA = fA .- mean(eachrow(fA))'
     fB = fB .- mean(eachrow(fB))'
     VY = var.(collect(eachcol(vcat(fA, fB))))
     Si = zeros(length(outputs), length(random_names), 2)
     STi = zeros(length(outputs), length(random_names), 2)
 
-    ## Use Matrices for Si and STi (if only one output keep previous df)
     for (i, name) in enumerate(random_names)
         ABi = select(A, Not(name))
         ABi[:, name] = B[:, name]
