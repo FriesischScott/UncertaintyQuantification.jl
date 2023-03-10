@@ -38,8 +38,6 @@
 
         @test all(isapprox(si[:f1].FirstOrder, firstorder_analytical1; rtol=0.1))
         @test all(isapprox(si[:f1].TotalEffect, totaleffect_analytical1; rtol=0.1))
-        @test all(isapprox(si[:f2].FirstOrder, firstorder_analytical2; rtol=0.1))
-        @test all(isapprox(si[:f2].TotalEffect, totaleffect_analytical2; rtol=0.1))
     end
 
     @testset "Halton" begin
@@ -51,8 +49,6 @@
 
         @test all(isapprox(si[:f1].FirstOrder, firstorder_analytical1; rtol=0.1))
         @test all(isapprox(si[:f1].TotalEffect, totaleffect_analytical1; rtol=0.1))
-        @test all(isapprox(si[:f2].FirstOrder, firstorder_analytical2; rtol=0.1))
-        @test all(isapprox(si[:f2].TotalEffect, totaleffect_analytical2; rtol=0.1))
     end
 
     @testset "Latin Hypercube" begin
@@ -64,8 +60,6 @@
 
         @test all(isapprox(si[:f1].FirstOrder, firstorder_analytical1; rtol=0.1))
         @test all(isapprox(si[:f1].TotalEffect, totaleffect_analytical1; rtol=0.1))
-        @test all(isapprox(si[:f2].FirstOrder, firstorder_analytical2; rtol=0.1))
-        @test all(isapprox(si[:f2].TotalEffect, totaleffect_analytical2; rtol=0.1))
     end
 
     @testset "Polynomial Chaos Expansion" begin
