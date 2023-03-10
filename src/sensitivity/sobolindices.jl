@@ -1,3 +1,8 @@
+const _sobol_table_types = [Symbol[], Float64[], Float64[], Float64[], Float64[]]
+const _sobol_table_header = [
+    "Variables", "FirstOrder", "FirstOrderStdError", "TotalEffect", "TotalEffectStdError"
+]
+
 function sobolindices(
     models::Vector{<:UQModel},
     inputs::Vector{<:UQInput},
@@ -12,14 +17,9 @@ function sobolindices(
     random_names = names(filter(i -> isa(i, RandomUQInput), inputs))
 
     evaluate!(models, samples)
+
     indices = Dict([
-        i => DataFrame(;
-            Variable=Any[],
-            FirstOrder=Float64[],
-            FirstOrderStdError=Float64[],
-            TotalEffect=Float64[],
-            TotalEffectError=Float64[],
-        ) for i in outputs
+        (name, DataFrame(_sobol_table_types, _sobol_table_header)) for name in outputs
     ])
 
     A = samples[1:(sim.n), :]
@@ -43,19 +43,19 @@ function sobolindices(
         for (j, qty) in enumerate(outputs)
             ABi[:, qty] .-= mean(ABi[:, qty])
 
-            first_order = x -> mean(fB[:, j] .* (x .- fA[:, j])) / VY[j] # Saltelli 2009
-            total_effect = x -> (1 / (2 * sim.n)) * sum((fA[:, j] .- x) .^ 2) / VY[j] # Saltelli 2009
-
             # First order effects
+            first_order = x -> mean(fB[:, j] .* (x .- fA[:, j])) / VY[j] # Saltelli 2009
             bs = bootstrap(first_order, ABi[:, qty], BasicSampling(1000))
+            Sᵢ = first_order(ABi[:, qty])
+            σSᵢ = stderror(bs)[1]
+
             # Total effects
+            total_effect = x -> (1 / (2 * sim.n)) * sum((fA[:, j] .- x) .^ 2) / VY[j] # Saltelli 2009
             bs = bootstrap(total_effect, ABi[:, qty], BasicSampling(1000))
-            push!(
-                indices[qty],
-                [name first_order(ABi[:, qty]) stderror(bs)[1] total_effect(ABi[:, qty]) stderror(
-                    bs
-                )[1]],
-            )
+            Sₜ = total_effect(ABi[:, qty])
+            σSₜ = stderror(bs)[1]
+
+            push!(indices[qty], [name, Sᵢ, σSᵢ, Sₜ, σSₜ])
         end
     end
     return indices
