@@ -12,19 +12,25 @@ function sobolindices(
     random_names = names(filter(i -> isa(i, RandomUQInput), inputs))
 
     evaluate!(models, samples)
-
-    indices = Dict()
+    indices = Dict([
+        i => DataFrame(;
+            Variable=Any[],
+            FirstOrder=Float64[],
+            FirstOrderStdError=Float64[],
+            TotalEffect=Float64[],
+            TotalEffectError=Float64[],
+        ) for i in outputs
+    ])
 
     A = samples[1:(sim.n), :]
     B = samples[(sim.n + 1):end, :]
 
-    fA = Matrix(A[!, outputs])
-    fB = Matrix(B[!, outputs])
-    fA = fA .- mean(eachrow(fA))'
-    fB = fB .- mean(eachrow(fB))'
-    VY = var.(collect(eachcol(vcat(fA, fB))))
-    Si = zeros(length(outputs), length(random_names), 2)
-    STi = zeros(length(outputs), length(random_names), 2)
+    fA = Matrix(A[:, outputs])
+    fB = Matrix(B[:, outputs])
+    fA = fA .- mean(fA; dims=1)
+    fB = fB .- mean(fB; dims=1)
+
+    VY = var([fA; fB]; dims=1)
 
     for (i, name) in enumerate(random_names)
         ABi = select(A, Not(name))
@@ -41,25 +47,16 @@ function sobolindices(
             total_effect = x -> (1 / (2 * sim.n)) * sum((fA[:, j] .- x) .^ 2) / VY[j] # Saltelli 2009
 
             # First order effects
-            Si[j, i, 1] = first_order(ABi[:, qty])
             bs = bootstrap(first_order, ABi[:, qty], BasicSampling(1000))
-            Si[j, i, 2] = stderror(bs)[1]
             # Total effects
-            STi[j, i, 1] = total_effect(ABi[:, qty])
             bs = bootstrap(total_effect, ABi[:, qty], BasicSampling(1000))
-            STi[j, i, 2] = stderror(bs)[1]
+            push!(
+                indices[qty],
+                [name first_order(ABi[:, qty]) stderror(bs)[1] total_effect(ABi[:, qty]) stderror(
+                    bs
+                )[1]],
+            )
         end
-    end
-
-    indices = Dict()
-    for (i, output) in enumerate(outputs)
-        indices[output] = DataFrame(
-            Variables = random_names,
-            FirstOrder = Si[i, :, 1],
-            FirstOrderStdError = Si[i, :, 2],
-            TotalEffect = STi[i, :, 1],
-            TotalEffectStdError = STi[i, :, 2]
-        )
     end
     return indices
 end
