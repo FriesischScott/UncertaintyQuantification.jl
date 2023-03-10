@@ -21,6 +21,6 @@ VB = sum(σx .^ 2 .* σω .^ 2)
 analytical = (σx .^ 2 .* σω .^ 2) / VB
 
 # Monte Carlo
-@assert all(isapprox.(s_mc.FirstOrder, 0.0, atol=0.1))
-@assert all(isapprox.(s_mc.TotalEffect[1:5], analytical, rtol=0.1))
-@assert all(isapprox.(s_mc.TotalEffect[6:end], analytical, rtol=0.1))
+@assert all(isapprox.(s_mc[:B].FirstOrder, 0.0, atol=0.1))
+@assert all(isapprox.(s_mc[:B].TotalEffect[1:5], analytical, rtol=0.1))
+@assert all(isapprox.(s_mc[:B].TotalEffect[6:end], analytical, rtol=0.1))
