@@ -8,7 +8,7 @@
         df -> sin.(df.x1) + 7 .* sin.(df.x2) .^ 2 + 0.05 .* df.x3 .^ 4 .* sin.(df.x1), :f2
     )
 
-    n = 1000
+    n = 2200
 
     firstorder_analytical1 = [0.3138, 0.4424, 0.00]
     totaleffect_analytical1 = [0.5574, 0.4424, 0.2436]
@@ -34,8 +34,6 @@
 
         si = sobolindices([ishigami1, ishigami2], x, [:f1, :f2], SobolSampling(n))
 
-        Random.seed!()
-
         @test all(isapprox(si[:f1].FirstOrder, firstorder_analytical1; rtol=0.1))
         @test all(isapprox(si[:f1].TotalEffect, totaleffect_analytical1; rtol=0.1))
     end
@@ -43,9 +41,7 @@
     @testset "Halton" begin
         Random.seed!(8128)
 
-        si = sobolindices([ishigami1, ishigami2], x, [:f1, :f2], MonteCarlo(n))
-
-        Random.seed!()
+        si = sobolindices([ishigami1, ishigami2], x, [:f1, :f2], HaltonSampling(n))
 
         @test all(isapprox(si[:f1].FirstOrder, firstorder_analytical1; rtol=0.1))
         @test all(isapprox(si[:f1].TotalEffect, totaleffect_analytical1; rtol=0.1))
@@ -54,9 +50,7 @@
     @testset "Latin Hypercube" begin
         Random.seed!(8128)
 
-        si = sobolindices([ishigami1, ishigami2], x, [:f1, :f2], MonteCarlo(n))
-
-        Random.seed!()
+        si = sobolindices([ishigami1, ishigami2], x, [:f1, :f2], LatinHypercubeSampling(n))
 
         @test all(isapprox(si[:f1].FirstOrder, firstorder_analytical1; rtol=0.1))
         @test all(isapprox(si[:f1].TotalEffect, totaleffect_analytical1; rtol=0.1))
