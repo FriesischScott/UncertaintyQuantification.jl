@@ -30,8 +30,6 @@
     end
 
     @testset "Sobol" begin
-        Random.seed!(8128)
-
         si = sobolindices([ishigami1, ishigami2], x, [:f1, :f2], SobolSampling(n))
 
         @test all(isapprox(si[:f1].FirstOrder, firstorder_analytical1; rtol=0.1))
@@ -39,8 +37,6 @@
     end
 
     @testset "Halton" begin
-        Random.seed!(8128)
-
         si = sobolindices([ishigami1, ishigami2], x, [:f1, :f2], HaltonSampling(n))
 
         @test all(isapprox(si[:f1].FirstOrder, firstorder_analytical1; rtol=0.1))
@@ -48,8 +44,6 @@
     end
 
     @testset "Latin Hypercube" begin
-        Random.seed!(8128)
-
         si = sobolindices([ishigami1, ishigami2], x, [:f1, :f2], LatinHypercubeSampling(n))
 
         @test all(isapprox(si[:f1].FirstOrder, firstorder_analytical1; rtol=0.1))
