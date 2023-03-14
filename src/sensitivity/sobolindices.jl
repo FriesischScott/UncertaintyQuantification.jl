@@ -78,3 +78,78 @@ function sobolindices(pce::PolynomialChaosExpansion)
 
     return indices
 end
+
+function sobolindices(
+    models::M where {M<:UQModel},
+    inputs::Vector{<:UQInput},
+    outputs::Vector{Symbol},
+    sim::AbstractMonteCarlo,
+)
+    models = [models]
+    return sobolindices(models, inputs, outputs, sim)
+end
+
+function sobolindices(
+    models::Vector{<:UQModel},
+    inputs::I where {I<:UQInput},
+    outputs::Vector{Symbol},
+    sim::AbstractMonteCarlo,
+)
+    inputs = [inputs]
+    return sobolindices(models, inputs, outputs, sim)
+end
+
+function sobolindices(
+    models::Vector{<:UQModel},
+    inputs::Vector{<:UQInput},
+    outputs::Symbol,
+    sim::AbstractMonteCarlo,
+)
+    outputs = [outputs]
+    return sobolindices(models, inputs, outputs, sim)
+end
+
+function sobolindices(
+    models::M where {M<:UQModel},
+    inputs::I where {I<:UQInput},
+    outputs::Vector{Symbol},
+    sim::AbstractMonteCarlo,
+)
+    models = [models]
+    inputs = [inputs]
+    return sobolindices(models, inputs, outputs, sim)
+end
+
+function sobolindices(
+    models::M where {M<:UQModel},
+    inputs::Vector{<:UQInput},
+    outputs::Symbol,
+    sim::AbstractMonteCarlo,
+)
+    models = [models]
+    outputs = [outputs]
+    return sobolindices(models, inputs, outputs, sim)
+end
+
+function sobolindices(
+    models::Vector{<:UQModel},
+    inputs::I where {I<:UQInput},
+    outputs::Symbol,
+    sim::AbstractMonteCarlo,
+)
+    inputs = [inputs]
+    outputs = [outputs]
+    return sobolindices(models, inputs, outputs, sim)
+end
+
+function sobolindices(
+    models::M where {M<:UQModel},
+    inputs::I where {I<:UQInput},
+    outputs::Symbol,
+    sim::AbstractMonteCarlo,
+)
+    models = [models]
+    inputs = [inputs]
+    outputs = [outputs]
+    return sobolindices(models, inputs, outputs, sim)
+end
