@@ -17,10 +17,13 @@ function sobolindices(
     random_names = names(filter(i -> isa(i, RandomUQInput), inputs))
 
     evaluate!(models, samples)
-
     indices = Dict([
         (name, DataFrame(_sobol_table_types, _sobol_table_header)) for name in outputs
     ])
+
+    if length(outputs) == 1
+        indices = DataFrame(_sobol_table_types, _sobol_table_header)
+    end
 
     A = samples[1:(sim.n), :]
     B = samples[(sim.n + 1):end, :]
@@ -55,7 +58,11 @@ function sobolindices(
             Sₜ = total_effect(ABi[:, qty])
             σSₜ = stderror(bs)[1]
 
-            push!(indices[qty], [name, Sᵢ, σSᵢ, Sₜ, σSₜ])
+            if length(outputs) == 1
+                push!(indices, [name, Sᵢ, σSᵢ, Sₜ, σSₜ])
+            else
+                push!(indices[qty], [name, Sᵢ, σSᵢ, Sₜ, σSₜ])
+            end
         end
     end
     return indices
@@ -85,8 +92,7 @@ function sobolindices(
     outputs::Vector{Symbol},
     sim::AbstractMonteCarlo,
 )
-    models = [models]
-    return sobolindices(models, inputs, outputs, sim)
+    return sobolindices([models], inputs, outputs, sim)
 end
 
 function sobolindices(
@@ -95,8 +101,7 @@ function sobolindices(
     outputs::Vector{Symbol},
     sim::AbstractMonteCarlo,
 )
-    inputs = [inputs]
-    return sobolindices(models, inputs, outputs, sim)
+    return sobolindices(models, [inputs], outputs, sim)
 end
 
 function sobolindices(
@@ -105,8 +110,7 @@ function sobolindices(
     outputs::Symbol,
     sim::AbstractMonteCarlo,
 )
-    outputs = [outputs]
-    return sobolindices(models, inputs, outputs, sim)
+    return sobolindices(models, inputs, [outputs], sim)
 end
 
 function sobolindices(
@@ -115,9 +119,7 @@ function sobolindices(
     outputs::Vector{Symbol},
     sim::AbstractMonteCarlo,
 )
-    models = [models]
-    inputs = [inputs]
-    return sobolindices(models, inputs, outputs, sim)
+    return sobolindices([models], [inputs], outputs, sim)
 end
 
 function sobolindices(
@@ -126,9 +128,7 @@ function sobolindices(
     outputs::Symbol,
     sim::AbstractMonteCarlo,
 )
-    models = [models]
-    outputs = [outputs]
-    return sobolindices(models, inputs, outputs, sim)
+    return sobolindices([models], inputs, [outputs], sim)
 end
 
 function sobolindices(
@@ -137,9 +137,7 @@ function sobolindices(
     outputs::Symbol,
     sim::AbstractMonteCarlo,
 )
-    inputs = [inputs]
-    outputs = [outputs]
-    return sobolindices(models, inputs, outputs, sim)
+    return sobolindices(models, [inputs], [outputs], sim)
 end
 
 function sobolindices(
@@ -148,8 +146,5 @@ function sobolindices(
     outputs::Symbol,
     sim::AbstractMonteCarlo,
 )
-    models = [models]
-    inputs = [inputs]
-    outputs = [outputs]
-    return sobolindices(models, inputs, outputs, sim)
+    return sobolindices([models], [inputs], [outputs], sim)
 end
