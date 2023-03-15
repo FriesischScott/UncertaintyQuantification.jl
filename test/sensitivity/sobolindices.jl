@@ -34,7 +34,7 @@
         @test all(isapprox(si.TotalEffect, totaleffect_analytical1; rtol=0.1))
     end
 
-    @test"Sobol Nultiple Outputs" begin
+    @testset "Sobol Nultiple Outputs" begin
         si = sobolindices([ishigami1, ishigami2], x, [:f1, :f2], SobolSampling(n))
 
         @test all(isapprox(si[:f1].FirstOrder, firstorder_analytical1; rtol=0.1))
