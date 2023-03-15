@@ -19,9 +19,23 @@
     @testset "Monte Carlo" begin
         Random.seed!(8128)
 
-        si = sobolindices([ishigami1, ishigami2], x, [:f1, :f2], MonteCarlo(n))
+        si = sobolindices(ishigami1, x, :f1, MonteCarlo(n))
 
         Random.seed!()
+
+        @test all(isapprox(si.FirstOrder, firstorder_analytical1; rtol=0.1))
+        @test all(isapprox(si.TotalEffect, totaleffect_analytical1; rtol=0.1))
+    end
+
+    @testset "Sobol" begin
+        si = sobolindices(ishigami1, x, :f1, SobolSampling(n))
+
+        @test all(isapprox(si.FirstOrder, firstorder_analytical1; rtol=0.1))
+        @test all(isapprox(si.TotalEffect, totaleffect_analytical1; rtol=0.1))
+    end
+
+    @test"Sobol Nultiple Outputs" begin
+        si = sobolindices([ishigami1, ishigami2], x, [:f1, :f2], SobolSampling(n))
 
         @test all(isapprox(si[:f1].FirstOrder, firstorder_analytical1; rtol=0.1))
         @test all(isapprox(si[:f1].TotalEffect, totaleffect_analytical1; rtol=0.1))
@@ -29,25 +43,18 @@
         @test all(isapprox(si[:f2].TotalEffect, totaleffect_analytical2; rtol=0.1))
     end
 
-    @testset "Sobol" begin
-        si = sobolindices([ishigami1, ishigami2], x, [:f1, :f2], SobolSampling(n))
-
-        @test all(isapprox(si[:f1].FirstOrder, firstorder_analytical1; rtol=0.1))
-        @test all(isapprox(si[:f1].TotalEffect, totaleffect_analytical1; rtol=0.1))
-    end
-
     @testset "Halton" begin
-        si = sobolindices([ishigami1, ishigami2], x, [:f1, :f2], HaltonSampling(n))
+        si = sobolindices(ishigami1, x, :f1, HaltonSampling(n))
 
-        @test all(isapprox(si[:f1].FirstOrder, firstorder_analytical1; rtol=0.1))
-        @test all(isapprox(si[:f1].TotalEffect, totaleffect_analytical1; rtol=0.1))
+        @test all(isapprox(si.FirstOrder, firstorder_analytical1; rtol=0.1))
+        @test all(isapprox(si.TotalEffect, totaleffect_analytical1; rtol=0.1))
     end
 
     @testset "Latin Hypercube" begin
-        si = sobolindices([ishigami1, ishigami2], x, [:f1, :f2], LatinHypercubeSampling(n))
+        si = sobolindices(ishigami1, x, :f1, LatinHypercubeSampling(n))
 
-        @test all(isapprox(si[:f1].FirstOrder, firstorder_analytical1; rtol=0.1))
-        @test all(isapprox(si[:f1].TotalEffect, totaleffect_analytical1; rtol=0.1))
+        @test all(isapprox(si.FirstOrder, firstorder_analytical1; rtol=0.1))
+        @test all(isapprox(si.TotalEffect, totaleffect_analytical1; rtol=0.1))
     end
 
     @testset "Polynomial Chaos Expansion" begin
