@@ -8,7 +8,8 @@
         df -> sin.(df.x1) + 7 .* sin.(df.x2) .^ 2 + 0.05 .* df.x3 .^ 4 .* sin.(df.x1), :f2
     )
 
-    n = 2500
+    n_mc = 4000
+    n_qmc = 2300
 
     firstorder_analytical1 = [0.3138, 0.4424, 0.00]
     totaleffect_analytical1 = [0.5574, 0.4424, 0.2436]
@@ -19,7 +20,7 @@
     @testset "Monte Carlo" begin
         Random.seed!(8128)
 
-        si = sobolindices(ishigami1, x, :f1, MonteCarlo(n))
+        si = sobolindices(ishigami1, x, :f1, MonteCarlo(n_mc))
 
         Random.seed!()
 
@@ -28,14 +29,14 @@
     end
 
     @testset "Sobol" begin
-        si = sobolindices(ishigami1, x, :f1, SobolSampling(n))
+        si = sobolindices(ishigami1, x, :f1, SobolSampling(n_qmc))
 
         @test all(isapprox(si.FirstOrder, firstorder_analytical1; rtol=0.1))
         @test all(isapprox(si.TotalEffect, totaleffect_analytical1; rtol=0.1))
     end
 
     @testset "Sobol Nultiple Outputs" begin
-        si = sobolindices([ishigami1, ishigami2], x, [:f1, :f2], SobolSampling(n))
+        si = sobolindices([ishigami1, ishigami2], x, [:f1, :f2], SobolSampling(n_qmc))
 
         @test all(isapprox(si[:f1].FirstOrder, firstorder_analytical1; rtol=0.1))
         @test all(isapprox(si[:f1].TotalEffect, totaleffect_analytical1; rtol=0.1))
@@ -44,14 +45,14 @@
     end
 
     @testset "Halton" begin
-        si = sobolindices(ishigami1, x, :f1, HaltonSampling(n))
+        si = sobolindices(ishigami1, x, :f1, HaltonSampling(n_qmc))
 
         @test all(isapprox(si.FirstOrder, firstorder_analytical1; rtol=0.1))
         @test all(isapprox(si.TotalEffect, totaleffect_analytical1; rtol=0.1))
     end
 
     @testset "Latin Hypercube" begin
-        si = sobolindices(ishigami1, x, :f1, LatinHypercubeSampling(n))
+        si = sobolindices(ishigami1, x, :f1, LatinHypercubeSampling(n_qmc))
 
         @test all(isapprox(si.FirstOrder, firstorder_analytical1; rtol=0.1))
         @test all(isapprox(si.TotalEffect, totaleffect_analytical1; rtol=0.1))
