@@ -87,15 +87,6 @@ function sobolindices(pce::PolynomialChaosExpansion)
 end
 
 function sobolindices(
-    models::M where {M<:UQModel},
-    inputs::Vector{<:UQInput},
-    outputs::Vector{Symbol},
-    sim::AbstractMonteCarlo,
-)
-    return sobolindices([models], inputs, outputs, sim)
-end
-
-function sobolindices(
     models::Vector{<:UQModel},
     inputs::I where {I<:UQInput},
     outputs::Vector{Symbol},
@@ -111,15 +102,6 @@ function sobolindices(
     sim::AbstractMonteCarlo,
 )
     return sobolindices(models, inputs, [outputs], sim)
-end
-
-function sobolindices(
-    models::M where {M<:UQModel},
-    inputs::I where {I<:UQInput},
-    outputs::Vector{Symbol},
-    sim::AbstractMonteCarlo,
-)
-    return sobolindices([models], [inputs], outputs, sim)
 end
 
 function sobolindices(
