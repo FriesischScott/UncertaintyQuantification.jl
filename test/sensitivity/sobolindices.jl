@@ -58,6 +58,27 @@
         @test all(isapprox(si.TotalEffect, totaleffect_analytical1; rtol=0.1))
     end
 
+    @testset "Convenience Functions" begin
+        x1 = RandomVariable(Uniform(-π, +π), :x1)
+        x2 = RandomVariable(Uniform(0, +π), :x2)
+        t1 = Model(df -> sin.(df.x1), :t1)
+        t2 = Model(df -> cos.(df.x1), :t2)
+
+        @test hasmethod(sobolindices, typeof.([[t1; t2], x1, :t1, SobolSampling(n_mc)]))
+        @test hasmethod(sobolindices, typeof.([t1, [x1; x2], :t1, SobolSampling(n_mc)]))
+        @test hasmethod(sobolindices, typeof.([t1, x1, [:t1; :t2], SobolSampling(n_mc)]))
+        @test hasmethod(
+            sobolindices, typeof.([[t1; t2], [x1; x2], :t1, SobolSampling(n_mc)])
+        )
+        @test hasmethod(
+            sobolindices, typeof.([[t1; t2], x1, [:t1, :t2], SobolSampling(n_mc)])
+        )
+        @test hasmethod(
+            sobolindices, typeof.([t1, [x1; x2], [:t1; :t2], SobolSampling(n_mc)])
+        )
+        @test hasmethod(sobolindices, typeof.([t1, x1, :t1, SobolSampling(n_mc)]))
+    end
+
     @testset "Polynomial Chaos Expansion" begin
         p = 6
         Ψ = PolynomialChaosBasis(LegendreBasis.([p, p, p]), p)
