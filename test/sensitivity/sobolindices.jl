@@ -59,25 +59,18 @@
     end
 
     @testset "Convenience Functions" begin
-        function test_convenience(model, inputs, outputs, simulation)
-            try
-                sobolindices(model, inputs, outputs, simulation)
-                return true
-            catch error
-                print(error)
-                return false
-            end
-        end
         x1 = RandomVariable(Uniform(-π, +π), :x1)
         x2 = RandomVariable(Uniform(0, +π), :x2)
         t1 = Model(df -> sin.(df.x1), :t1)
         t2 = Model(df -> cos.(df.x1), :t2)
 
-        @test test_convenience([t1; t2], x1, :t1, SobolSampling(n_mc))
-        @test test_convenience(t1, [x1; x2], :t1, SobolSampling(n_mc))
-        @test test_convenience([t1; t2], [x1; x2], :t1, SobolSampling(n_mc))
-        @test test_convenience([t1; t2], x1, [:t1, :t2], SobolSampling(n_mc))
-        @test test_convenience(t1, x1, :t1, SobolSampling(n_mc))
+        @test isa(sobolindices([t1; t2], x1, :t1, SobolSampling(2)), DataFrame)
+        @test isa(sobolindices(t1, [x1; x2], :t1, SobolSampling(2)), DataFrame)
+        @test isa(sobolindices([t1; t2], [x1; x2], :t1, SobolSampling(2)), DataFrame)
+        @test isa(
+            sobolindices([t1; t2], x1, [:t1, :t2], SobolSampling(2)), Dict{Symbol,DataFrame}
+        )
+        @test isa(sobolindices(t1, x1, :t1, SobolSampling(2)), DataFrame)
     end
 
     @testset "Polynomial Chaos Expansion" begin
