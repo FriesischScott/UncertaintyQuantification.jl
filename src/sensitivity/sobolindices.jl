@@ -21,10 +21,6 @@ function sobolindices(
         (name, DataFrame(_sobol_table_types, _sobol_table_header)) for name in outputs
     ])
 
-    if length(outputs) == 1
-        indices = DataFrame(_sobol_table_types, _sobol_table_header)
-    end
-
     A = samples[1:(sim.n), :]
     B = samples[(sim.n + 1):end, :]
 
@@ -58,14 +54,10 @@ function sobolindices(
             Sₜ = total_effect(ABi[:, qty])
             σSₜ = stderror(bs)[1]
 
-            if length(outputs) == 1
-                push!(indices, [name, Sᵢ, σSᵢ, Sₜ, σSₜ])
-            else
-                push!(indices[qty], [name, Sᵢ, σSᵢ, Sₜ, σSₜ])
-            end
+            push!(indices[qty], [name, Sᵢ, σSᵢ, Sₜ, σSₜ])
         end
     end
-    return indices
+    return length(outputs) > 1 ? indices : indices[outputs[1]]
 end
 
 function sobolindices(pce::PolynomialChaosExpansion)
