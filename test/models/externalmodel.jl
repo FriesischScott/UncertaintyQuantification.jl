@@ -5,7 +5,7 @@
 
     numberformats = Dict(:x => FormatSpec(".8e"), :* => FormatSpec(".8e"))
 
-    r = Extractor(
+    radius = Extractor(
         base -> begin
             map(x -> parse(Float64, x), readlines(joinpath(base, "out.txt")))[1]
         end, :r
@@ -20,7 +20,7 @@
         binary = joinpath(pwd(), "solvers/bin/radius")
     end
 
-    opensees = Solver(binary, "", "in.txt")
+    solver = Solver(binary, "", "in.txt")
 
     open(joinpath(sourcedir, "in.txt"), "w") do input
         println(input, "{{{ :x }}}")
@@ -30,7 +30,7 @@
     x = RandomVariable(Uniform(0, 1), :x)
     y = RandomVariable(Uniform(0, 1), :y)
 
-    df = sample([x, y], 1)
+    df = sample([x, y], 5)
 
     @testset "No Cleanup" begin
         ext = ExternalModel(
@@ -39,13 +39,13 @@
             extrafiles,
             numberformats,
             tempname(),
-            [r],
-            opensees,
+            [radius],
+            solver,
             false,
         )
         evaluate!(ext, df)
-        @test length(readdir(readdir(ext.workdir; join=true)[1])) != 0
-        @test isapprox(df.r, sqrt.(df.x .^ 2 + df.y .^ 2))
+        @test length(readdir(readdir(ext.workdir; join=true)[1])) == 5
+        @test isapprox(df.r, sqrt.(df.x .^ 2 .+ df.y .^ 2))
     end
 
     @testset "Cleanup" begin
@@ -55,12 +55,57 @@
             extrafiles,
             numberformats,
             tempname(),
-            [r],
-            opensees,
+            [radius],
+            solver,
             true,
         )
         evaluate!(ext, df)
         @test length(readdir(readdir(ext.workdir; join=true)[1])) == 0
         @test isapprox(df.r, sqrt.(df.x .^ 2 + df.y .^ 2))
+    end
+
+    @testset "Reuse model output" begin
+        binary2 = ""
+        if Sys.iswindows()
+            binary2 = joinpath(pwd(), "solvers/bin/squared.exe")
+        else
+            binary2 = joinpath(pwd(), "solvers/bin/squared")
+        end
+
+        solver2 = Solver(binary2, "", "out.txt")
+
+        workdir = tempname()
+
+        ext1 = ExternalModel(
+            sourcedir,
+            sourcefiles,
+            extrafiles,
+            numberformats,
+            workdir,
+            [radius],
+            solver,
+            false,
+        )
+
+        squared = Extractor(
+            base -> begin
+                map(x -> parse(Float64, x), readlines(joinpath(base, "out-squared.txt")))[1]
+            end,
+            :r2,
+        )
+
+        ext2 = ExternalModel(
+            "",
+            String[],
+            extrafiles,
+            Dict{Symbol,FormatSpec}(),
+            workdir,
+            [squared],
+            solver2,
+            true,
+        )
+
+        evaluate!([ext1, ext2], df)
+        @test df.r2 ≈ df.x .^ 2 + df.y .^ 2
     end
 end
