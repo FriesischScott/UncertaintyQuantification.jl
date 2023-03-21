@@ -26,9 +26,15 @@ function evaluate!(m::ParallelModel, df::DataFrame)
     return nothing
 end
 
-function evaluate!(models::Vector{T} where {T<:UQModel}, df::DataFrame)
+function evaluate!(models::Vector{<:UQModel}, df::DataFrame)
+    # use same working directory for all external models
+    datetime = Dates.format(now(), "YYYY-mm-dd-HH-MM-SS")
     for m in models
-        evaluate!(m, df)
+        if isa(m, ExternalModel)
+            evaluate!(m, df; datetime=datetime)
+        else
+            evaluate!(m, df)
+        end
     end
     return nothing
 end

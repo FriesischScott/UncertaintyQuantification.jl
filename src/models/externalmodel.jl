@@ -24,9 +24,11 @@ struct ExternalModel <: UQModel
     end
 end
 
-function evaluate!(m::ExternalModel, df::DataFrame)
-    datetime = Dates.format(now(), "YYYY-mm-dd-HH-MM-SS")
-
+function evaluate!(
+    m::ExternalModel,
+    df::DataFrame;
+    datetime::String=Dates.format(now(), "YYYY-mm-dd-HH-MM-SS"),
+)
     n = size(df, 1)
     digits = ndigits(n)
 
