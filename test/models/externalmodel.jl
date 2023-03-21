@@ -68,6 +68,8 @@
         binary2 = ""
         if Sys.iswindows()
             binary2 = joinpath(pwd(), "solvers/bin/squared.exe")
+        elseif Sys.isapple()
+            binary2 = joinpath(pwd(), "solvers/bin/squared-mac")
         else
             binary2 = joinpath(pwd(), "solvers/bin/squared")
         end
