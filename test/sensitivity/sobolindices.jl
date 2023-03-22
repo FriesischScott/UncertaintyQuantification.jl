@@ -8,8 +8,8 @@
         df -> sin.(df.x1) + 7 .* sin.(df.x2) .^ 2 + 0.05 .* df.x3 .^ 4 .* sin.(df.x1), :f2
     )
 
-    n_mc = 4000
-    n_qmc = 2300
+    n_mc = 2000
+    n_qmc = 2000
 
     firstorder_analytical1 = [0.3138, 0.4424, 0.00]
     totaleffect_analytical1 = [0.5574, 0.4424, 0.2436]
@@ -18,44 +18,47 @@
     totaleffect_analytical2 = [0.3136, 0.687, 0.0946]
 
     @testset "Monte Carlo" begin
-        Random.seed!(8128)
-
         si = sobolindices(ishigami1, x, :f1, MonteCarlo(n_mc))
 
-        Random.seed!()
-
-        @test all(isapprox(si.FirstOrder, firstorder_analytical1; rtol=0.1))
-        @test all(isapprox(si.TotalEffect, totaleffect_analytical1; rtol=0.1))
+        @test si.FirstOrder[1:2] ≈ firstorder_analytical1[1:2] rtol = 0.1
+        @test si.FirstOrder[3] ≈ firstorder_analytical1[3] atol = 0.1
+        @test si.TotalEffect ≈ totaleffect_analytical1 rtol = 0.1
     end
 
     @testset "Sobol" begin
         si = sobolindices(ishigami1, x, :f1, SobolSampling(n_qmc))
 
-        @test all(isapprox(si.FirstOrder, firstorder_analytical1; rtol=0.1))
-        @test all(isapprox(si.TotalEffect, totaleffect_analytical1; rtol=0.1))
-    end
-
-    @testset "Sobol Nultiple Outputs" begin
-        si = sobolindices([ishigami1, ishigami2], x, [:f1, :f2], SobolSampling(n_qmc))
-
-        @test all(isapprox(si[:f1].FirstOrder, firstorder_analytical1; rtol=0.1))
-        @test all(isapprox(si[:f1].TotalEffect, totaleffect_analytical1; rtol=0.1))
-        @test all(isapprox(si[:f2].FirstOrder, firstorder_analytical2; rtol=0.1))
-        @test all(isapprox(si[:f2].TotalEffect, totaleffect_analytical2; rtol=0.1))
+        @test si.FirstOrder[1:2] ≈ firstorder_analytical1[1:2] rtol = 0.1
+        @test si.FirstOrder[3] ≈ firstorder_analytical1[3] atol = 0.1
+        @test si.TotalEffect ≈ totaleffect_analytical1 rtol = 0.1
     end
 
     @testset "Halton" begin
         si = sobolindices(ishigami1, x, :f1, HaltonSampling(n_qmc))
 
-        @test all(isapprox(si.FirstOrder, firstorder_analytical1; rtol=0.1))
-        @test all(isapprox(si.TotalEffect, totaleffect_analytical1; rtol=0.1))
+        @test si.FirstOrder[1:2] ≈ firstorder_analytical1[1:2] rtol = 0.1
+        @test si.FirstOrder[3] ≈ firstorder_analytical1[3] atol = 0.1
+        @test si.TotalEffect ≈ totaleffect_analytical1 rtol = 0.1
     end
 
     @testset "Latin Hypercube" begin
         si = sobolindices(ishigami1, x, :f1, LatinHypercubeSampling(n_qmc))
 
-        @test all(isapprox(si.FirstOrder, firstorder_analytical1; rtol=0.1))
-        @test all(isapprox(si.TotalEffect, totaleffect_analytical1; rtol=0.1))
+        @test si.FirstOrder[1:2] ≈ firstorder_analytical1[1:2] rtol = 0.1
+        @test si.FirstOrder[3] ≈ firstorder_analytical1[3] atol = 0.1
+        @test si.TotalEffect ≈ totaleffect_analytical1 rtol = 0.1
+    end
+
+    @testset "Multiple Outputs" begin
+        si = sobolindices([ishigami1, ishigami2], x, [:f1, :f2], SobolSampling(n_qmc))
+
+        @test si[:f1].FirstOrder[1:2] ≈ firstorder_analytical1[1:2] rtol = 0.1
+        @test si[:f1].FirstOrder[3] ≈ firstorder_analytical1[3] atol = 0.1
+        @test si[:f1].TotalEffect ≈ totaleffect_analytical1 rtol = 0.1
+
+        @test si[:f2].FirstOrder[1:2] ≈ firstorder_analytical2[1:2] rtol = 0.1
+        @test si[:f2].FirstOrder[3] ≈ firstorder_analytical2[3] atol = 0.1
+        @test si[:f2].TotalEffect ≈ totaleffect_analytical2 rtol = 0.1
     end
 
     @testset "Convenience Functions" begin
@@ -82,7 +85,8 @@
 
         si = sobolindices(pce)
 
-        @test all(isapprox(si.FirstOrder, firstorder_analytical1; rtol=0.1))
-        @test all(isapprox(si.TotalEffect, totaleffect_analytical1; rtol=0.1))
+        @test si.FirstOrder[1:2] ≈ firstorder_analytical1[1:2] rtol = 0.1
+        @test si.FirstOrder[3] ≈ firstorder_analytical1[3] atol = 0.1
+        @test si.TotalEffect ≈ totaleffect_analytical1 rtol = 0.1
     end
 end

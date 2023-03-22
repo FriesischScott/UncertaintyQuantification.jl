@@ -80,7 +80,7 @@ end
 
 function sobolindices(
     models::Vector{<:UQModel},
-    inputs::I where {I<:UQInput},
+    inputs::UQInput,
     outputs::Vector{Symbol},
     sim::AbstractMonteCarlo,
 )
@@ -97,28 +97,19 @@ function sobolindices(
 end
 
 function sobolindices(
-    models::M where {M<:UQModel},
-    inputs::Vector{<:UQInput},
-    outputs::Symbol,
-    sim::AbstractMonteCarlo,
+    models::UQModel, inputs::Vector{<:UQInput}, outputs::Symbol, sim::AbstractMonteCarlo
 )
     return sobolindices([models], inputs, [outputs], sim)
 end
 
 function sobolindices(
-    models::Vector{<:UQModel},
-    inputs::I where {I<:UQInput},
-    outputs::Symbol,
-    sim::AbstractMonteCarlo,
+    models::Vector{<:UQModel}, inputs::UQInput, outputs::Symbol, sim::AbstractMonteCarlo
 )
     return sobolindices(models, [inputs], [outputs], sim)
 end
 
 function sobolindices(
-    models::M where {M<:UQModel},
-    inputs::I where {I<:UQInput},
-    outputs::Symbol,
-    sim::AbstractMonteCarlo,
+    models::UQModel, inputs::UQInput, outputs::Symbol, sim::AbstractMonteCarlo
 )
     return sobolindices([models], [inputs], [outputs], sim)
 end
