@@ -8,8 +8,8 @@
         df -> sin.(df.x1) + 7 .* sin.(df.x2) .^ 2 + 0.05 .* df.x3 .^ 4 .* sin.(df.x1), :f2
     )
 
-    n_mc = 2000
-    n_qmc = 2000
+    n_mc = 5000
+    n_qmc = 5000
 
     firstorder_analytical1 = [0.3138, 0.4424, 0.00]
     totaleffect_analytical1 = [0.5574, 0.4424, 0.2436]
