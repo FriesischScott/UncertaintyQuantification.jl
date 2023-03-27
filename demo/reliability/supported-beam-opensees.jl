@@ -1,5 +1,5 @@
 # Reference: https://opensees.berkeley.edu/wiki/index.php/Simply_supported_beam_modeled_with_two_dimensional_solid_elements
-using UncertaintyQuantification, DelimitedFiles, Formatting
+using UncertaintyQuantification, DelimitedFiles
 
 # To run the model distributed add the desired workers and load the required packages with @everywhere
 # using Distributed, Formatting
@@ -17,8 +17,8 @@ sourcefiles = ["supported-beam.tcl"]
 # These files will be copied to the working directory without injecting values
 extrafiles = String[]
 
-# Dictionary to map FormatSpecs (Formatting.jl) to variables
-numberformats = Dict(:E => FormatSpec(".8e"))
+# Dictionary to map format Strings (Formatting.jl) to variables
+numberformats = Dict(:E => ".8e")
 
 # UQ will create subfolders in here to run the solver and store the results
 workdir = joinpath(pwd(), "supported-beam")
