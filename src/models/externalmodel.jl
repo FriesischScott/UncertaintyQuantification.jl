@@ -2,7 +2,7 @@ struct ExternalModel <: UQModel
     sourcedir::String
     sources::Vector{String}
     extras::Vector{String}
-    formats::Dict{Symbol,FormatSpec}
+    formats::Dict{Symbol,String}
     workdir::String
     extractors::Vector{Extractor}
     solver::Solver
@@ -12,7 +12,7 @@ struct ExternalModel <: UQModel
         sourcedir::String,
         sources::Vector{String},
         extras::Vector{String},
-        formats::Dict{Symbol,FormatSpec},
+        formats::Dict{Symbol,String},
         workdir::String,
         extractors::Vector{Extractor},
         solver::Solver,
@@ -66,7 +66,7 @@ function evaluate!(
     end
 end
 
-function formatinputs(row::DataFrameRow, formats::Dict{Symbol,FormatSpec})
+function formatinputs(row::DataFrameRow, formats::Dict{Symbol,String})
     names = propertynames(row)
     values = []
     for symbol in names

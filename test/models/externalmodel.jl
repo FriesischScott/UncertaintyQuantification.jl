@@ -3,7 +3,7 @@
     sourcefiles = ["in.txt"]
     extrafiles = String[]
 
-    numberformats = Dict(:x => FormatSpec(".8e"), :* => FormatSpec(".8e"))
+    numberformats = Dict(:x => ".8e", :* => ".8e")
 
     radius = Extractor(
         base -> begin
@@ -100,7 +100,7 @@
             "",
             String[],
             extrafiles,
-            Dict{Symbol,FormatSpec}(),
+            Dict{Symbol,String}(),
             workdir,
             [squared],
             solver2,
