@@ -12,10 +12,7 @@ E = RandomVariable(Normal(1000, 5), :E)
 sourcedir = joinpath(pwd(), "demo/models")
 
 # These files will be rendere through Mustach.jl and have values injected
-sourcefiles = ["supported-beam.tcl"]
-
-# These files will be copied to the working directory without injecting values
-extrafiles = String[]
+sourcefile = "supported-beam.tcl"
 
 # Dictionary to map format Strings (Formatting.jl) to variables
 numberformats = Dict(:E => ".8e")
@@ -39,9 +36,9 @@ opensees = Solver(
 )
 
 ext = ExternalModel(
-    sourcedir, sourcefiles, extrafiles, numberformats, workdir, [disp], opensees
+    sourcedir, sourcefile, disp, opensees; workdir=workdir, formats=numberformats
 )
 
-pf, samples = probability_of_failure(ext, df -> 0.35 .- df.disp, [E], MonteCarlo(1000))
+pf, samples = probability_of_failure(ext, df -> 0.35 .- df.disp, [E], MonteCarlo(10))
 
 println("Probability of failure: $pf")

@@ -126,4 +126,6 @@ include("reliability/form.jl")
 include("reliability/probabilityoffailure.jl")
 include("sensitivity/sobolindices.jl")
 
+include("util/wrap.jl")
+
 end
