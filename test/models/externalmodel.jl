@@ -11,14 +11,14 @@
     )
 
     if Sys.iswindows()
-        solver = Solver(joinpath(pwd(), "solvers/bin/radius.exe"), "", "in.txt")
-        solver2 = Solver(joinpath(pwd(), "solvers/bin/squared.exe"), "", "out.txt")
+        solver = Solver(joinpath(pwd(), "solvers/bin/radius.exe"), "in.txt")
+        solver2 = Solver(joinpath(pwd(), "solvers/bin/squared.exe"), "out.txt")
     elseif Sys.isapple()
-        solver = Solver(joinpath(pwd(), "solvers/bin/radius-mac"), "", "in.txt")
-        solver2 = Solver(joinpath(pwd(), "solvers/bin/squared-mac"), "", "out.txt")
+        solver = Solver(joinpath(pwd(), "solvers/bin/radius-mac"), "in.txt")
+        solver2 = Solver(joinpath(pwd(), "solvers/bin/squared-mac"), "out.txt")
     else
-        solver = Solver(joinpath(pwd(), "solvers/bin/radius"), "", "in.txt")
-        solver2 = Solver(joinpath(pwd(), "solvers/bin/squared"), "", "out.txt")
+        solver = Solver(joinpath(pwd(), "solvers/bin/radius"), "in.txt")
+        solver2 = Solver(joinpath(pwd(), "solvers/bin/squared"), "out.txt")
     end
 
     open(joinpath(sourcedir, "in.txt"), "w") do input

@@ -31,14 +31,14 @@ end, :disp)
 
 opensees = Solver(
     "OpenSees", # path to OpenSees binary
-    "", # extra args passed to the solver binary
-    "supported-beam.tcl",
+    "supported-beam.tcl";
+    args="", # (optional) extra arguments passed to the solver
 )
 
 ext = ExternalModel(
     sourcedir, sourcefile, disp, opensees; workdir=workdir, formats=numberformats
 )
 
-pf, samples = probability_of_failure(ext, df -> 0.35 .- df.disp, [E], MonteCarlo(10))
+pf, samples = probability_of_failure(ext, df -> 0.35 .- df.disp, E, MonteCarlo(1000))
 
 println("Probability of failure: $pf")
