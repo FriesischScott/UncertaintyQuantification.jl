@@ -47,7 +47,7 @@ function sample(inputs::Vector{<:UQInput}, sim::AbstractQuasiMonteCarlo)
     return samples
 end
 
-sample(input::UQInput, sim::AbstractQuasiMonteCarlo) = sample([input], sim)
+sample(input::UQInput, sim::AbstractMonteCarlo) = sample([input], sim)
 
 function qmc_samples(sim::SobolSampling, rvs::Integer)
     return QuasiMonteCarlo.sample(sim.n, zeros(rvs), ones(rvs), SobolSample())

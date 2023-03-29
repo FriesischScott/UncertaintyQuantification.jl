@@ -1,27 +1,43 @@
 struct ExternalModel <: UQModel
     sourcedir::String
     sources::Vector{String}
-    extras::Vector{String}
-    formats::Dict{Symbol,FormatSpec}
-    workdir::String
     extractors::Vector{Extractor}
     solver::Solver
+    workdir::String
+    extras::Vector{String}
+    formats::Dict{Symbol,String}
     cleanup::Bool
 
     function ExternalModel(
         sourcedir::String,
-        sources::Vector{String},
-        extras::Vector{String},
-        formats::Dict{Symbol,FormatSpec},
-        workdir::String,
-        extractors::Vector{Extractor},
+        sources::Union{String,Vector{String}},
+        extractors::Union{Extractor,Vector{Extractor}},
         solver::Solver,
-        cleanup::Bool=false,
+        workdir::String,
+        extras::Union{String,Vector{String}},
+        formats::Dict{Symbol,String},
+        cleanup::Bool,
     )
+        sources, extractors, extras = wrap.([sources, extractors, extras])
         return new(
-            sourcedir, sources, extras, formats, workdir, extractors, solver, cleanup
+            sourcedir, sources, extractors, solver, workdir, extras, formats, cleanup
         )
     end
+end
+
+function ExternalModel(
+    sourcedir::String,
+    sources::Union{String,Vector{String}},
+    extractors::Union{Extractor,Vector{Extractor}},
+    solver::Solver;
+    workdir::String=tempname(),
+    extras::Union{String,Vector{String}}=String[],
+    formats::Dict{Symbol,String}=Dict{Symbol,String}(),
+    cleanup::Bool=false,
+)
+    return ExternalModel(
+        sourcedir, sources, extractors, solver, workdir, extras, formats, cleanup
+    )
 end
 
 function evaluate!(
@@ -39,6 +55,9 @@ function evaluate!(
         row = formatinputs(df[i, :], m.formats)
 
         for file in m.sources
+            if isempty(file)
+                continue
+            end
             tokens = Mustache.load(joinpath(m.sourcedir, file))
 
             open(joinpath(path, file), "w") do io
@@ -66,7 +85,7 @@ function evaluate!(
     end
 end
 
-function formatinputs(row::DataFrameRow, formats::Dict{Symbol,FormatSpec})
+function formatinputs(row::DataFrameRow, formats::Dict{Symbol,String})
     names = propertynames(row)
     values = []
     for symbol in names
