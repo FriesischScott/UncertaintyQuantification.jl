@@ -26,6 +26,10 @@
         println(input, "{{{ :y }}}")
     end
 
+    open(joinpath(sourcedir, "extra.txt"), "w") do input
+        println(input, "This is an extra file")
+    end
+
     x = RandomVariable(Uniform(0, 1), :x)
     y = RandomVariable(Uniform(0, 1), :y)
 
@@ -33,11 +37,19 @@
 
     @testset "No Cleanup" begin
         ext = ExternalModel(
-            sourcedir, sourcefile, radius, solver; workdir=tempname(), formats=numberformats
+            sourcedir,
+            sourcefile,
+            radius,
+            solver;
+            workdir=tempname(),
+            formats=numberformats,
+            extras="extra.txt",
         )
 
         evaluate!(ext, df)
         @test length(readdir(readdir(ext.workdir; join=true)[1])) == 5
+        @test "extra.txt" in
+            readdir(readdir(readdir(ext.workdir; join=true)[1]; join=true)[1])
         @test isapprox(df.r, sqrt.(df.x .^ 2 .+ df.y .^ 2))
     end
 
