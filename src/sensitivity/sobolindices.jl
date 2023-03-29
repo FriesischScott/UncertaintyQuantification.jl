@@ -9,7 +9,7 @@ function sobolindices(
     outputs::Vector{Symbol},
     sim::AbstractMonteCarlo,
 )
-    sim_double_samples = @set sim.n = 2 * sim.n
+    sim_double_samples = double_samples(sim)
 
     samples = sample(inputs, sim_double_samples)
     samples = samples[shuffle(1:size(samples, 1)), :]

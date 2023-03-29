@@ -1,6 +1,5 @@
 module UncertaintyQuantification
 
-using Accessors
 using Bootstrap
 using DataFrames
 using Dates

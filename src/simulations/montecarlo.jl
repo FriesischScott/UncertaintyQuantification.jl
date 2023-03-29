@@ -69,3 +69,9 @@ end
 function qmc_samples(sim::LatticeRuleSampling, rvs::Integer)
     return QuasiMonteCarlo.sample(sim.n, zeros(rvs), ones(rvs), LatticeRuleSample())
 end
+
+double_samples(sim::MonteCarlo) = MonteCarlo(2 * sim.n)
+double_samples(sim::SobolSampling) = SobolSampling(2 * sim.n)
+double_samples(sim::HaltonSampling) = HaltonSampling(2 * sim.n)
+double_samples(sim::LatinHypercubeSampling) = LatinHypercubeSampling(2 * sim.n)
+double_samples(sim::LatticeRuleSampling) = LatticeRuleSampling(2 * sim.n)
