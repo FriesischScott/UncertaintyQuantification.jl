@@ -1,13 +1,15 @@
 struct Solver
     path::String
-    args::String
     source::String
+    args::String
 end
+
+Solver(path::String, source::String; args::String="") = Solver(path, source, args)
 
 function run(solver::Solver, folder::String)
     binary = solver.path
-    args = solver.args
     source = solver.source
+    args = solver.args
 
     old_pwd = pwd()
     cd(folder)

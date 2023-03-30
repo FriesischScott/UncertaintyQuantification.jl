@@ -8,7 +8,7 @@
 
     @test sample(π, 5) == x
 
-    @test mean(π) == DataFrame(; π=3.14)
+    @test mean(π) == 3.14
 
     to_standard_normal_space!(π, x)
     @test x == DataFrame(; π=[3.14, 3.14, 3.14, 3.14, 3.14])

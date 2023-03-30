@@ -1,7 +1,7 @@
 abstract type AbstractSubSetSimulation end
 
 """
-    SubSetSimulation(n::Integer, target::Float64, levels::Integer, proposal::Sampleable{Univariate})
+    SubSetSimulation(n::Integer, target::Float64, levels::Integer, proposal::UnivariateDistribution)
 
 Defines the properties of a Subset simulation where `n` is the number of initial samples,
 `target` is the target probability of failure at each level, `levels` is the maximum number
@@ -22,10 +22,10 @@ struct SubSetSimulation <: AbstractSubSetSimulation
     n::Integer
     target::Float64
     levels::Integer
-    proposal::Sampleable{Univariate}
+    proposal::UnivariateDistribution
 
     function SubSetSimulation(
-        n::Integer, target::Float64, levels::Integer, proposal::Sampleable{Univariate}
+        n::Integer, target::Float64, levels::Integer, proposal::UnivariateDistribution
     )
         skewness(proposal) != 0.0 && error("proposal must be a symmetric distribution")
         mean(proposal) != median(proposal) &&
@@ -66,7 +66,7 @@ struct SubSetInfinity <: AbstractSubSetSimulation
     end
 end
 
-function sample(inputs::Array{<:UQInput}, sim::AbstractSubSetSimulation)
+function sample(inputs::Vector{<:UQInput}, sim::AbstractSubSetSimulation)
     random_inputs = filter(i -> isa(i, RandomUQInput), inputs)
     deterministic_inputs = filter(i -> isa(i, DeterministicUQInput), inputs)
 
@@ -84,9 +84,9 @@ function sample(inputs::Array{<:UQInput}, sim::AbstractSubSetSimulation)
 end
 
 function probability_of_failure(
-    models::Union{Array{<:UQModel},UQModel},
+    models::Union{Vector{<:UQModel},UQModel},
     performancefunction::Function,
-    inputs::Union{Array{T},T} where {T<:UQInput},
+    inputs::Union{Vector{<:UQInput},UQInput},
     sim::AbstractSubSetSimulation,
 )
     samples = [sample(inputs, sim)]
@@ -119,7 +119,7 @@ function probability_of_failure(
             ## MarkovChain coefficient of variation
         else
             Iᵢ = reshape(
-                performance[end] .< max(threshold[i], 0), samples_per_seed, number_of_seeds
+                performance[end] .<= max(threshold[i], 0), number_of_seeds, samples_per_seed
             )
             cov[i] = estimate_cov(Iᵢ, pf[i], sim.n)
         end
@@ -160,9 +160,9 @@ function nextlevelsamples(
     samples::DataFrame,
     performance::Vector{<:Real},
     threshold::Real,
-    models::Union{Array{<:UQModel},UQModel},
+    models::Union{Vector{<:UQModel},UQModel},
     performancefunction::Function,
-    inputs::Union{Array{T},T} where {T<:UQInput},
+    inputs::Union{Vector{<:UQInput},UQInput},
     sim::SubSetSimulation,
 )
     nextlevelsamples = [samples]
@@ -210,6 +210,9 @@ function nextlevelsamples(
             chainperformance[α_accept_indices] = new_samplesperformance
         end
 
+        # chainsamples = chainsamples[α_accept_indices, :]
+        # chainperformance = chainperformance[α_accept_indices]
+
         push!(nextlevelsamples, chainsamples)
         push!(nextlevelperformance, chainperformance)
     end
@@ -225,9 +228,9 @@ function nextlevelsamples(
     samples::DataFrame,
     performance::Vector{<:Real},
     threshold::Real,
-    models::Union{Array{<:UQModel},UQModel},
+    models::Union{Vector{<:UQModel},UQModel},
     performancefunction::Function,
-    inputs::Union{Array{T},T} where {T<:UQInput},
+    inputs::Union{Vector{<:UQInput},UQInput},
     sim::SubSetInfinity,
 )
     samples_per_seed = Int64(floor(sim.n / nrow(samples)))
@@ -267,17 +270,17 @@ Evaluates the coefficient of variation at a subset simulation level.
 Reference: Au & Beck, (2001), 'Estimation of small failure probabilities in high dimensions by subset simulation'
 """
 function estimate_cov(Iᵢ::AbstractMatrix, pf::Float64, n::Int64)
-    Ns, Nc = size(Iᵢ) # Number of samples per seed, number of seeds
+    Nc, Ns = size(Iᵢ) # Number of samples per seed, number of seeds
     rᵢ = zeros(Ns - 1)
     # Eq 29 - covariance vector between indicator(l) and indicator(l+k) -> ri
     for k in 1:(Ns - 1)
-        for j in 1:Nc, l in 1:(Ns - k)
-            rᵢ[k] += Iᵢ[l, j] * Iᵢ[l + k, j]
+        for l in 1:(Ns - k)
+            rᵢ[k] += dot(Iᵢ[:, l], Iᵢ[:, l + k])
         end
-        rᵢ[k] /= (n - k * Nc) - pf^2
+        rᵢ[k] = rᵢ[k] * 1 / (n - k * Nc) - pf^2
     end
     # Eq 25 - correlation coefficient vector ρ
-    ρ = rᵢ / pf * (1 - pf)
+    ρ = rᵢ / (pf * (1 - pf))
     # Eq 27 - γᵢ Bernoulli coefficient
     γᵢ = 2 * sum([(1 - k * Nc / n) * ρ[k] for k in 1:(Ns - 1)])
     # Eq 28 - i-level coefficient of variation

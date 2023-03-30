@@ -48,16 +48,18 @@
 
         F = df -> df.y .- df.g
 
-        subset = SubSetSimulation(10^3, 0.1, 10, Normal())
+        subset = SubSetSimulation(10^4, 0.1, 20, Normal())
 
-        pf, _ = probability_of_failure(g, F, [x1, x2, y], subset)
+        pf, _, _ = probability_of_failure(g, F, [x1, x2, y], subset)
 
-        @test 1e-10 <= pf < 1e-9
+        # 95% conf intervals estimated from 1000 runs
+        @test 1.4e-11 < pf < 9.1e-10
 
-        subset = SubSetInfinity(10^3, 0.1, 10, 0.5)
+        subset = SubSetInfinity(10^4, 0.1, 20, 0.5)
 
-        pf, _ = probability_of_failure(g, F, [x1, x2, y], subset)
+        pf, _, _ = probability_of_failure(g, F, [x1, x2, y], subset)
 
-        @test 1e-10 <= pf < 1e-9
+        # 95% conf intervals estimated from 1000 runs
+        @test 1.8e-11 < pf < 1.6e-9
     end
 end

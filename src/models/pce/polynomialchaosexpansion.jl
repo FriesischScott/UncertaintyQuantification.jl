@@ -46,6 +46,7 @@ function polynomialchaos(
     _::GaussQuadrature,
 )
     random_inputs = filter(i -> isa(i, RandomUQInput), inputs)
+    deterministic_inputs = filter(i -> isa(i, DeterministicUQInput), inputs)
     random_names = names(random_inputs)
 
     nodes =
@@ -54,6 +55,10 @@ function polynomialchaos(
 
     samples = DataFrame(map_from_bases(Ψ, nodes), random_names)
     to_physical_space!(random_inputs, samples)
+
+    if !isempty(deterministic_inputs)
+        samples = hcat(samples, sample(deterministic_inputs, size(nodes, 1)))
+    end
 
     evaluate!(model, samples)
 
@@ -65,7 +70,7 @@ function polynomialchaos(
         samples[:, output],
     )
 
-    return PolynomialChaosExpansion(y, Ψ, output, inputs), samples
+    return PolynomialChaosExpansion(y, Ψ, output, random_inputs), samples
 end
 
 function evaluate!(pce::PolynomialChaosExpansion, df::DataFrame)

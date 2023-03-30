@@ -1,4 +1,5 @@
 using DataFrames
+using Distributed
 using Formatting
 using InteractiveUtils
 using QuasiMonteCarlo
