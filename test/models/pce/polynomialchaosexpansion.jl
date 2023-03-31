@@ -6,7 +6,7 @@
     end, :y)
 
     p = 8
-    Ψ = PolynomialChaosBasis([LegendreBasis(p), HermiteBasis(p), LegendreBasis(p)], p)
+    Ψ = PolynomialChaosBasis([LegendreBasis(p), HermiteBasis(), LegendreBasis(p)], p)
 
     @testset "LeastSquares" begin
         ls = LeastSquares(SobolSampling(1000))

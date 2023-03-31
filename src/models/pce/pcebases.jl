@@ -24,11 +24,10 @@ struct LegendreBasis <: AbstractOrthogonalBasis
 end
 
 struct HermiteBasis <: AbstractOrthogonalBasis
-    p::Int
-    He::Vector{Num}
-
-    HermiteBasis(p::Int, normalize::Bool=true) = new(p, hermite(p, normalize))
+    normalize::Bool
 end
+
+HermiteBasis() = HermiteBasis(true)
 
 function evaluate(Ψ::AbstractOrthogonalBasis, x::AbstractVector{<:Real}, d::Int)
     return map(xᵢ -> evaluate(Ψ, xᵢ, d), x)
@@ -39,7 +38,8 @@ function evaluate(Ψ::LegendreBasis, x::Real, d::Int)
 end
 
 function evaluate(Ψ::HermiteBasis, x::Real, d::Int)
-    return Ψ.He[d + 1](x).val
+    val = He(x, d)
+    return Ψ.normalize ? val / sqrt(factorial(d)) : val
 end
 
 function legendre(p::Int, normalize::Bool=true)
@@ -64,24 +64,23 @@ function legendre(p::Int, normalize::Bool=true)
     return eval.(build_function.(P, x))
 end
 
-function hermite(p::Int, normalize::Bool=true)
-    @variables x
+function He(x::Real, n::Integer)
+    if n == 0
+        return 1.0
+    elseif n == 1
+        return x
+    else
+        He⁻ = 1.0
+        He = x
 
-    He = Vector{Num}(undef, p + 1)
-    He[1] = 1.0
-    He[2] = x
-
-    for n in 2:(p)
-        He[n + 1] = x * He[n] - (n - 1) * He[n - 1]
-    end
-
-    if normalize
-        for n in 2:(p)
-            He[n + 1] = He[n + 1] / sqrt(factorial(n))
+        He⁺ = 0.0
+        for i in 2:n
+            He⁺ = x * He - (i - 1) * He⁻
+            He⁻ = He
+            He = He⁺
         end
+        return He⁺
     end
-
-    return eval.(build_function.(He, x))
 end
 
 function multivariate_indices(p::Int, d::Int)

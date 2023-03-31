@@ -38,7 +38,7 @@
     @testset "HermiteBasis" begin
         x = range(-3, 3; length=10)
 
-        Ψ = HermiteBasis(4, false)
+        Ψ = HermiteBasis(false)
 
         @test evaluate(Ψ, x, 0) == ones(10)
         @test evaluate(Ψ, x, 1) == x
@@ -46,7 +46,7 @@
         @test evaluate(Ψ, x, 3) ≈ x .^ 3 .- 3x
         @test evaluate(Ψ, x, 4) ≈ x .^ 4 .- 6x .^ 2 .+ 3
 
-        Ψ = HermiteBasis(4, true)
+        Ψ = HermiteBasis()
 
         @test evaluate(Ψ, x, 0) == ones(10)
         @test evaluate(Ψ, x, 1) == x
