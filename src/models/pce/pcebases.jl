@@ -39,45 +39,39 @@ end
 
 function evaluate(Ψ::HermiteBasis, x::Real, d::Int)
     val = He(x, d)
-    return Ψ.normalize ? val / sqrt(factorial(d)) : val
+    return Ψ.normalize ? val / sqrt(factorial(d > 20 ? big(d) : d)) : val
 end
 
 function P(x, n::Integer)
     if n == 0
-        return 1.0
+        return one(x)
     elseif n == 1
         return x
-    else
-        P⁻ = 1.0
-        P = x
-
-        P⁺ = 0.0
-        for i in 2:n
-            P⁺ = ((2i - 1) * x * P - (i - 1) * P⁻) / i
-            P⁻ = P
-            P = P⁺
-        end
-        return P⁺
     end
+
+    P⁻, P, P⁺ = one(x), x, zero(x)
+
+    for i in 2:n
+        P⁺ = ((2i - 1) * x * P - (i - 1) * P⁻) / i
+        P⁻, P = P, P⁺
+    end
+    return P⁺
 end
 
 function He(x::Real, n::Integer)
     if n == 0
-        return 1.0
+        return one(x)
     elseif n == 1
         return x
-    else
-        He⁻ = 1.0
-        He = x
-
-        He⁺ = 0.0
-        for i in 2:n
-            He⁺ = x * He - (i - 1) * He⁻
-            He⁻ = He
-            He = He⁺
-        end
-        return He⁺
     end
+
+    He⁻, He, He⁺ = one(x), x, zero(x)
+
+    for i in 2:n
+        He⁺ = x * He - (i - 1) * He⁻
+        He⁻, He = He, He⁺
+    end
+    return He⁺
 end
 
 function multivariate_indices(p::Int, d::Int)
