@@ -15,7 +15,6 @@ using Primes
 using QuasiMonteCarlo
 using Random
 using Reexport
-using Symbolics
 
 @reexport using Distributions
 

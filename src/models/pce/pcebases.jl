@@ -17,11 +17,10 @@ function evaluate(Ψ::PolynomialChaosBasis, x::AbstractVector{Float64})
 end
 
 struct LegendreBasis <: AbstractOrthogonalBasis
-    p::Int
-    P::Vector{Num}
-
-    LegendreBasis(p::Int, normalize::Bool=true) = new(p, legendre(p, normalize))
+    normalize::Bool
 end
+
+LegendreBasis() = LegendreBasis(true)
 
 struct HermiteBasis <: AbstractOrthogonalBasis
     normalize::Bool
@@ -34,7 +33,8 @@ function evaluate(Ψ::AbstractOrthogonalBasis, x::AbstractVector{<:Real}, d::Int
 end
 
 function evaluate(Ψ::LegendreBasis, x::Real, d::Int)
-    return Ψ.P[d + 1](x).val
+    val = P(x, d)
+    return Ψ.normalize ? val * sqrt(2d + 1) : val
 end
 
 function evaluate(Ψ::HermiteBasis, x::Real, d::Int)
@@ -42,26 +42,23 @@ function evaluate(Ψ::HermiteBasis, x::Real, d::Int)
     return Ψ.normalize ? val / sqrt(factorial(d)) : val
 end
 
-function legendre(p::Int, normalize::Bool=true)
-    @variables x
+function P(x, n::Integer)
+    if n == 0
+        return 1.0
+    elseif n == 1
+        return x
+    else
+        P⁻ = 1.0
+        P = x
 
-    P = Vector{Num}(undef, p + 1)
-    P[1] = 1.0
-    P[2] = x
-
-    for n in 2:(p)
-        P[n + 1] = ((2n - 1) * x * P[n] - (n - 1) * P[n - 1]) / n
-    end
-
-    if normalize
-        P[2] = P[2] * sqrt(3)
-
-        for n in 2:(p)
-            P[n + 1] = P[n + 1] * sqrt(2n + 1)
+        local P⁺
+        for i in 2:n
+            P⁺ = ((2i - 1) * x * P - (i - 1) * P⁻) / i
+            P⁻ = P
+            P = P⁺
         end
+        return P⁺
     end
-
-    return eval.(build_function.(P, x))
 end
 
 function He(x::Real, n::Integer)
