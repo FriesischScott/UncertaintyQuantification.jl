@@ -51,7 +51,7 @@ function P(x, n::Integer)
         P⁻ = 1.0
         P = x
 
-        local P⁺
+        P⁺ = 0.0
         for i in 2:n
             P⁺ = ((2i - 1) * x * P - (i - 1) * P⁻) / i
             P⁻ = P
