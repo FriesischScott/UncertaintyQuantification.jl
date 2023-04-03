@@ -78,7 +78,8 @@
 
     @testset "Polynomial Chaos Expansion" begin
         p = 6
-        Ψ = PolynomialChaosBasis(LegendreBasis.([p, p, p]), p)
+        basis = LegendreBasis()
+        Ψ = PolynomialChaosBasis([basis, basis, basis], p)
 
         gq = GaussQuadrature()
         pce, _ = polynomialchaos(x, ishigami1, Ψ, :f1, gq)
