@@ -43,35 +43,20 @@ function evaluate(Ψ::HermiteBasis, x::Real, d::Int)
 end
 
 function P(x, n::Integer)
-    if n == 0
-        return one(x)
-    elseif n == 1
-        return x
-    end
+    P⁻, P = zero(x), one(x)
 
-    P⁻, P, P⁺ = one(x), x, zero(x)
-
-    for i in 2:n
-        P⁺ = ((2i - 1) * x * P - (i - 1) * P⁻) / i
-        P⁻, P = P, P⁺
+    for i in 1:n
+        P, P⁻ = ((2i - 1) * x * P - (i - 1) * P⁻) / i, P
     end
-    return P⁺
+    return P
 end
 
 function He(x::Real, n::Integer)
-    if n == 0
-        return one(x)
-    elseif n == 1
-        return x
+    He⁻, He = zero(x), one(x)
+    for i in 1:n
+        He⁻, He = He, x * He - (i - 1) * He⁻
     end
-
-    He⁻, He, He⁺ = one(x), x, zero(x)
-
-    for i in 2:n
-        He⁺ = x * He - (i - 1) * He⁻
-        He⁻, He = He, He⁺
-    end
-    return He⁺
+    return He
 end
 
 function multivariate_indices(p::Int, d::Int)
