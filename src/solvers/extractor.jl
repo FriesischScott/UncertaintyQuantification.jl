@@ -3,6 +3,6 @@ struct Extractor
     name::Symbol
 end
 
-function names(extractors::Array{Extractor,1})
+function names(extractors::Vector{Extractor})
     return map(e -> e.name, extractors)
 end

@@ -1,13 +1,18 @@
-using Documenter, UncertaintyQuantification
+using DataFrames
+using Documenter
+using DocumenterCitations
+using UncertaintyQuantification
 
 DocMeta.setdocmeta!(
     UncertaintyQuantification,
     :DocTestSetup,
-    :(using UncertaintyQuantification, Random; Random.seed!(8128));
-    recursive=true,
+    :(using UncertaintyQuantification, DataFrames, DisplayAs, Random; Random.seed!(8128)),
 )
 
-makedocs(;
+bib = CitationBibliography(joinpath(@__DIR__, "references.bib"))
+
+makedocs(
+    bib;
     modules=[UncertaintyQuantification],
     format=Documenter.HTML(; prettyurls=get(ENV, "CI", nothing) == "true"),
     sitename="UncertaintyQuantification.jl",
@@ -23,8 +28,13 @@ makedocs(;
             "Inputs" => "api/inputs.md",
             "Parameter" => "api/parameter.md",
             "RandomVariable" => "api/randomvariable.md",
+            "ResponseSurface" => "api/responsesurface.md",
+            "PolyharmonicSpline" => "api/polyharmonicspline.md",
+            "Simulations" => "api/simulations.md",
         ],
+        "References" => "references.md",
     ],
+    strict=:doctest,
 )
 
 deploydocs(;

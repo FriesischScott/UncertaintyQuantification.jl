@@ -1,5 +1,5 @@
 """
-	RandomVariable(dist::Sampleable{Univariate}, name::Symbol)
+	RandomVariable(dist::UnivariateDistribution, name::Symbol)
 
 Defines a random variable, with a univariate distribution from Distributions.jl and a name.
 
@@ -14,7 +14,7 @@ RandomVariable(Exponential{Float64}(θ=1.0), :x)
 ```
 """
 struct RandomVariable <: RandomUQInput
-    dist::Sampleable{Univariate}
+    dist::UnivariateDistribution
     name::Symbol
 end
 
@@ -25,20 +25,7 @@ Generates n samples from a random variable. Returns a DataFrame.
 
 # Examples
 
-```jldoctest
-x = RandomVariable(Normal(), :x)
-sample(x, 3)
 
-# output
-
-3×1 DataFrame
-│ Row │ x          │
-│     │ Float64    │
-├─────┼────────────┤
-│ 1   │ 1.00763    │
-│ 2   │ -0.643618  │
-│ 3   │ -0.0826132 │
-```
 
 See also: [`RandomVariable`](@ref)
 """
@@ -56,7 +43,14 @@ function to_standard_normal_space!(rv::RandomVariable, x::DataFrame)
     return nothing
 end
 
-mean(rv::RandomVariable) = DataFrame(rv.name => Distributions.mean(rv.dist))
-mean(rvs::Array{RandomVariable}) = mapreduce(mean, hcat, rvs)
-
 dimensions(rv::RandomVariable) = 1
+
+logpdf(rv::RandomVariable, x::Real) = logpdf(rv.dist, x)
+pdf(rv::RandomVariable, x::Real) = pdf(rv.dist, x)
+cdf(rv::RandomVariable, x::Real) = cdf(rv.dist, x)
+quantile(rv::RandomVariable, q::Real) = quantile(rv.dist, q)
+minimum(rv::RandomVariable) = minimum(rv.dist)
+maximum(rv::RandomVariable) = maximum(rv.dist)
+insupport(rv::RandomVariable, x::Real) = insupport(rv.dist, x)
+mean(rv::RandomVariable) = mean(rv.dist)
+var(rv::RandomVariable) = var(rv.dist)

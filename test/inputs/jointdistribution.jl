@@ -3,7 +3,7 @@ using Random, DataFrames
 rv1 = RandomVariable(Exponential(1), :x)
 rv2 = RandomVariable(Exponential(1 / 2), :y)
 
-marginals = [rv1 rv2]
+marginals = [rv1, rv2]
 copula = GaussianCopula([1 0.8; 0.8 1])
 
 @testset "JointDistribution" begin
@@ -32,7 +32,7 @@ copula = GaussianCopula([1 0.8; 0.8 1])
 
     @testset "mean" begin
         jd = JointDistribution(marginals, copula)
-        @test mean(jd) == DataFrame(:x => 1.0, :y => 0.5)
+        @test mean(jd) == [1.0, 0.5]
     end
 
     @testset "to_standard_normal_space" begin

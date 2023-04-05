@@ -1,8 +1,8 @@
 struct JointDistribution <: RandomUQInput
-    marginals::Array{RandomVariable}
+    marginals::Vector{RandomVariable}
     copula::Copula
 
-    function JointDistribution(marginals::Array{RandomVariable}, copula::Copula)
+    function JointDistribution(marginals::Vector{RandomVariable}, copula::Copula)
         length(marginals) == dimensions(copula) ||
             error("Dimension mismatch between copula and marginals")
 
@@ -45,6 +45,6 @@ end
 
 names(jd::JointDistribution) = vec(map(x -> x.name, jd.marginals))
 
-mean(jd::JointDistribution) = mean(jd.marginals)
+mean(jd::JointDistribution) = mean.(jd.marginals)
 
 dimensions(jd::JointDistribution) = dimensions(jd.copula)
