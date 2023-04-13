@@ -13,6 +13,8 @@ function probability_of_failure(
     inputs::Union{Vector{<:UQInput},UQInput},
     sim::FORM,
 )
+    models, inputs = wrap.([models, inputs])
+
     # create reference point in standard normal space origin
     random_names = names(filter(i -> isa(i, RandomUQInput), inputs))
     y::Vector{Float64} = zeros(length(random_names))
