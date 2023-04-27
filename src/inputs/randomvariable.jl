@@ -25,8 +25,6 @@ Generates n samples from a random variable. Returns a DataFrame.
 
 # Examples
 
-
-
 See also: [`RandomVariable`](@ref)
 """
 function sample(rv::RandomVariable, n::Integer=1)
@@ -34,13 +32,53 @@ function sample(rv::RandomVariable, n::Integer=1)
 end
 
 function to_physical_space!(rv::RandomVariable, x::DataFrame)
-    x[!, rv.name] = quantile.(rv.dist, cdf.(Normal(), x[:, rv.name]))
+    x[!, rv.name] = _to_physical_space(rv.dist, x[:, rv.name])
     return nothing
 end
 
+function _to_physical_space(d::UnivariateDistribution, x::Vector)
+    return quantile.(d, cdf.(Normal(), x))
+end
+
+function _to_physical_space(d::Normal, x::Vector)
+    if d.μ == 0.0 && d.σ == 1.0
+        return x
+    else
+        return x .* d.σ .+ d.μ
+    end
+end
+
+function _to_physical_space(d::LogNormal, x::Vector)
+    return exp.(x .* d.σ .+ d.μ)
+end
+
+function _to_physical_space(d::Uniform, x::Vector)
+    return cdf.(Normal(), x) .* (d.b - d.a) .+ d.a
+end
+
 function to_standard_normal_space!(rv::RandomVariable, x::DataFrame)
-    x[!, rv.name] = quantile.(Normal(), cdf.(rv.dist, x[:, rv.name]))
+    x[!, rv.name] = _to_standard_normal_space(rv.dist, x[:, rv.name])
     return nothing
+end
+
+function _to_standard_normal_space(d::UnivariateDistribution, x::Vector)
+    return quantile.(Normal(), cdf.(d, x))
+end
+
+function _to_standard_normal_space(d::Normal, x::Vector)
+    if d.μ == 0.0 && d.σ == 1.0
+        return x
+    else
+        return (x .- d.μ) ./ d.σ
+    end
+end
+
+function _to_standard_normal_space(d::LogNormal, x::Vector)
+    return (log.(x) .- d.μ) ./ d.σ
+end
+
+function _to_standard_normal_space(d::Uniform, x::Vector)
+    return quantile.(Normal(), (x .- d.a) ./ (d.b - d.a))
 end
 
 dimensions(rv::RandomVariable) = 1
