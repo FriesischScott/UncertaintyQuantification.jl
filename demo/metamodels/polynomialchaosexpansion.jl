@@ -7,7 +7,7 @@ model = Model(df -> begin
 end, :y)
 
 p = 8
-Ψ = PolynomialChaosBasis(LegendreBasis.([p, p]), p)
+Ψ = PolynomialChaosBasis([LegendreBasis(), LegendreBasis()], p)
 
 # Estimation by least squares
 ls_n = 1000

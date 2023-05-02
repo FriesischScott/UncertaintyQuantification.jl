@@ -69,5 +69,5 @@ end
 function probability_of_failure(
     performance::Function, inputs::Union{Vector{<:UQInput},UQInput}, sim::Any
 )
-    return probability_of_failure(UQModel[], performance, inputs, sim)
+    return probability_of_failure(UQModel[], performance, wrap(inputs), sim)
 end

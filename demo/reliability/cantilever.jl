@@ -18,7 +18,7 @@ P = RandomVariable(LogNormal(μ, σ), :P) # tip load
 ρ = RandomVariable(LogNormal(μ, σ), :ρ) # density
 
 c = GaussianCopula([1 0.8; 0.8 1])
-jd = JointDistribution([E ρ], c)
+jd = JointDistribution([E, ρ], c)
 
 inputs = [l, b, h, P, jd]
 
