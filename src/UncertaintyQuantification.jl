@@ -52,11 +52,10 @@ export UQType
 
 # Structs
 export BoxBehnken
-export CentralComposite
-export CentralCompositeFaceCentered
 export ExternalModel
 export Extractor
 export FORM
+export FractionalFactorial
 export FullFactorial
 export GaussianCopula
 export GaussQuadrature
@@ -116,7 +115,6 @@ include("inputs/copulas/gaussian.jl")
 include("solvers/solver.jl")
 include("solvers/extractor.jl")
 
-include("models/doe.jl")
 include("models/externalmodel.jl")
 include("models/model.jl")
 include("models/polyharmonicspline.jl")
@@ -127,6 +125,7 @@ include("models/pce/polynomialchaosexpansion.jl")
 
 include("sensitivity/gradient.jl")
 
+include("simulations/doe.jl")
 include("simulations/linesampling.jl")
 include("simulations/montecarlo.jl")
 include("simulations/subset.jl")

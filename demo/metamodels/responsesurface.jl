@@ -14,9 +14,9 @@ polynomial = Model(
 
 #design = TwoLevelFactorial()
 
-design = CentralComposite()
+design = FractionalFactorial(["a" "b" "ab"])
 
-#design = CentralCompositeFaceCentered()
+#design = BoxBehnken()
 
 training_data = sample(x, design)
 print(training_data)
