@@ -1,6 +1,6 @@
 using UncertaintyQuantification
 
-x = RandomVariable.(Uniform(-π, π), [:x1, :x2, :x3])
+x = RandomVariable.(Uniform(-1, 1), [:x1, :x2, :x3])
 
 polynomial = Model(
     df ->
@@ -14,9 +14,11 @@ polynomial = Model(
 
 #design = TwoLevelFactorial()
 
-design = FractionalFactorial(["a" "b" "ab"])
+#design = FractionalFactorial(["a", "b", "ab"])
 
-#design = BoxBehnken()
+design = BoxBehnken()
+
+#design = CentralComposite(inscribed)
 
 training_data = sample(x, design)
 print(training_data)

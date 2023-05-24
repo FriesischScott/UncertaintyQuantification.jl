@@ -1,5 +1,5 @@
 
-struct BoxBehnken <: AbstractDesignOfExperiments end
+struct TwoLevelFactorial <: AbstractDesignOfExperiments end
 
 struct FullFactorial <: AbstractDesignOfExperiments
     levels::Array{Integer}
@@ -12,35 +12,49 @@ struct FullFactorial <: AbstractDesignOfExperiments
     end
 end
 
-struct TwoLevelFactorial <: AbstractDesignOfExperiments end
-
 #this is a 2lvl fractional factorial
 struct FractionalFactorial <: AbstractDesignOfExperiments
-    columns::Array{String}
+    columns::Vector{String}
+end
+
+struct BoxBehnken <: AbstractDesignOfExperiments end
+
+# struct CentralComposite <: AbstractDesignOfExperiments
+#     type::String
+#     function CentralComposite(type)
+#         return if type == "inscribed" || type == "face_centered"
+#             new(type)
+#         else
+#             error("non existing type")
+#     end
+# end
+
+struct CentralComposite <: AbstractDesignOfExperiments
+    type::CCTYPE
 end
 
 function full_factorial_matrix!(
-    m::Matrix, levels::Array, pt_index::Int64, var_index::Int64, block::Int64
+    m::Matrix, levels::Array, pt_index::Int, var_index::Int, block::Int
 )
     if (var_index > length(levels))
         return nothing
     end
 
     #block size whith same var value
-    new_block = (Int64)(block / levels[var_index])
+    new_block = (Int)(block / levels[var_index])
 
     for i in 1:levels[var_index]
         for j in 1:new_block
-            m[(Int64)(new_block * (i - 1) + j + pt_index), var_index] =
+            m[(Int)(new_block * (i - 1) + j + pt_index), var_index] =
                 (i - 1) / (levels[var_index] - 1)
         end
         full_factorial_matrix!(
-            m, levels, (Int64)(pt_index + new_block * (i - 1)), var_index + 1, new_block
+            m, levels, (Int)(pt_index + new_block * (i - 1)), var_index + 1, new_block
         )
     end
 end
 
-function binary_matrix(n::Int64)
+function two_level_factorial_matrix(n::Int)
     m = ones(2^n, n)
 
     for i in 1:(2^n)
@@ -74,7 +88,7 @@ function sample(inputs::Array{<:UQInput}, design::AbstractDesignOfExperiments)
     return samples
 end
 
-function doe_samples(design::FullFactorial, _::Int64=0)
+function doe_samples(design::FullFactorial, _::Int=0)
     pt_count = reduce(*, design.levels)
 
     points = ones(pt_count, length(design.levels))
@@ -84,26 +98,17 @@ function doe_samples(design::FullFactorial, _::Int64=0)
     return points
 end
 
-function doe_samples(_::TwoLevelFactorial, inputs_count::Int64)
-    return binary_matrix(inputs_count)
+function doe_samples(_::TwoLevelFactorial, inputs_count::Int)
+    return two_level_factorial_matrix(inputs_count)
 end
 
-function doe_samples(design::FractionalFactorial, _::Int64=0)
-    vars, varindex, gen = get_vars_and_gen!(design.columns)   #vars holds all variables, gen holds generators(multi-variable strings)
-
-    # for i in eachindex(vars)
-    #     println(vars[i])
-    #     if (!contains(gen, vars[i]))
-    #         error(
-    #             "FractionalFactorial: a variable cannot only be used in combination with others, must have its own column.",
-    #         )
-    #     end
-    # end
+function doe_samples(design::FractionalFactorial, _::Int=0)
+    vars, varindex, gen = extract_vars_and_generator(design.columns)   #vars holds all variables, gen holds generators(multi-variable strings)
 
     nvars = length(vars)
 
     #ff for single vars
-    m1 = binary_matrix(nvars)
+    m1 = two_level_factorial_matrix(nvars)
     m2 = zeros(2^nvars, length(gen))
     m2_index = 1
 
@@ -137,10 +142,10 @@ function doe_samples(design::FractionalFactorial, _::Int64=0)
     return m = m[:, 2:end]
 end
 
-function get_vars_and_gen!(columns::Array{String})
+function extract_vars_and_generator(columns::Vector{String})
     gen = []
     vars = ""
-    varindex = Array{Int64}(undef, 0)
+    varindex = Vector{Int}(undef, 0)
     for i in eachindex(columns)
         if (length(columns[i]) == 0)
             error("each String in columns must hold at least one character")
@@ -166,7 +171,7 @@ function get_vars_and_gen!(columns::Array{String})
     return vars, varindex, gen
 end
 
-function doe_samples(design::BoxBehnken, inputs_count::Int64)
+function doe_samples(_::BoxBehnken, inputs_count::Int)
     ff_columns, block_format = get_block_format(inputs_count)
     ff = FractionalFactorial(ff_columns)
     ff_m = doe_samples(ff)
@@ -184,19 +189,19 @@ function doe_samples(design::BoxBehnken, inputs_count::Int64)
     return bb[2:end, :]
 end
 
-function get_block_format(nvars::Int64)
+function get_block_format(nvars::Int)
     if nvars == 3
-        return ["a" "b"], [1 2; 1 3; 2 3]
+        return ["a", "b"], [1 2; 1 3; 2 3]
     elseif nvars == 4
-        return ["a" "b"], [1 2; 1 3; 1 4; 2 3; 2 4; 3 4]
+        return ["a", "b"], [1 2; 1 3; 1 4; 2 3; 2 4; 3 4]
     elseif nvars == 5
-        return ["a" "b"], [1 2; 1 3; 1 4; 1 5; 2 3; 2 4; 2 5; 3 4; 3 5; 4 5]
+        return ["a", "b"], [1 2; 1 3; 1 4; 1 5; 2 3; 2 4; 2 5; 3 4; 3 5; 4 5]
     elseif nvars == 6
-        return ["a" "b" "c"], [1 4 5; 1 3 6; 1 2 4; 2 5 6; 2 3 5; 3 4 6]
+        return ["a", "b", "c"], [1 4 5; 1 3 6; 1 2 4; 2 5 6; 2 3 5; 3 4 6]
     elseif nvars == 7
-        return ["a" "b" "c"], [1 2 3; 1 4 6; 1 5 7; 2 5 6; 2 4 7; 3 4 5; 3 6 7]
+        return ["a", "b", "c"], [1 2 3; 1 4 6; 1 5 7; 2 5 6; 2 4 7; 3 4 5; 3 6 7]
     elseif nvars == 9
-        return ["a" "b" "c"],
+        return ["a", "b", "c"],
         [
             1 2 3
             1 4 5
@@ -215,7 +220,7 @@ function get_block_format(nvars::Int64)
             5 6 9
         ]
     elseif nvars == 10
-        return ["a" "b" "c" "d"],
+        return ["a", "b", "c", "d"],
         [
             1 2 5 10
             1 4 7 8
@@ -229,7 +234,7 @@ function get_block_format(nvars::Int64)
             4 5 6 8
         ]
     elseif nvars == 11
-        return ["a" "b" "c" "d" "abcd"],
+        return ["a", "b", "c", "d", "abcd"],
         [
             1 4 8 9 10
             1 3 6 10 11
@@ -244,7 +249,7 @@ function get_block_format(nvars::Int64)
             4 5 6 8 11
         ]
     elseif nvars == 12
-        return ["a" "b" "c" "d"],
+        return ["a", "b", "c", "d"],
         [
             1 2 5 7
             1 7 8 11
@@ -260,7 +265,7 @@ function get_block_format(nvars::Int64)
             6 7 10 12
         ]
     elseif nvars == 16
-        return ["a" "b" "c" "d"],
+        return ["a", "b", "c", "d"],
         [
             1 2 6 9
             1 4 5 12
@@ -269,22 +274,58 @@ function get_block_format(nvars::Int64)
             1 3 13 15
             1 7 11 13
             2 3 7 10
+            2 4 14 16
             2 5 6 13
             2 10 11 15
             2 8 12 14
+            3 4 8 11
+            3 6 7 14
+            3 11 12 16
+            3 5 9 15
+            4 7 8 15
+            4 9 12 13
+            4 6 10 16
+            5 10 13 14
+            5 7 9 11
+            6 11 14 15
+            6 8 10 12
+            7 12 15 16
+            8 9 13 16
         ]
     elseif nvars > 0
-        return ["a" "b"], calc_blocks(nvars)
+        return ["a", "b"], calc_blocks(nvars)
     end
 end
 
-function calc_blocks(nvars::Int64)
-    out = zeros(Int64, 1, 2)
+function calc_blocks(nvars::Int)
+    out = zeros(Int, 1, 2)
     for i in 1:(nvars - 1)
         for j in (i + 1):nvars
             out = vcat(out, [i j])
         end
     end
-    println(out[2:end, :])
     return out[2:end, :]
+end
+
+function doe_samples(design::CentralComposite, inputs_count::Int)
+    two_lvl_points = two_level_factorial_matrix(inputs_count)
+    axial_points = ones(2 * inputs_count, inputs_count) .* 0.5
+
+    if (design.type == inscribed)
+        for i in eachrow(two_lvl_points)
+            for j in eachindex(i)
+                #shortening "corner points" distance from origin
+                i[j] = 0.5 + 1 / (2.0 * sqrt(inputs_count)) * (-1)^(1 + (i[j]))
+            end
+        end
+    end
+
+    #setting axial points
+    for i in 1:inputs_count
+        for j in 1:2
+            axial_points[2 * i + j - 2, i] = j % 2
+        end
+    end
+
+    return vcat(two_lvl_points, axial_points)
 end

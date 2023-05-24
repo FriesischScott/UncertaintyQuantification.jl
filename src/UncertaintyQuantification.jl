@@ -37,6 +37,8 @@ abstract type AbstractQuasiMonteCarlo <: AbstractMonteCarlo end
 
 abstract type AbstractDesignOfExperiments end
 
+@enum CCTYPE inscribed = 1 face = 2
+
 # Types
 export AbstractDesignOfExperiments
 export AbstractMonteCarlo
@@ -50,6 +52,7 @@ export UQType
 
 # Structs
 export BoxBehnken
+export CentralComposite
 export ExternalModel
 export Extractor
 export FORM
@@ -84,6 +87,7 @@ export TwoLevelFactorial
 export calc
 export count_rvs
 export dimensions
+export doe_samples
 export evaluate
 export evaluate!
 export gradient
