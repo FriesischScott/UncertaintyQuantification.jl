@@ -2,13 +2,10 @@
 struct TwoLevelFactorial <: AbstractDesignOfExperiments end
 
 struct FullFactorial <: AbstractDesignOfExperiments
-    levels::Array{Integer}
-    function FullFactorial(levels)
-        return if length(levels) > 0
-            new(levels)
-        else
-            error("levels-Array must hold at least one element")
-        end
+    levels::Vector{<:Integer}
+    function FullFactorial(levels::Vector{<:Integer})
+        any(levels .< 2) && error("Columns must be >= 2")
+        return new(levels)
     end
 end
 
@@ -33,37 +30,9 @@ struct CentralComposite <: AbstractDesignOfExperiments
     type::CCTYPE
 end
 
-function full_factorial_matrix!(
-    m::Matrix, levels::Array, pt_index::Int, var_index::Int, block::Int
-)
-    if (var_index > length(levels))
-        return nothing
-    end
-
-    #block size whith same var value
-    new_block = (Int)(block / levels[var_index])
-
-    for i in 1:levels[var_index]
-        for j in 1:new_block
-            m[(Int)(new_block * (i - 1) + j + pt_index), var_index] =
-                (i - 1) / (levels[var_index] - 1)
-        end
-        full_factorial_matrix!(
-            m, levels, (Int)(pt_index + new_block * (i - 1)), var_index + 1, new_block
-        )
-    end
-end
-
-function two_level_factorial_matrix(n::Int)
-    m = ones(2^n, n)
-
-    for i in 1:(2^n)
-        for j in 1:n
-            m[i, j] = (i - 1) % (2^(n - j + 1)) < 2^(n - j)
-        end
-    end
-
-    return m
+function full_factorial_matrix(levels::Vector{<:Integer})
+    ranges = [range(0.0, 1.0; length=l) for l in levels]
+    return mapreduce(t -> [t...]', vcat, Iterators.product(ranges...))
 end
 
 function sample(inputs::Array{<:UQInput}, design::AbstractDesignOfExperiments)
@@ -89,17 +58,11 @@ function sample(inputs::Array{<:UQInput}, design::AbstractDesignOfExperiments)
 end
 
 function doe_samples(design::FullFactorial, _::Int=0)
-    pt_count = reduce(*, design.levels)
-
-    points = ones(pt_count, length(design.levels))
-
-    full_factorial_matrix!(points, design.levels, 0, 1, pt_count)
-
-    return points
+    return full_factorial_matrix(design.levels)
 end
 
-function doe_samples(_::TwoLevelFactorial, inputs_count::Int)
-    return two_level_factorial_matrix(inputs_count)
+function doe_samples(_::TwoLevelFactorial, rvs::Int)
+    return full_factorial_matrix(ones(Int, rvs) .* 2)
 end
 
 function doe_samples(design::FractionalFactorial, _::Int=0)
@@ -108,7 +71,7 @@ function doe_samples(design::FractionalFactorial, _::Int=0)
     nvars = length(vars)
 
     #ff for single vars
-    m1 = two_level_factorial_matrix(nvars)
+    m1 = full_factorial_matrix(ones(Int, nvars) .* 2)
     m2 = zeros(2^nvars, length(gen))
     m2_index = 1
 
@@ -180,7 +143,7 @@ function doe_samples(_::BoxBehnken, inputs_count::Int)
     for i in axes(block_format)[1] #iterating the blocks
         m_help = ones(size(ff_m, 1), inputs_count) * 0.5
         for j in axes(block_format)[2] # iterating over vars of current block
-            for k in axes(ff_m)[1] # iterating each row of current block 
+            for k in axes(ff_m)[1] # iterating each row of current block
                 m_help[k, block_format[i, j]] = ff_m[k, j]
             end
         end
