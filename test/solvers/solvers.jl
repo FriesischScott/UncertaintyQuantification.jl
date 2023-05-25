@@ -22,4 +22,10 @@
     radius = map(x -> parse(Float64, x), readlines(joinpath(tmp, "out.txt")))
 
     @test radius[1] == sqrt(0.5^2 + 0.5^2)
+
+    current_dir = pwd()
+
+    @test_throws Base.IOError run(Solver("this/solver/does/not/exist", "in.txt"), tmp)
+
+    @test pwd() == current_dir
 end
