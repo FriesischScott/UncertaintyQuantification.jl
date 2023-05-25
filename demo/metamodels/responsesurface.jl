@@ -1,6 +1,6 @@
 using UncertaintyQuantification
 
-x = RandomVariable.(Uniform(-1, 1), [:x1, :x2, :x3])
+x = RandomVariable.(Uniform(-1, 1), [:x1, :x2, :x3, :x4, :x5])
 
 polynomial = Model(
     df ->
@@ -16,9 +16,9 @@ polynomial = Model(
 
 #design = FractionalFactorial(["a", "b", "ab"])
 
-design = BoxBehnken()
+#design = BoxBehnken()
 
-#design = CentralComposite(inscribed)
+design = CentralComposite(:inscribed)
 
 training_data = sample(x, design)
 print(training_data)
@@ -32,7 +32,7 @@ rs = ResponseSurface(training_data, :y, 2)
 test_data = sample(x, 1000)
 evaluate!(rs, test_data)
 
-p_data = test_data[:, [:x1, :x2, :x3]]
+p_data = test_data[:, [:x1, :x2, :x3, :x4, :x5]]
 evaluate!(polynomial, p_data)
 
 mse = mean((p_data.y .- test_data.y) .^ 2)

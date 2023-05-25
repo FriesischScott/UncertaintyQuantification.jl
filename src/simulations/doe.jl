@@ -14,7 +14,12 @@ struct FractionalFactorial <: AbstractDesignOfExperiments
     columns::Vector{String}
 end
 
-struct BoxBehnken <: AbstractDesignOfExperiments end
+struct BoxBehnken <: AbstractDesignOfExperiments
+    centers::Int
+    function BoxBehnken(centers::Int=-1)
+        return new(centers)
+    end
+end
 
 # struct CentralComposite <: AbstractDesignOfExperiments
 #     type::String
@@ -26,8 +31,16 @@ struct BoxBehnken <: AbstractDesignOfExperiments end
 #     end
 # end
 
+#@enum CCType face_centered = 1 inscribed = 2
+
 struct CentralComposite <: AbstractDesignOfExperiments
-    type::CCTYPE
+    CCtype::Symbol
+    function CentralComposite(CCtype::Symbol)
+        CCtype != :inscribed &&
+            CCtype != :face &&
+            error("CCtype must be :inscribed or :face.")
+        return new(CCtype)
+    end
 end
 
 function full_factorial_matrix(levels::Vector{<:Integer})
@@ -134,14 +147,20 @@ function extract_vars_and_generator(columns::Vector{String})
     return vars, varindex, gen
 end
 
-function doe_samples(_::BoxBehnken, inputs_count::Int)
-    ff_columns, block_format = get_block_format(inputs_count)
+function doe_samples(design::BoxBehnken, rvs::Int)
+    if (design.centers < 0)
+        centers = [1 1 3 3 6 6 6 8 10 10 12][min(rvs, 11)]
+    else
+        centers = design.centers
+    end
+
+    ff_columns, block_format = get_block_format(rvs)
     ff = FractionalFactorial(ff_columns)
     ff_m = doe_samples(ff)
-    bb = zeros(1, inputs_count)
+    bb = zeros(1, rvs)
 
     for i in axes(block_format)[1] #iterating the blocks
-        m_help = ones(size(ff_m, 1), inputs_count) * 0.5
+        m_help = ones(size(ff_m, 1), rvs) * 0.5
         for j in axes(block_format)[2] # iterating over vars of current block
             for k in axes(ff_m)[1] # iterating each row of current block
                 m_help[k, block_format[i, j]] = ff_m[k, j]
@@ -149,7 +168,7 @@ function doe_samples(_::BoxBehnken, inputs_count::Int)
         end
         bb = vcat(bb, m_help)
     end
-    return bb[2:end, :]
+    return vcat(bb[2:end, :], ones(centers, rvs) * 0.5)
 end
 
 function get_block_format(nvars::Int)
@@ -270,21 +289,21 @@ function calc_blocks(nvars::Int)
     return out[2:end, :]
 end
 
-function doe_samples(design::CentralComposite, inputs_count::Int)
-    two_lvl_points = two_level_factorial_matrix(inputs_count)
-    axial_points = ones(2 * inputs_count, inputs_count) .* 0.5
+function doe_samples(design::CentralComposite, rvs::Int)
+    two_lvl_points = full_factorial_matrix(ones(Int, rvs) .* 2)
+    axial_points = ones(2 * rvs + 1, rvs) .* 0.5
 
-    if (design.type == inscribed)
+    if (design.CCtype == :inscribed)
         for i in eachrow(two_lvl_points)
             for j in eachindex(i)
                 #shortening "corner points" distance from origin
-                i[j] = 0.5 + 1 / (2.0 * sqrt(inputs_count)) * (-1)^(1 + (i[j]))
+                i[j] = 0.5 + 1 / (2.0 * sqrt(rvs)) * (-1)^(1 + (i[j]))
             end
         end
     end
 
     #setting axial points
-    for i in 1:inputs_count
+    for i in 1:rvs
         for j in 1:2
             axial_points[2 * i + j - 2, i] = j % 2
         end
