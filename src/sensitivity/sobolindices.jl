@@ -31,7 +31,7 @@ function sobolindices(
 
     VY = var([fA; fB]; dims=1)
 
-    for (i, name) in enumerate(random_names)
+    for name in random_names
         ABi = select(A, Not(name))
         ABi[:, name] = B[:, name]
 
