@@ -35,9 +35,7 @@ function sobolindices(
         ABi = select(A, Not(name))
         ABi[:, name] = B[:, name]
 
-        for m in models
-            evaluate!(m, ABi)
-        end
+        evaluate!(models, ABi)
 
         for (j, qty) in enumerate(outputs)
             ABi[:, qty] .-= mean(ABi[:, qty])
