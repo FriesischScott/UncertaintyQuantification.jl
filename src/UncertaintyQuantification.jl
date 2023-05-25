@@ -37,8 +37,6 @@ abstract type AbstractQuasiMonteCarlo <: AbstractMonteCarlo end
 
 abstract type AbstractDesignOfExperiments end
 
-@enum CCTYPE inscribed = 1 face = 2
-
 # Types
 export AbstractDesignOfExperiments
 export AbstractMonteCarlo
