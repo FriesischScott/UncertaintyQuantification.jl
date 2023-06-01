@@ -8,7 +8,7 @@ using Test
 using UncertaintyQuantification
 
 include("inputs/parameter.jl")
-include("inputs/randomvariable.jl");
+include("inputs/randomvariables/randomvariable.jl")
 include("inputs/jointdistribution.jl");
 include("inputs/inputs.jl")
 

@@ -98,9 +98,8 @@ export to_standard_normal_space!
 
 include("inputs/inputs.jl")
 include("inputs/parameter.jl")
-include("inputs/randomvariable.jl")
+include("inputs/randomvariables/randomvariable.jl")
 include("inputs/jointdistribution.jl")
-
 include("inputs/copulas/gaussian.jl")
 
 include("solvers/solver.jl")
