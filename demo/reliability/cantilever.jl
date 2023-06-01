@@ -5,16 +5,13 @@ b = Parameter(0.12, :b) # width
 
 h = RandomVariable(Normal(0.24, 0.01), :h) # height
 
-μ = log(10e9^2 / sqrt(1.6e9^2 + 10e9^2))
-σ = sqrt(log(1.6e9^2 / 10e9^2 + 1))
+μ, σ = distribution_parameters(10e9, 1.6e9, LogNormal)
 E = RandomVariable(LogNormal(μ, σ), :E) # young's modulus
 
-μ = log(5000^2 / sqrt(400^2 + 5000^2))
-σ = sqrt(log(400^2 / 5000^2 + 1))
+μ, σ = distribution_parameters(5000, 400, LogNormal)
 P = RandomVariable(LogNormal(μ, σ), :P) # tip load
 
-μ = log(600^2 / sqrt(140^2 + 600^2))
-σ = sqrt(log(140^2 / 600^2 + 1))
+μ, σ = distribution_parameters(600, 140, LogNormal)
 ρ = RandomVariable(LogNormal(μ, σ), :ρ) # density
 
 c = GaussianCopula([1 0.8; 0.8 1])
