@@ -36,7 +36,10 @@ abstract type Copula <: UQType end
 abstract type AbstractMonteCarlo end
 abstract type AbstractQuasiMonteCarlo <: AbstractMonteCarlo end
 
+abstract type AbstractBayesianMethod end
+
 # Types
+export AbstractBayesianMethod
 export AbstractMonteCarlo
 export AbstractQuasiMonteCarlo
 export Copula
@@ -47,6 +50,7 @@ export UQModel
 export UQType
 
 # Structs
+export AdaptiveMetropolisHastings
 export ExternalModel
 export Extractor
 export FORM
@@ -75,6 +79,7 @@ export SubSetInfinity
 export SubSetSimulation
 
 # Methods
+export bayesianupdating
 export calc
 export count_rvs
 export dimensions
@@ -134,5 +139,7 @@ include("reliability/probabilityoffailure.jl")
 include("sensitivity/sobolindices.jl")
 
 include("util/wrap.jl")
+
+include("inference/bayesianupdating.jl")
 
 end
