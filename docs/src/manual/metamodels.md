@@ -52,7 +52,6 @@ That functions degree is set as an Integer in the constructor.
 training_data = sample(x, design)
 evaluate!(fun, training_data)
 rs = ResponseSurface(trainig_data, 4)
-nothing #hide
 ```
 To evaluate the `ResponseSurface`use `evaluate!(rs::ResponseSurface, data::DataFrame)` with the dataframe containing the points you want to evaluate.
 
