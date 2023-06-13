@@ -23,6 +23,7 @@ makedocs(
             "Uncertainty Propagation" => "manual/uncertainty.md",
             "Sensitivity Analysis" => "manual/sensitivity.md",
             "Reliability Analysis" => "manual/reliability.md",
+            "Metamodelling" => "manual/metamodels.md",
         ],
         "API" => [
             "Inputs" => "api/inputs.md",
