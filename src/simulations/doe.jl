@@ -21,18 +21,6 @@ struct BoxBehnken <: AbstractDesignOfExperiments
     end
 end
 
-# struct CentralComposite <: AbstractDesignOfExperiments
-#     type::String
-#     function CentralComposite(type)
-#         return if type == "inscribed" || type == "face_centered"
-#             new(type)
-#         else
-#             error("non existing type")
-#     end
-# end
-
-#@enum CCType face_centered = 1 inscribed = 2
-
 struct CentralComposite <: AbstractDesignOfExperiments
     CCtype::Symbol
     function CentralComposite(CCtype::Symbol)
@@ -48,6 +36,33 @@ function full_factorial_matrix(levels::Vector{<:Integer})
     return mapreduce(t -> [t...]', vcat, Iterators.product(ranges...))
 end
 
+function adapt_column(u::Matrix, index::Int, s::RealInterval{Float64})
+    if s.lb == -Inf
+        if s.ub == Inf
+            for i in eachindex(u[:, index]) # change +inf and -inf
+                if (u[i, index] == 0.0)
+                    u[i, index] = 10^(-12)
+                end
+                if (u[i, index] == 1.0)
+                    u[i, index] = 1 - 10^(-12)
+                end
+            end
+        else
+            for i in eachindex(u[:, index]) # change - inf
+                if (u[i, index] == 0.0)
+                    u[i, index] = 10^(-12)
+                end
+            end
+        end
+    elseif s.lb == Inf
+        for i in eachindex(u[:, index]) # change +inf
+            if (u[i, index] == 1.0)
+                u[i, index] = 1 - 10^(-12)
+            end
+        end
+    end
+end
+
 function sample(inputs::Array{<:UQInput}, design::AbstractDesignOfExperiments)
     random_inputs = filter(i -> isa(i, RandomUQInput), inputs)
 
@@ -57,6 +72,20 @@ function sample(inputs::Array{<:UQInput}, design::AbstractDesignOfExperiments)
 
     u = doe_samples(design, n_rv)
 
+    col_index = 1
+    for i in eachindex(random_inputs)
+        if (random_inputs[i] isa (RandomVariable))
+            adapt_column(u, col_index, support(random_inputs[i].dist))
+            col_index += 1
+        end
+
+        if (random_inputs[i] isa (JointDistribution))
+            for j in eachindex(random_inputs[i].marginals)
+                adapt_column(u, col_index, support(random_inputs[i].marginals[j].dist))
+                col_index += 1
+            end
+        end
+    end
     samples = quantile.(Normal(), u)
     samples = DataFrame(names(random_inputs) .=> eachcol(samples))
 
