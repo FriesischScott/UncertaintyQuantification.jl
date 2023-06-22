@@ -31,13 +31,11 @@ function sobolindices(
 
     VY = var([fA; fB]; dims=1)
 
-    for (i, name) in enumerate(random_names)
+    for name in random_names
         ABi = select(A, Not(name))
         ABi[:, name] = B[:, name]
 
-        for m in models
-            evaluate!(m, ABi)
-        end
+        evaluate!(models, ABi)
 
         for (j, qty) in enumerate(outputs)
             ABi[:, qty] .-= mean(ABi[:, qty])
