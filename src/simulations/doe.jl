@@ -108,43 +108,17 @@ function doe_samples(_::TwoLevelFactorial, rvs::Int)
 end
 
 function doe_samples(design::FractionalFactorial, _::Int=0)
-    vars, varindex, gen = variables_and_generators(design.columns)   #vars holds all variables, gen holds generators(multi-variable strings)
+    vars, varindex, gens, genindex = variables_and_generators(design.columns)
 
-    nvars = length(vars)
+    frac = zeros(2^length(vars), length(design.columns))
+    frac[:, varindex] = full_factorial_matrix(ones(Int, length(vars)) .* 2)
 
-    #ff for single vars
-    m1 = full_factorial_matrix(ones(Int, nvars) .* 2)
-    m2 = zeros(2^nvars, length(gen))
-    m2_index = 1
-
-    #add generator columns
-    for i in eachindex(gen)
-        for row in 1:(2^nvars)
-            entry = 1
-            for j in eachindex(gen[i])
-                letter_index = findfirst(gen[i][j], vars)
-                if (m1[row, letter_index] == 0)
-                    entry += 1
-                end
-            end
-            m2[row, m2_index] = entry % 2
-        end
-        m2_index += 1
+    for (i, g) in zip(genindex, gens)
+        c = varindex[map(g -> findfirst(g, vars)[1], split(g, ""))]
+        frac[:, i] = (length(c) .- [sum(row) for row in eachrow(frac[:, c])] .+ 1) .% 2
     end
-    #sorting columns to original order
-    m = zeros(2^nvars, 1)
-    v = 1
-    g = 1
-    for i in eachindex(design.columns)
-        if (findfirst(isequal(i), varindex) === nothing)
-            m = hcat(m, m2[:, g])
-            g += 1
-        else
-            m = hcat(m, m1[:, v])
-            v += 1
-        end
-    end
-    return m = m[:, 2:end]
+
+    return frac
 end
 
 function variables_and_generators(columns::Vector{String})
@@ -153,6 +127,7 @@ function variables_and_generators(columns::Vector{String})
     end
 
     varindex = findall(length.(columns) .== 1)
+    genindex = findall(length.(columns) .> 1)
     vars = [columns[i] for i in varindex]
     gens = filter(c -> c ∉ vars, columns)
 
@@ -164,7 +139,7 @@ function variables_and_generators(columns::Vector{String})
         end
     end
 
-    return vars, varindex, gens
+    return vars, varindex, gens, genindex
 end
 
 function doe_samples(design::BoxBehnken, rvs::Int)

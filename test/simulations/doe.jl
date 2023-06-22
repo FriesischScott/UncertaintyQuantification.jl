@@ -217,22 +217,27 @@
     end
 
     @testset "Variables and Generators" begin
-        v, i, g = UncertaintyQuantification.variables_and_generators(["a", "b", "ab"])
+        v, i, g, gi = UncertaintyQuantification.variables_and_generators(["a", "b", "ab"])
         @test v == "ab"
         @test i == [1, 2]
         @test g == ["ab"]
+        @test gi == [3]
 
-        v, i, g = UncertaintyQuantification.variables_and_generators([
+        v, i, g, gi = UncertaintyQuantification.variables_and_generators([
             "a", "b", "ab", "c", "ac"
         ])
         @test v == "abc"
         @test i == [1, 2, 4]
         @test g == ["ab", "ac"]
+        @test gi == [3, 5]
 
-        v, i, g = UncertaintyQuantification.variables_and_generators(["c", "abc", "b", "a"])
+        v, i, g, gi = UncertaintyQuantification.variables_and_generators([
+            "c", "abc", "b", "a"
+        ])
         @test v == "cba"
         @test i == [1, 3, 4]
         @test g == ["abc"]
+        @test gi == [2]
 
         @test_throws ErrorException(
             "Each String in columns must hold at least one character"
