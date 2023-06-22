@@ -41,6 +41,8 @@
     end
 
     @testset "FullFactorial" begin
+        @test_throws ErrorException("Levels must be >= 2") FullFactorial([2, 0])
+
         ff = FullFactorial([3, 4, 2])
         @test ff.levels == [3, 4, 2]
         @test doe_samples(ff, 3) == [
@@ -107,6 +109,8 @@
     end
 
     @testset "BoxBehnken" begin
+        @test_throws ErrorException("centers must be nonnegative") BoxBehnken(-1)
+
         bb = BoxBehnken()
 
         @test doe_samples(bb, 2) == [0.0 0.0; 1.0 0.0; 0.0 1.0; 1.0 1.0; 0.5 0.5]
@@ -174,9 +178,22 @@
             0.5 0.5
             0.5 0.5
         ]
+
+        bb = BoxBehnken()
+        factors = [3, 4, 6, 7, 9, 10, 11, 12, 16]
+        designsizes = [15, 27, 54, 62, 130, 170, 188, 204, 396]
+
+        for (f, s) in zip(factors, designsizes)
+            m = doe_samples(bb, f)
+            @test size(m) == (s, f)
+        end
     end
 
     @testset "CentralComposite" begin
+        @test_throws ErrorException("type must be :inscribed or :face.") CentralComposite(
+            :type
+        )
+
         cc = CentralComposite(:face)
         @test doe_samples(cc, 3) == [
             0.0 0.0 0.0
