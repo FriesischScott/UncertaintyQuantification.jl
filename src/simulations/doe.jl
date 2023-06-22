@@ -104,14 +104,14 @@ function doe_samples(design::FullFactorial, _::Int=0)
 end
 
 function doe_samples(_::TwoLevelFactorial, rvs::Int)
-    return full_factorial_matrix(ones(Int, rvs) .* 2)
+    return full_factorial_matrix(fill(2, rvs))
 end
 
 function doe_samples(design::FractionalFactorial, _::Int=0)
     vars, varindex, gens, genindex = variables_and_generators(design.columns)
 
     frac = zeros(2^length(vars), length(design.columns))
-    frac[:, varindex] = full_factorial_matrix(ones(Int, length(vars)) .* 2)
+    frac[:, varindex] = full_factorial_matrix(fill(2, length(vars)))
 
     for (i, g) in zip(genindex, gens)
         c = varindex[map(g -> findfirst(g, vars)[1], split(g, ""))]
@@ -280,23 +280,17 @@ function blocks(vars::Int)
 end
 
 function doe_samples(design::CentralComposite, rvs::Int)
-    two_lvl_points = full_factorial_matrix(ones(Int, rvs) .* 2)
-    axial_points = ones(2 * rvs + 1, rvs) .* 0.5
+    two_lvl_points = full_factorial_matrix(fill(2, rvs))
+    axial_points = fill(0.5, 2 * rvs + 1, rvs)
 
     if (design.type == :inscribed)
-        for i in eachrow(two_lvl_points)
-            for j in eachindex(i)
-                #shortening "corner points" distance from origin
-                i[j] = 0.5 + 1 / (2.0 * sqrt(rvs)) * (-1)^(1 + (i[j]))
-            end
-        end
+        # shortening "corner points" distance from origin
+        two_lvl_points = @. 0.5 + 1 / (2 * sqrt(rvs)) * (-1)^(1 + two_lvl_points)
     end
 
-    #setting axial points
+    # setting axial points
     for i in 1:rvs
-        for j in 1:2
-            axial_points[2 * i + j - 2, i] = j % 2
-        end
+        axial_points[(2i - 1):(2i), i] = [1.0, 0.0]
     end
 
     return vcat(two_lvl_points, axial_points)
