@@ -247,4 +247,26 @@
             "All combinations of columns must also be individual columns."
         ) UncertaintyQuantification.variables_and_generators(["a", "b", "ac", "ab"])
     end
+
+    @testset "Sampling" begin
+        x = RandomVariable(Uniform(-1, 1), :x)
+        y = RandomVariable(Uniform(0, 1), :y)
+
+        ff = FullFactorial([3, 3])
+
+        samples = sample([x, y], ff)
+
+        @test samples.x ≈ [-1, 0, 1, -1, 0, 1, -1, 0, 1] atol = 1e-12
+        @test samples.y ≈ [0, 0, 0, 0.5, 0.5, 0.5, 1.0, 1.0, 1.0] atol = 1e-12
+
+        x = RandomVariable(Normal(), :x)
+        y = RandomVariable(Exponential(), :y)
+
+        ff = FullFactorial([5, 5])
+
+        samples = sample([x, y], ff)
+
+        @test all(isfinite.(samples.x))
+        @test all(isfinite.(samples.y))
+    end
 end
