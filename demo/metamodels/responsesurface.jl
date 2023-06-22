@@ -1,39 +1,23 @@
 using UncertaintyQuantification
 
-x = RandomVariable.(Uniform(-1, 1), [:x1, :x2, :x3, :x4, :x5])
+x = RandomVariable.(Uniform(-5, 5), [:x1, :x2])
 
-polynomial = Model(
-    df ->
-        2 .* df.x1 .^ 2 .+ df.x1 .* df.x2 + df.x1 .* df.x3 .+ 3 .* df.x2 .^ 2 .+
-        df.x2 .* df.x3 .+ 4 .* df.x3 .^ 2 + df.x1 .+ df.x2 .+ df.x3 .+ 3,
-    :y,
+himmelblau = Model(
+    df -> (df.x1 .^ 2 .+ df.x2 .- 11) .^ 2 .+ (df.x1 .+ df.x2 .^ 2 .- 7) .^ 2, :y
 )
 
-#full factorial design, array entries represent x1, x2 and x3 and their number of levels
-#design = FullFactorial([4, 5, 6])
-
-#design = TwoLevelFactorial()
-
-#design = FractionalFactorial(["a", "b", "ab"])
-
-#design = BoxBehnken()
-
-design = CentralComposite(:inscribed)
+design = FullFactorial([5, 5])
 
 training_data = sample(x, design)
-print(training_data)
-#without doe
-#training_data = sample(x, 100)
+evaluate!(himmelblau, training_data)
 
-evaluate!(polynomial, training_data)
-
-rs = ResponseSurface(training_data, :y, 2)
+rs = ResponseSurface(training_data, :y, 4)
 
 test_data = sample(x, 1000)
 evaluate!(rs, test_data)
 
-p_data = test_data[:, [:x1, :x2, :x3, :x4, :x5]]
-evaluate!(polynomial, p_data)
+p_data = test_data[:, [:x1, :x2]]
+evaluate!(himmelblau, p_data)
 
 mse = mean((p_data.y .- test_data.y) .^ 2)
 println("MSE is:  $mse")
