@@ -149,24 +149,21 @@ function doe_samples(design::BoxBehnken, rvs::Int)
         centers = design.centers
     end
 
-    ff_columns, block_format = get_block_format(rvs)
+    ff_columns, block = block_format(rvs)
     ff = FractionalFactorial(ff_columns)
-    ff_m = doe_samples(ff)
-    bb = zeros(1, rvs)
+    ff_matrix = doe_samples(ff)
 
-    for i in axes(block_format)[1] #iterating the blocks
-        m_help = ones(size(ff_m, 1), rvs) * 0.5
-        for j in axes(block_format)[2] # iterating over vars of current block
-            for k in axes(ff_m)[1] # iterating each row of current block
-                m_help[k, block_format[i, j]] = ff_m[k, j]
-            end
-        end
-        bb = vcat(bb, m_help)
+    bb = map(eachrow(block)) do cols
+        b = fill(0.5, size(ff_matrix, 1), rvs)
+        b[:, cols] = ff_matrix
+        return b
     end
-    return vcat(bb[2:end, :], ones(centers, rvs) * 0.5)
+
+    bb = vcat(bb...)
+    return vcat(bb, fill(0.5, centers, rvs))
 end
 
-function get_block_format(nvars::Int)
+function block_format(nvars::Int)
     if nvars == 3
         return ["a", "b"], [1 2; 1 3; 2 3]
     elseif nvars == 4
@@ -270,18 +267,16 @@ function get_block_format(nvars::Int)
             8 9 13 16
         ]
     elseif nvars > 0
-        return ["a", "b"], calc_blocks(nvars)
+        return ["a", "b"], blocks(nvars)
     end
 end
 
-function calc_blocks(nvars::Int)
-    out = zeros(Int, 1, 2)
-    for i in 1:(nvars - 1)
-        for j in (i + 1):nvars
-            out = vcat(out, [i j])
-        end
+function blocks(vars::Int)
+    block = zeros(Int, 1, 2)
+    for i in 1:(vars - 1), j in (i + 1):vars
+        block = vcat(block, [i j])
     end
-    return out[2:end, :]
+    return block[2:end, :]
 end
 
 function doe_samples(design::CentralComposite, rvs::Int)
