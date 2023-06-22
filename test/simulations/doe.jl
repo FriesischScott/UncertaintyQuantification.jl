@@ -215,4 +215,31 @@
             0.5 0.5 0.5
         ]
     end
+
+    @testset "Variables and Generators" begin
+        v, i, g = UncertaintyQuantification.variables_and_generators(["a", "b", "ab"])
+        @test v == "ab"
+        @test i == [1, 2]
+        @test g == ["ab"]
+
+        v, i, g = UncertaintyQuantification.variables_and_generators([
+            "a", "b", "ab", "c", "ac"
+        ])
+        @test v == "abc"
+        @test i == [1, 2, 4]
+        @test g == ["ab", "ac"]
+
+        v, i, g = UncertaintyQuantification.variables_and_generators(["c", "abc", "b", "a"])
+        @test v == "cba"
+        @test i == [1, 3, 4]
+        @test g == ["abc"]
+
+        @test_throws ErrorException(
+            "Each String in columns must hold at least one character"
+        ) UncertaintyQuantification.variables_and_generators(["a", "", "b", "ab"])
+
+        @test_throws ErrorException(
+            "All combinations of columns must also be individual columns."
+        ) UncertaintyQuantification.variables_and_generators(["a", "b", "ac", "ab"])
+    end
 end

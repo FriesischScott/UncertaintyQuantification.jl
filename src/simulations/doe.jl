@@ -108,7 +108,7 @@ function doe_samples(_::TwoLevelFactorial, rvs::Int)
 end
 
 function doe_samples(design::FractionalFactorial, _::Int=0)
-    vars, varindex, gen = extract_vars_and_generator(design.columns)   #vars holds all variables, gen holds generators(multi-variable strings)
+    vars, varindex, gen = variables_and_generators(design.columns)   #vars holds all variables, gen holds generators(multi-variable strings)
 
     nvars = length(vars)
 
@@ -147,33 +147,24 @@ function doe_samples(design::FractionalFactorial, _::Int=0)
     return m = m[:, 2:end]
 end
 
-function extract_vars_and_generator(columns::Vector{String})
-    gen = []
-    vars = ""
-    varindex = Vector{Int}(undef, 0)
-    for i in eachindex(columns)
-        if (length(columns[i]) == 0)
-            error("each String in columns must hold at least one character")
-        elseif (length(columns[i]) == 1)
-            if (!contains(vars, columns[i][1]))
-                vars = vars * columns[i][1]     #collect variables
-                push!(varindex, i)
-            end
-        else
-            push!(gen, columns[i])   #collect generators
+function variables_and_generators(columns::Vector{String})
+    if any(isempty.(columns))
+        error("Each String in columns must hold at least one character")
+    end
+
+    varindex = findall(length.(columns) .== 1)
+    vars = [columns[i] for i in varindex]
+    gens = filter(c -> c ∉ vars, columns)
+
+    vars = join(vars)
+
+    for g in gens
+        if any(.!occursin.(split(g, ""), vars))
+            error("All combinations of columns must also be individual columns.")
         end
     end
-    for i in eachindex(columns)
-        for j in eachindex(columns[i])
-            columns[i]
-            if !contains(vars, columns[i][j])
-                error(
-                    "FractionalFactorial: a variable cannot only be used in combination with others, must have its own column.",
-                )
-            end
-        end
-    end
-    return vars, varindex, gen
+
+    return vars, varindex, gens
 end
 
 function doe_samples(design::BoxBehnken, rvs::Int)
