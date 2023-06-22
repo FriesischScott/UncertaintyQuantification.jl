@@ -4,30 +4,30 @@ struct TwoLevelFactorial <: AbstractDesignOfExperiments end
 struct FullFactorial <: AbstractDesignOfExperiments
     levels::Vector{<:Integer}
     function FullFactorial(levels::Vector{<:Integer})
-        any(levels .< 2) && error("Columns must be >= 2")
+        any(levels .< 2) && error("Levels must be >= 2")
         return new(levels)
     end
 end
 
-#this is a 2lvl fractional factorial
 struct FractionalFactorial <: AbstractDesignOfExperiments
     columns::Vector{String}
 end
 
 struct BoxBehnken <: AbstractDesignOfExperiments
-    centers::Int
-    function BoxBehnken(centers::Int=-1)
+    centers::Union{Int,Nothing}
+    function BoxBehnken(centers::Union{Int,Nothing}=nothing)
+        if !isnothing(centers) && centers < 0
+            error("centers must be nonnegative")
+        end
         return new(centers)
     end
 end
 
 struct CentralComposite <: AbstractDesignOfExperiments
-    CCtype::Symbol
-    function CentralComposite(CCtype::Symbol)
-        CCtype != :inscribed &&
-            CCtype != :face &&
-            error("CCtype must be :inscribed or :face.")
-        return new(CCtype)
+    type::Symbol
+    function CentralComposite(type::Symbol)
+        type ∉ [:inscribed, :face] && error("type must be :inscribed or :face.")
+        return new(type)
     end
 end
 
@@ -177,7 +177,7 @@ function extract_vars_and_generator(columns::Vector{String})
 end
 
 function doe_samples(design::BoxBehnken, rvs::Int)
-    if (design.centers < 0)
+    if isnothing(design.centers)
         centers = [1 1 3 3 6 6 6 8 10 10 12][min(rvs, 11)]
     else
         centers = design.centers
@@ -322,7 +322,7 @@ function doe_samples(design::CentralComposite, rvs::Int)
     two_lvl_points = full_factorial_matrix(ones(Int, rvs) .* 2)
     axial_points = ones(2 * rvs + 1, rvs) .* 0.5
 
-    if (design.CCtype == :inscribed)
+    if (design.type == :inscribed)
         for i in eachrow(two_lvl_points)
             for j in eachindex(i)
                 #shortening "corner points" distance from origin
