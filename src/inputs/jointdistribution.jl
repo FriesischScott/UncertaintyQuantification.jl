@@ -48,3 +48,29 @@ names(jd::JointDistribution) = vec(map(x -> x.name, jd.marginals))
 mean(jd::JointDistribution) = mean.(jd.marginals)
 
 dimensions(jd::JointDistribution) = dimensions(jd.copula)
+
+function pdf(jd::JointDistribution, x::Vector)
+    copuladensity = copuladensity(jd.copula) 
+
+    u = Vector{eltype(x)}()
+    f = 1.
+    for (xi, rv) in zip(x, jd.marginals)
+        push!(u, cdf(rv, xi))
+        f *= pdf(rv, xi)
+    end
+
+    return copuladensity(u) * f  
+end
+
+function pdf(jd::JointDistribution, x::Matrix)
+    copuladensity = copuladensity(jd.copula) 
+
+    u = zero(x)
+    f = ones(eltype(x), size(x, 1))
+    for (i, rv) in enumerate(jd.marginals)
+        u[:, i] = cdf.(rv.dist, x[:, i])
+        f .*= pdf.(rv.dist, x[:, i])
+    end
+
+    return [copuladensity(u[i, :]) * f[i] for i in eachindex(f)] 
+end
