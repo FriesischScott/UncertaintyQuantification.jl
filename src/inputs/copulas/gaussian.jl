@@ -26,3 +26,10 @@ function to_copula_space(c::GaussianCopula, s)
     L = cholesky(c.correlation).L
     return cdf.(Φ, s * L')
 end
+
+function copuladensity(c::GaussianCopula)
+    detC = det(c.correlation)
+    M = inv(c.correlation)
+    M[diagind(M)] .-= 1
+    return u -> (1 / sqrt(detC)) * exp(-0.5 * quantile.(Φ, u)' * M * quantile.(Φ, u))
+end
