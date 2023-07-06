@@ -31,32 +31,52 @@ struct CentralComposite <: AbstractDesignOfExperiments
     end
 end
 
+struct PlackettBurman <: AbstractDesignOfExperiments end
+
 function full_factorial_matrix(levels::Vector{<:Integer})
     ranges = [range(0.0, 1.0; length=l) for l in levels]
     return mapreduce(t -> [t...]', vcat, Iterators.product(ranges...))
 end
 
-function sample(inputs::Array{<:UQInput}, design::AbstractDesignOfExperiments)
+function bounds(r::RandomVariable, σ::Int)
+    ub = support(r.dist).ub
+    lb = support(r.dist).lb
+
+    if ub == Inf
+        ub = std(r.dist) * σ
+    end
+
+    if lb == -Inf
+        lb = -std(r.dist) * σ
+    end
+
+    return [ub lb]
+end
+
+function bounds(jd::JointDistribution, σ::Int)
+    return reduce(vcat, bounds.(jd.marginals, σ))
+end
+
+function sample(inputs::Array{<:UQInput}, design::AbstractDesignOfExperiments, σ::Int=1)
     random_inputs = filter(i -> isa(i, RandomUQInput), inputs)
 
     deterministic_inputs = filter(i -> isa(i, DeterministicUQInput), inputs)
 
     n_rv = mapreduce(dimensions, +, random_inputs)
 
-    u = doe_samples(design, n_rv)
+    samples = doe_samples(design, n_rv)
+    b = reduce(vcat, bounds.(random_inputs, σ))
 
-    u[u .== 0.0] .+= 1e-16
-    u[u .== 1.0] .-= 1e-16
+    for i in 1:n_rv
+        samples[:, i] = samples[:, i] .* (b[i, 1] - b[i, 2]) .+ b[i, 2]
+    end
 
-    samples = quantile.(Normal(), u)
     samples = DataFrame(names(random_inputs) .=> eachcol(samples))
 
     if !isempty(deterministic_inputs)
         #add deterministic inputs to each row (each point)
         samples = hcat(samples, sample(deterministic_inputs, size(samples, 1)))
     end
-
-    to_physical_space!(inputs, samples)
 
     return samples
 end
@@ -247,13 +267,22 @@ function doe_samples(design::CentralComposite, rvs::Int)
 
     if (design.type == :inscribed)
         # shortening "corner points" distance from origin
-        two_lvl_points = @. 0.5 + 1 / (2 * sqrt(rvs)) * (-1)^(1 + two_lvl_points)
+        two_lvl_points = @. 0.5 + 1 / (2 * sqrt(rvs)) * (-1)^(two_lvl_points + 1)
     end
 
     # setting axial points
     for i in 1:rvs
-        axial_points[(2i - 1):(2i), i] = [1.0, 0.0]
+        axial_points[(2i - 1):(2i), i] = [1.0, -1.0]
     end
 
     return vcat(two_lvl_points, axial_points)
+end
+
+function doe_samples(_::PlackettBurman, rvs::Int)
+    return m_size = round(rvs / 4) * 4
+
+    if (ispow2(m_size))
+        #frac fact with all possible combinations and log(m_size) vars
+    else
+    end
 end
