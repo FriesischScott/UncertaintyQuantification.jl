@@ -237,6 +237,40 @@
         ]
     end
 
+    @testset "PlackettBurman" begin
+        pb = PlackettBurman()
+
+        @test_throws ErrorException("number of random variables must be in 2:47") doe_samples(
+            pb, 48
+        )
+        @test_throws ErrorException("number of random variables must be in 2:47") doe_samples(
+            pb, 1
+        )
+
+        nvars = [7 17 rand(2:47) rand(2:47) rand(2:47)]
+
+        for n in nvars
+            m = doe_samples(pb, n)
+            combinations = [0 0 0 0]
+            for i in 1:(n - 1)
+                for j in (i + 1):n
+                    map(
+                        row -> combinations[(Int)(2 * row[i] + row[j] + 1)] += 1, eachrow(m)
+                    )
+                end
+            end
+            @test combinations[1] == combinations[2] == combinations[3] == combinations[4]
+        end
+
+        factors = [3, 5, 9, 14, 19, 20, 25, 31, 32, 37, 42, 47] # one per hardcoded design, varying the amount of omitted columns
+        designsizes = [4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48]
+
+        for (f, s) in zip(factors, designsizes)
+            m = doe_samples(pb, f)
+            @test size(m) == (s, f)
+        end
+    end
+
     @testset "Variables and Generators" begin
         v, i, g, gi = UncertaintyQuantification.variables_and_generators(["a", "b", "ab"])
         @test v == "ab"
