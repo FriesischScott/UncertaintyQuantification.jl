@@ -1,4 +1,8 @@
 @testset "Design of Experiments" begin
+    for doe in subtypes(AbstractDesignOfExperiments)
+        @test hasfield(doe, :σ)
+    end
+
     @testset "TwoLevelFactorial" begin
         tlf = TwoLevelFactorial()
 

@@ -1,37 +1,52 @@
 
-struct TwoLevelFactorial <: AbstractDesignOfExperiments end
+struct TwoLevelFactorial <: AbstractDesignOfExperiments
+    σ::Int
+    function TwoLevelFactorial(σ::Int=1)
+        σ < 1 && error("sigma must be >= 1")
+        return new(σ)
+    end
+end
 
 struct FullFactorial <: AbstractDesignOfExperiments
     levels::Vector{<:Integer}
-    function FullFactorial(levels::Vector{<:Integer})
+    σ::Int
+    function FullFactorial(levels::Vector{<:Integer}, σ::Int=1)
         any(levels .< 2) && error("Levels must be >= 2")
-        return new(levels)
+        σ < 1 && error("sigma must be >= 1")
+        return new(levels, σ)
     end
 end
 
 struct FractionalFactorial <: AbstractDesignOfExperiments
     columns::Vector{String}
+    σ::Int
+    function FractionalFactorial(columns::Vector{String}, σ::Int=1)
+        σ < 1 && error("sigma must be >= 1")
+        return new(columns, σ)
+    end
 end
 
 struct BoxBehnken <: AbstractDesignOfExperiments
     centers::Union{Int,Nothing}
-    function BoxBehnken(centers::Union{Int,Nothing}=nothing)
+    σ::Int
+    function BoxBehnken(centers::Union{Int,Nothing}=nothing, σ::Int=1)
         if !isnothing(centers) && centers < 0
             error("centers must be nonnegative")
         end
-        return new(centers)
+        σ < 1 && error("sigma must be >= 1")
+        return new(centers, σ)
     end
 end
 
 struct CentralComposite <: AbstractDesignOfExperiments
     type::Symbol
-    function CentralComposite(type::Symbol)
+    σ::Int
+    function CentralComposite(type::Symbol, σ::Int=1)
         type ∉ [:inscribed, :face] && error("type must be :inscribed or :face.")
-        return new(type)
+        σ < 1 && error("sigma must be >= 1")
+        return new(type, σ)
     end
 end
-
-struct PlackettBurman <: AbstractDesignOfExperiments end
 
 function full_factorial_matrix(levels::Vector{<:Integer})
     ranges = [range(0.0, 1.0; length=l) for l in levels]
@@ -39,25 +54,20 @@ function full_factorial_matrix(levels::Vector{<:Integer})
 end
 
 function bounds(r::RandomVariable, σ::Int)
-    ub = support(r.dist).ub
-    lb = support(r.dist).lb
+    lb = minimum(r)
+    lb = isinf(lb) ? -std(r.dist) * σ : lb
 
-    if ub == Inf
-        ub = std(r.dist) * σ
-    end
+    ub = maximum(r)
+    ub = isinf(ub) ? std(r.dist) * σ : ub
 
-    if lb == -Inf
-        lb = -std(r.dist) * σ
-    end
-
-    return [ub lb]
+    return [lb ub]
 end
 
 function bounds(jd::JointDistribution, σ::Int)
     return reduce(vcat, bounds.(jd.marginals, σ))
 end
 
-function sample(inputs::Array{<:UQInput}, design::AbstractDesignOfExperiments, σ::Int=1)
+function sample(inputs::Array{<:UQInput}, design::AbstractDesignOfExperiments)
     random_inputs = filter(i -> isa(i, RandomUQInput), inputs)
 
     deterministic_inputs = filter(i -> isa(i, DeterministicUQInput), inputs)
@@ -65,10 +75,10 @@ function sample(inputs::Array{<:UQInput}, design::AbstractDesignOfExperiments, �
     n_rv = mapreduce(dimensions, +, random_inputs)
 
     samples = doe_samples(design, n_rv)
-    b = reduce(vcat, bounds.(random_inputs, σ))
+    b = reduce(vcat, bounds.(random_inputs, design.σ))
 
     for i in 1:n_rv
-        samples[:, i] = samples[:, i] .* (b[i, 1] - b[i, 2]) .+ b[i, 2]
+        samples[:, i] = samples[:, i] .* (b[i, 2] - b[i, 1]) .+ b[i, 1]
     end
 
     samples = DataFrame(names(random_inputs) .=> eachcol(samples))
@@ -272,17 +282,8 @@ function doe_samples(design::CentralComposite, rvs::Int)
 
     # setting axial points
     for i in 1:rvs
-        axial_points[(2i - 1):(2i), i] = [1.0, -1.0]
+        axial_points[(2i - 1):(2i), i] = [1.0, 0]
     end
 
     return vcat(two_lvl_points, axial_points)
-end
-
-function doe_samples(_::PlackettBurman, rvs::Int)
-    return m_size = round(rvs / 4) * 4
-
-    if (ispow2(m_size))
-        #frac fact with all possible combinations and log(m_size) vars
-    else
-    end
 end
