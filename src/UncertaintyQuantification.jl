@@ -70,6 +70,7 @@ export Model
 export MonteCarlo
 export ParallelModel
 export Parameter
+export PlackettBurman
 export PolynomialChaosBasis
 export PolynomialChaosExpansion
 export PolyharmonicSpline
