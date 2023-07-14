@@ -27,6 +27,7 @@ include("reliability/probabilityoffailure.jl")
 include("sensitivity/gradient.jl")
 include("sensitivity/sobolindices.jl")
 
+include("simulations/doe.jl")
 include("simulations/montecarlo.jl")
 include("simulations/subset.jl")
 
