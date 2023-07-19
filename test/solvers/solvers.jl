@@ -25,9 +25,10 @@
 
     current_dir = pwd()
 
-    @test_warn "Specified solver path is not an absolute path. Make sure this_path_is_not_absolute is in your environmental varibles path." Solver(
-        "this_path_is_not_absolute", "in.txt"
-    )
+    @test_logs (
+        :warn,
+        "Specified solver path is not an absolute path. Make sure this_path_is_not_absolute is in your environmental varibles path.",
+    ) Solver("this_path_is_not_absolute", "in.txt")
 
     @test_throws Base.IOError run(
         Solver(joinpath(pwd(), "this/solver/does/not/exist"), "in.txt"), tmp
