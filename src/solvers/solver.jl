@@ -4,7 +4,7 @@ struct Solver
     args::String
     function Solver(path::String, source::String, args::String)
         if !isabspath(path)
-            @warn "Specified solver path is not an absolute path. Make sure $path is in your environmental varibles path."
+            @warn "Solver path is not absolute. Make sure $path is on your PATH."
         end
         return new(path, source, args)
     end

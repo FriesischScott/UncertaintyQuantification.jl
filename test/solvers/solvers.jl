@@ -27,7 +27,7 @@
 
     @test_logs (
         :warn,
-        "Specified solver path is not an absolute path. Make sure this_path_is_not_absolute is in your environmental varibles path.",
+        "Solver path is not absolute. Make sure this_path_is_not_absolute is on your PATH.",
     ) Solver("this_path_is_not_absolute", "in.txt")
 
     @test_throws Base.IOError run(
