@@ -16,7 +16,10 @@ struct ResponseSurface <: UQModel
     y::Symbol
     names::Vector{Symbol}
     p::Int64
-    monomials::MonomialVector{true}
+    monomials::DynamicPolynomials.MonomialVector{
+        DynamicPolynomials.Commutative{DynamicPolynomials.CreationOrder},
+        MultivariatePolynomials.Graded{MultivariatePolynomials.LexOrder},
+    }
 
     function ResponseSurface(data::DataFrame, output::Symbol, p::Int64)
         if p < 0
@@ -39,7 +42,12 @@ end
 
 # only to be called internally by constructor
 function multi_dimensional_polynomial_regression(
-    X::Matrix, y::Vector, monomials::MonomialVector{true}
+    X::Matrix,
+    y::Vector,
+    monomials::DynamicPolynomials.MonomialVector{
+        DynamicPolynomials.Commutative{DynamicPolynomials.CreationOrder},
+        MultivariatePolynomials.Graded{MultivariatePolynomials.LexOrder},
+    },
 )
 
     #fill monomials with the given x values for each row
