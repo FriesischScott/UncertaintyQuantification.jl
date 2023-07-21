@@ -61,4 +61,18 @@ end
             @test samples.c == ones(lattice.n)
         end
     end
+
+    @testset "LatinHypercubeSampling" begin
+        lhs = LatinHypercubeSampling(1000)
+
+        inputs = RandomVariable.([Uniform(-1, 1), Uniform(0, 3)], [:a, :b])
+
+        samples = sample(inputs, lhs)
+
+        h = fit(Histogram, samples.a, range(-1, 1, 1001))
+        @test all(h.weights .== 1)
+
+        h = fit(Histogram, samples.b, range(0, 3, 1001))
+        @test all(h.weights .== 1)
+    end
 end

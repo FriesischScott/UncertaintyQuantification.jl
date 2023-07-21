@@ -54,11 +54,7 @@ function qmc_samples(sim::SobolSampling, rvs::Integer)
 end
 
 function qmc_samples(sim::HaltonSampling, rvs::Integer)
-    coprimes = rvs > 1 ? [prime(i) for i in 1:rvs] : prime(1)
-
-    samples = QuasiMonteCarlo.sample(
-        sim.n, zeros(rvs), ones(rvs), LowDiscrepancySample(coprimes, false)
-    )
+    samples = QuasiMonteCarlo.sample(sim.n, zeros(rvs), ones(rvs), HaltonSample())
     return rvs > 1 ? samples : reshape(samples, 1, sim.n)
 end
 

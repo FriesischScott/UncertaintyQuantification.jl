@@ -4,6 +4,7 @@ using Formatting
 using InteractiveUtils
 using QuasiMonteCarlo
 using Random
+using StatsBase: fit, Histogram
 using Test
 using UncertaintyQuantification
 
