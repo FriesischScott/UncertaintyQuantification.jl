@@ -1,5 +1,5 @@
 """
-    ResponseSurface(data::DataFrame, dependendVarName::Symbol, deg::Int64, dim::Int64)
+    ResponseSurface(data::DataFrame, dependendVarName::Symbol, deg::Int, dim::Int)
 
 Creates a response surface using polynomial least squares regression with given degree.
 
@@ -21,7 +21,7 @@ struct ResponseSurface <: UQModel
         MultivariatePolynomials.Graded{MultivariatePolynomials.LexOrder},
     }
 
-    function ResponseSurface(data::DataFrame, output::Symbol, p::Int64)
+    function ResponseSurface(data::DataFrame, output::Symbol, p::Int)
         if p < 0
             error("Degree(p) of ResponseSurface must be non-negative.")
         end

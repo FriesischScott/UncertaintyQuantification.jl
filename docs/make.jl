@@ -22,6 +22,7 @@ makedocs(
         "Manual" => [
             "Getting Started" => "manual/gettingstarted.md",
             "Reliability Analysis" => "manual/reliability.md",
+            "Metamodelling" => "manual/metamodels.md",
         ],
         "API" => [
             "Inputs" => "api/inputs.md",
