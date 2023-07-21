@@ -50,20 +50,20 @@ end
 sample(input::UQInput, sim::AbstractMonteCarlo) = sample([input], sim)
 
 function qmc_samples(sim::SobolSampling, rvs::Integer)
-    return QuasiMonteCarlo.sample(sim.n, zeros(rvs), ones(rvs), SobolSample())
+    return QuasiMonteCarlo.sample(sim.n, rvs, SobolSample())
 end
 
 function qmc_samples(sim::HaltonSampling, rvs::Integer)
-    samples = QuasiMonteCarlo.sample(sim.n, zeros(rvs), ones(rvs), HaltonSample())
+    samples = QuasiMonteCarlo.sample(sim.n, rvs, HaltonSample())
     return rvs > 1 ? samples : reshape(samples, 1, sim.n)
 end
 
 function qmc_samples(sim::LatinHypercubeSampling, rvs::Integer)
-    return QuasiMonteCarlo.sample(sim.n, zeros(rvs), ones(rvs), LatinHypercubeSample())
+    return QuasiMonteCarlo.sample(sim.n, rvs, LatinHypercubeSample())
 end
 
 function qmc_samples(sim::LatticeRuleSampling, rvs::Integer)
-    return QuasiMonteCarlo.sample(sim.n, zeros(rvs), ones(rvs), LatticeRuleSample())
+    return QuasiMonteCarlo.sample(sim.n, rvs, LatticeRuleSample())
 end
 
 double_samples(sim::MonteCarlo) = MonteCarlo(2 * sim.n)
