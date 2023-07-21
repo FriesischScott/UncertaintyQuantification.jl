@@ -25,7 +25,13 @@
 
     current_dir = pwd()
 
-    @test_throws Base.IOError run(Solver("this/solver/does/not/exist", "in.txt"), tmp)
+    @test_logs (
+        :warn,
+        "Solver path is not absolute. Make sure this_path_is_not_absolute is on your PATH.",
+    ) Solver("this_path_is_not_absolute", "in.txt")
 
+    @test_throws Base.IOError run(
+        Solver(joinpath(pwd(), "this/solver/does/not/exist"), "in.txt"), tmp
+    )
     @test pwd() == current_dir
 end
