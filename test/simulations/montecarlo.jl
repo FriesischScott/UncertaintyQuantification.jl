@@ -72,10 +72,10 @@ end
 
         samples = sample(inputs, lhs)
 
-        h = fit(Histogram, samples.a, range(-1, 1, 1001))
+        h = fit(Histogram, samples.a, range(-1, 1; length=1001))
         @test all(h.weights .== 1)
 
-        h = fit(Histogram, samples.b, range(0, 3, 1001))
+        h = fit(Histogram, samples.b, range(0, 3; length=1001))
         @test all(h.weights .== 1)
     end
 end
