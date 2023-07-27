@@ -5,14 +5,12 @@ for (root, dirs, files) in walkdir("./docs/literate/")
         Literate.markdown.(joinpath.(root, files), "./docs/src/examples", documenter=true)
 
         sp = splitpath(root)
-
-        Literate.script.(
-            joinpath.(root, files),
-            joinpath.(
-                pwd(),
-                "./demo/",
-                joinpath(sp[(findfirst(item -> item == "literate", sp) + 1):end]),
-            ),
-        )
+        if (cmp(sp[end], "literate") == 0)
+            Literate.script.(joinpath.(root, files), joinpath.(pwd(), "./demo"))
+        else
+            Literate.script.(
+                joinpath.(root, files), joinpath.(pwd(), "./demo/", joinpath(sp[4:end]))
+            )
+        end
     end
 end
