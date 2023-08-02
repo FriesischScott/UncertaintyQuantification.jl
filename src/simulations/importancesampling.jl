@@ -43,36 +43,9 @@ function sample(inputs::Vector{<:UQInput}, proposals::Vector{<:UQInput}, sim::Im
     samples = sample(proposals, sim.sampling)
     weights = DataFrame(ones(size(samples, 1)..., 3), [:f, :h, :w]) 
 
-    # make sure weight computation works with jointDistribution in input
-    while length(inputs) != length(proposals)
-        push!(inputs, Parameter(0, :fill))
-    end
-
     # weights
-    for (input, proposal) in zip(inputs, proposals)
-
-        if isa(input, RandomVariable)
-            # broadcast on RandomVariable does not work somehow -> input.dist
-            f = pdf.(input.dist, samples[!, input.name])
-            weights.f .*= f
-
-        end
-        if isa(input, JointDistribution)
-            f = pdf(input, Matrix(samples[!, names(input)]))
-            weights.f .*= f
-        end
-
-        if isa(proposal, RandomVariable)
-            # broadcast on RandomVariable does not work somehow -> proposal.dist
-            h = pdf.(proposal.dist, samples[!, proposal.name])
-            weights.h .*= h
-        end
-        if isa(proposal, JointDistribution)
-            h = pdf(proposal, Matrix(samples[!, names(proposal)]))
-            weights.h .*= h
-        end
-    end
-
+    weights.f = prod.(eachrow(pdf(inputs, samples)))
+    weights.h = prod.(eachrow(pdf(proposals, samples)))
     weights.w = weights.f ./ weights.h
 
     return samples, weights

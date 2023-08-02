@@ -55,26 +55,25 @@ function pdf(jd::JointDistribution, x::Vector)
     u = cdf.(jd.marginals, x)
     f = pdf.(jd.marginals, x)
 
-    u = input_correction(u)
+    u = input_correction.(u)
     return cpdf(u) * prod(f)  
 end
 
 function pdf(jd::JointDistribution, x::DataFrame)
     cpdf = copuladensity(jd.copula) 
 
-    u = ones(size(x, 1), length(jd.marginals))
-    f = ones(size(x, 1), length(jd.marginals))
+    cpdf_u = ones(size(x, 1))
+    f = ones(size(x, 1))
 
     for i in axes(x, 1)
-        u[i, :] = cdf.(jd.marginals, Vector(x[i, names(jd.marginals)]))
-        u[i, :] = input_correction.(u[i, :])
-
+        u = cdf.(jd.marginals, Vector(x[i, names(jd.marginals)]))
+        u = input_correction.(u)
+        cpdf_u[i] = cpdf(u)
         
-        f[i, :] = pdf.(jd.marginals, Vector(x[i, names(jd.marginals)]))
+        f[i] = prod(pdf.(jd.marginals, Vector(x[i, names(jd.marginals)])))
     end
     
-    u = input_correction.(u)
-    return cpdf(u) .* prod(f)  
+    return cpdf_u .* f  
 end
 
 function input_correction(u::Real)

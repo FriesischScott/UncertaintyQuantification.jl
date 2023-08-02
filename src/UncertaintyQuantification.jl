@@ -53,6 +53,7 @@ export GaussianCopula
 export GaussQuadrature
 export HaltonSampling
 export HermiteBasis
+export ImportanceSampling
 export JointDistribution
 export LatinHypercubeSampling
 export LatticeRuleSampling
@@ -85,6 +86,7 @@ export mean
 export multivariate_indices
 export polynomialchaos
 export probability_of_failure
+export proposaldistribution
 export qmc_samples
 export quadrature_nodes
 export quadrature_weights

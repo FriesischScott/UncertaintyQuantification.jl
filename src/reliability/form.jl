@@ -25,6 +25,7 @@ function probability_of_failure(
     parameters =
         !isempty(deterministic_inputs) ? sample(deterministic_inputs, 1) : DataFrame()
 
+    α = Vector{Float64}(undef, length(random_names))
     β::Float64 = 0.0
     h₀::Float64 = Inf
 
