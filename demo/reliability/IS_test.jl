@@ -34,19 +34,14 @@ displacement = Model(
 max_displacement = 0.01
 
 # Compute probability of failure using standard Monte Carlo
-mc = MonteCarlo(10^4)
-
-df = sample(inputs, mc);
-
-test1 = pdf(inputs[5], df)
-test2 = pdf(inputs, df)
+mc = MonteCarlo(10^5)
 
 mc_pf, mc_cov, mc_samples = probability_of_failure(
     [inertia, displacement], df -> max_displacement .- df.w, inputs, mc
 )
 
 println(
-    "Monte Carlo probability of failure $mc_pf ($(size(mc_samples, 1)) model evaluations)"
+    "Monte Carlo probability of failure $mc_pf ($(size(mc_samples, 1)) model evaluations, coefficient of variation $mc_cov)"
 )
 
 # Compute probability of failure using Importance Sampling
@@ -58,5 +53,5 @@ IS_pf, IS_cov, IS_samples = probability_of_failure(
 )
 
 println(
-    "Importance Sampling probability of failure: $IS_pf ($(size(IS_samples, 1)) model evaluations)",
+    "Importance Sampling probability of failure: $IS_pf ($(size(IS_samples, 1)) model evaluations, coefficient of variation $IS_cov)",
 )

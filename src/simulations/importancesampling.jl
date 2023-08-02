@@ -2,41 +2,41 @@ struct ImportanceSampling
     sampling::AbstractMonteCarlo
 end
 
-function sample(inputs::Vector{<:UQInput}, models::Union{Vector{<:UQModel},UQModel}, performance::Function, design_point_from::FORM, sim::ImportanceSampling)
-    # compute design point in standard normal space dp and important direction α
-    pf, β, dp, α = probability_of_failure(models, performance, inputs, design_point_from)
-    dp = DataFrame([dp])
-    to_standard_normal_space!(inputs, dp)
-    α *= -1
+# function sample(inputs::Vector{<:UQInput}, models::Union{Vector{<:UQModel},UQModel}, performance::Function, design_point_from::FORM, sim::ImportanceSampling)
+#     # compute design point in standard normal space dp and important direction α
+#     pf, β, dp, α = probability_of_failure(models, performance, inputs, design_point_from)
+#     dp = DataFrame([dp])
+#     to_standard_normal_space!(inputs, dp)
+#     α *= -1
 
-    # generate [n x m] samples in SNS
-    random_names = names(filter(i -> isa(i, RandomUQInput), inputs))
-    sns_inputs = [RandomVariable(Normal(), random_name) for random_name in random_names]
-    Z = Matrix(sample(sns_inputs, sim.sampling))
+#     # generate [n x m] samples in SNS
+#     random_names = names(filter(i -> isa(i, RandomUQInput), inputs))
+#     sns_inputs = [RandomVariable(Normal(), random_name) for random_name in random_names]
+#     Z = Matrix(sample(sns_inputs, sim.sampling))
 
-    # samples perpendicular to important direction
-    Z -= (Z * α) * α'
+#     # samples perpendicular to important direction
+#     Z -= (Z * α) * α'
 
-    # force in direction parallel to important direction
-    b = exp(-(β^2/2)) / (cdf(Normal(), -β) * sqrt(2 * π))
-    v = 2(b - β) # no clue how to choose c, here c = 2
-    Zf = Matrix(sample([RandomVariable(Normal(b, v), :Zf)], sim.sampling))
+#     # force in direction parallel to important direction
+#     b = exp(-(β^2/2)) / (cdf(Normal(), -β) * sqrt(2 * π))
+#     v = 2(b - β) # no clue how to choose c, here c = 2
+#     Zf = Matrix(sample([RandomVariable(Normal(b, v), :Zf)], sim.sampling))
 
-    Z += Zf * α'
+#     Z += Zf * α'
 
-    weights = DataFrame(ones(sim.sampling.n, 3), [:f, :h, :w]) 
-    weights.f .= pdf.(Normal(), Zf)
-    weights.h .= pdf.(Normal(), (Zf .- b)/v)
-    weights.w = weights.f ./ weights.h
+#     weights = DataFrame(ones(sim.sampling.n, 3), [:f, :h, :w]) 
+#     weights.f .= pdf.(Normal(), Zf)
+#     weights.h .= pdf.(Normal(), (Zf .- b)/v)
+#     weights.w = weights.f ./ weights.h
 
-    random_samples = DataFrame(Z, random_names)
-    to_physical_space!(filter(i -> isa(i, RandomUQInput), inputs), random_samples)
-    deterministic_samples = sample(filter(i -> isa(i, DeterministicUQInput), inputs), sim.sampling)
+#     random_samples = DataFrame(Z, random_names)
+#     to_physical_space!(filter(i -> isa(i, RandomUQInput), inputs), random_samples)
+#     deterministic_samples = sample(filter(i -> isa(i, DeterministicUQInput), inputs), sim.sampling)
 
-    samples = hcat(deterministic_samples, random_samples)
+#     samples = hcat(deterministic_samples, random_samples)
 
-    return samples, weights
-end
+#     return samples, weights
+# end
 
 function sample(inputs::Vector{<:UQInput}, proposals::Vector{<:UQInput}, sim::ImportanceSampling)
     # sample from proposal
