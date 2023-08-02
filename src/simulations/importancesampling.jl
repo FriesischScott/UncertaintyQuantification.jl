@@ -39,11 +39,11 @@ end
 # end
 
 function sample(inputs::Vector{<:UQInput}, proposals::Vector{<:UQInput}, sim::ImportanceSampling)
-    # sample from proposal
+    # sample from proposal distributions
     samples = sample(proposals, sim.sampling)
-    weights = DataFrame(ones(size(samples, 1)..., 3), [:f, :h, :w]) 
 
-    # weights
+    # calculate weights
+    weights = DataFrame(ones(size(samples, 1)..., 3), [:f, :h, :w]) 
     weights.f = prod.(eachrow(pdf(inputs, samples)))
     weights.h = prod.(eachrow(pdf(proposals, samples)))
     weights.w = weights.f ./ weights.h
