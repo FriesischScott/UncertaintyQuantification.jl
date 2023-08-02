@@ -50,27 +50,39 @@ mean(jd::JointDistribution) = mean.(jd.marginals)
 dimensions(jd::JointDistribution) = dimensions(jd.copula)
 
 function pdf(jd::JointDistribution, x::Vector)
-    copuladensity = copuladensity(jd.copula) 
+    cpdf = copuladensity(jd.copula) 
 
-    u = Vector{eltype(x)}()
-    f = 1.
-    for (xi, rv) in zip(x, jd.marginals)
-        push!(u, cdf(rv, xi))
-        f *= pdf(rv, xi)
-    end
+    u = cdf.(jd.marginals, x)
+    f = pdf.(jd.marginals, x)
 
-    return copuladensity(u) * f  
+    u = input_correction(u)
+    return cpdf(u) * prod(f)  
 end
 
-function pdf(jd::JointDistribution, x::Matrix)
-    copuladensity = copuladensity(jd.copula) 
+function pdf(jd::JointDistribution, x::DataFrame)
+    cpdf = copuladensity(jd.copula) 
 
-    u = zero(x)
-    f = ones(eltype(x), size(x, 1))
-    for (i, rv) in enumerate(jd.marginals)
-        u[:, i] = cdf.(rv.dist, x[:, i])
-        f .*= pdf.(rv.dist, x[:, i])
+    u = ones(size(x, 1), length(jd.marginals))
+    f = ones(size(x, 1), length(jd.marginals))
+
+    for i in axes(x, 1)
+        u[i, :] = cdf.(jd.marginals, Vector(x[i, names(jd.marginals)]))
+        u[i, :] = input_correction.(u[i, :])
+
+        
+        f[i, :] = pdf.(jd.marginals, Vector(x[i, names(jd.marginals)]))
     end
+    
+    u = input_correction.(u)
+    return cpdf(u) .* prod(f)  
+end
 
-    return [copuladensity(u[i, :]) * f[i] for i in eachindex(f)] 
+function input_correction(u::Real)
+    if u >= 1.0
+        return 1.0 - eps(typeof(u))
+    elseif u <= 0.0
+        return 0.0 + eps(typeof(u))
+    else
+        return u 
+    end
 end

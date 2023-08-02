@@ -99,9 +99,9 @@ export to_standard_normal_space!
 include("inputs/inputs.jl")
 include("inputs/parameter.jl")
 include("inputs/randomvariable.jl")
-include("inputs/jointdistribution.jl")
 
 include("inputs/copulas/gaussian.jl")
+include("inputs/jointdistribution.jl")
 
 include("solvers/solver.jl")
 include("solvers/extractor.jl")
@@ -121,6 +121,7 @@ include("simulations/montecarlo.jl")
 include("simulations/subset.jl")
 
 include("reliability/form.jl")
+include("simulations/importancesampling.jl")
 include("reliability/probabilityoffailure.jl")
 include("sensitivity/sobolindices.jl")
 
