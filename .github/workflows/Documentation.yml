@@ -23,4 +23,5 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}
-        run: julia --project=docs/ docs/literate.jl; julia --project=docs/ docs/make.jl
+          GKSwstype: "100"
+        run: julia --project=docs/ docs/literateMarkdown.jl; julia --project=docs/ docs/literateDemo.jl; julia --project=docs/ docs/make.jl
