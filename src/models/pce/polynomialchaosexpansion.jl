@@ -82,12 +82,12 @@ function polynomialchaos(
     nodes =
         mapreduce(collect, hcat, Iterators.product(quadrature_nodes.(Ψ.p + 1, Ψ.bases)...))'
     weights = map(prod, Iterators.product(quadrature_weights.(Ψ.p + 1, Ψ.bases)...))
-    samples = DataFrame()
 
+    samples = DataFrame()
     if length(random_names) != 1
         samples = DataFrame(map_from_bases(Ψ, nodes), random_names)
     else
-        samples[!, random_names[1]] = map_from_bases(Ψ, nodes)
+        samples[!, random_names[1]] = vec(map_from_bases(Ψ, nodes))
     end
 
     to_physical_space!(random_inputs, samples)
