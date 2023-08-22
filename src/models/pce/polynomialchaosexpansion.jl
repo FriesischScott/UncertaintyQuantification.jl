@@ -55,7 +55,6 @@ function polynomialchaos(
     weights = map(prod, Iterators.product(quadrature_weights.(Ψ.p + 1, Ψ.bases)...))
 
     samples = DataFrame(map_from_bases(Ψ, nodes), random_names)
-
     to_physical_space!(random_inputs, samples)
 
     if !isempty(deterministic_inputs)
