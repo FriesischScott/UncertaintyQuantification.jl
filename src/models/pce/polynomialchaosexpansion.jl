@@ -49,11 +49,13 @@ function polynomialchaos(
     deterministic_inputs = filter(i -> isa(i, DeterministicUQInput), inputs)
     random_names = names(random_inputs)
 
-    nodes =
-        mapreduce(collect, hcat, Iterators.product(quadrature_nodes.(Ψ.p + 1, Ψ.bases)...))'
+    nodes = mapreduce(
+        n -> [n...]', vcat, Iterators.product(quadrature_nodes.(Ψ.p + 1, Ψ.bases)...)
+    )
     weights = map(prod, Iterators.product(quadrature_weights.(Ψ.p + 1, Ψ.bases)...))
 
     samples = DataFrame(map_from_bases(Ψ, nodes), random_names)
+
     to_physical_space!(random_inputs, samples)
 
     if !isempty(deterministic_inputs)
