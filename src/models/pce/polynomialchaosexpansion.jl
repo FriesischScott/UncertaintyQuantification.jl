@@ -31,7 +31,7 @@ function polynomialchaos(
     y = A \ samples[:, output]
 
     ϵ = samples[:, output] - A * y
-    mse = dot(ϵ, ϵ)
+    mse = dot(ϵ, ϵ) \ ls.sim.n
 
     to_physical_space!(random_inputs, samples)
 
