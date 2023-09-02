@@ -16,10 +16,11 @@
 
     @testset "LeastSquares" begin
         ls = LeastSquares(SobolSampling(1000))
-        pce, _, _ = polynomialchaos(x, model, Ψ, :y, ls)
+        pce, _, mse = polynomialchaos(x, model, Ψ, :y, ls)
 
         @test mean(pce) ≈ -1.5 rtol = 1e-10
         @test var(pce) ≈ 0.5 rtol = 1e-10
+        @test isapprox(mse, 3e-30, atol=1e-10)
     end
 
     @testset "GaussQuadrature" begin
