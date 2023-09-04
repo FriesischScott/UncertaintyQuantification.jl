@@ -20,7 +20,7 @@
 
         @test mean(pce) ≈ -1.5 rtol = 1e-10
         @test var(pce) ≈ 0.5 rtol = 1e-10
-        @test isapprox(mse, 3e-30, atol=1e-10)
+        @test mse == 3.1221926811354446e-30
     end
 
     @testset "GaussQuadrature" begin
