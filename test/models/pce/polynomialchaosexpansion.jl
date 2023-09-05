@@ -16,10 +16,15 @@
 
     @testset "LeastSquares" begin
         ls = LeastSquares(SobolSampling(1000))
-        pce, _, _ = polynomialchaos(x, model, Ψ, :y, ls)
+        pce, samples, mse = polynomialchaos(x, model, Ψ, :y, ls)
+
+        new_samples = samples[:, Not(:y1, :y)]
+        evaluate!(pce, new_samples)
+        ϵ = mean((new_samples.y .- samples.y) .^ 2)
 
         @test mean(pce) ≈ -1.5 rtol = 1e-10
         @test var(pce) ≈ 0.5 rtol = 1e-10
+        @test mse ≈ ϵ atol = eps()
     end
 
     @testset "GaussQuadrature" begin
