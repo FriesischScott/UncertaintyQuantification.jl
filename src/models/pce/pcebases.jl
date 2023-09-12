@@ -106,7 +106,7 @@ function map_from_base(_::HermiteBasis, x::AbstractVector)
 end
 
 function map_from_bases(Ψ::PolynomialChaosBasis, x::AbstractMatrix)
-    return mapreduce((b, xᵢ) -> map_from_base(b, xᵢ), hcat, Ψ.bases, eachcol(x))
+    return hcat(map((b, xᵢ) -> map_from_base(b, xᵢ), Ψ.bases, eachcol(x))...)
 end
 
 function quadrature_nodes(n::Int, _::LegendreBasis)

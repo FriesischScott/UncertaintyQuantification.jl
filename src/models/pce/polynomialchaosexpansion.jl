@@ -13,7 +13,7 @@ struct GaussQuadrature end
 
 function polynomialchaos(
     inputs::Vector{<:UQInput},
-    model::UQModel,
+    model::Vector{<:UQModel},
     Ψ::PolynomialChaosBasis,
     output::Symbol,
     ls::LeastSquares,
@@ -31,7 +31,7 @@ function polynomialchaos(
     y = A \ samples[:, output]
 
     ϵ = samples[:, output] - A * y
-    mse = dot(ϵ, ϵ)
+    mse = mean(ϵ .^ 2)
 
     to_physical_space!(random_inputs, samples)
 
@@ -39,8 +39,38 @@ function polynomialchaos(
 end
 
 function polynomialchaos(
+    inputs::UQInput,
+    model::Vector{<:UQModel},
+    Ψ::PolynomialChaosBasis,
+    output::Symbol,
+    ls::LeastSquares,
+)
+    return polynomialchaos([inputs], model, Ψ, output, ls)
+end
+
+function polynomialchaos(
     inputs::Vector{<:UQInput},
     model::UQModel,
+    Ψ::PolynomialChaosBasis,
+    output::Symbol,
+    ls::LeastSquares,
+)
+    return polynomialchaos(inputs, [model], Ψ, output, ls)
+end
+
+function polynomialchaos(
+    inputs::UQInput,
+    model::UQModel,
+    Ψ::PolynomialChaosBasis,
+    output::Symbol,
+    ls::LeastSquares,
+)
+    return polynomialchaos([inputs], [model], Ψ, output, ls)
+end
+
+function polynomialchaos(
+    inputs::Vector{<:UQInput},
+    model::Vector{<:UQModel},
     Ψ::PolynomialChaosBasis,
     output::Symbol,
     _::GaussQuadrature,
@@ -49,8 +79,9 @@ function polynomialchaos(
     deterministic_inputs = filter(i -> isa(i, DeterministicUQInput), inputs)
     random_names = names(random_inputs)
 
-    nodes =
-        mapreduce(collect, hcat, Iterators.product(quadrature_nodes.(Ψ.p + 1, Ψ.bases)...))'
+    nodes = mapreduce(
+        n -> [n...]', vcat, Iterators.product(quadrature_nodes.(Ψ.p + 1, Ψ.bases)...)
+    )
     weights = map(prod, Iterators.product(quadrature_weights.(Ψ.p + 1, Ψ.bases)...))
 
     samples = DataFrame(map_from_bases(Ψ, nodes), random_names)
@@ -71,6 +102,36 @@ function polynomialchaos(
     )
 
     return PolynomialChaosExpansion(y, Ψ, output, random_inputs), samples
+end
+
+function polynomialchaos(
+    inputs::UQInput,
+    model::Vector{<:UQModel},
+    Ψ::PolynomialChaosBasis,
+    output::Symbol,
+    gq::GaussQuadrature,
+)
+    return polynomialchaos([inputs], model, Ψ, output, gq)
+end
+
+function polynomialchaos(
+    inputs::Vector{<:UQInput},
+    model::UQModel,
+    Ψ::PolynomialChaosBasis,
+    output::Symbol,
+    gq::GaussQuadrature,
+)
+    return polynomialchaos(inputs, [model], Ψ, output, gq)
+end
+
+function polynomialchaos(
+    inputs::UQInput,
+    model::UQModel,
+    Ψ::PolynomialChaosBasis,
+    output::Symbol,
+    gq::GaussQuadrature,
+)
+    return polynomialchaos([inputs], [model], Ψ, output, gq)
 end
 
 function evaluate!(pce::PolynomialChaosExpansion, df::DataFrame)
