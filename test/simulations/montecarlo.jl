@@ -36,13 +36,16 @@ end
         @test halton.n == 1000
 
         @testset "sample" begin
-            inputs = [RandomVariable.(Uniform(), [:a, :b]); Parameter(1, :c)]
+            inputs = [
+                RandomVariable.([Uniform(-1, 0), Uniform()], [:a, :b])
+                Parameter(1, :c)
+            ]
 
-            samples = sample(inputs, HaltonSampling(4))
+            samples = sample(inputs, halton)
 
-            @test isapprox(samples.a, [0.5, 0.25, 0.75, 0.125])
-            @test isapprox(samples.b, [1 / 3, 2 / 3, 1 / 9, 4 / 9])
-            @test samples.c == [1.0, 1.0, 1.0, 1.0]
+            @test mean(samples.a) ≈ -0.5 rtol = 0.05
+            @test mean(samples.b) ≈ 0.5 rtol = 0.05
+            @test samples.c == ones(halton.n)
         end
     end
 
@@ -60,5 +63,19 @@ end
             @test mean(samples.b) ≈ 0.5 rtol = 0.05
             @test samples.c == ones(lattice.n)
         end
+    end
+
+    @testset "LatinHypercubeSampling" begin
+        lhs = LatinHypercubeSampling(1000)
+
+        inputs = RandomVariable.([Uniform(-1, 1), Uniform(0, 3)], [:a, :b])
+
+        samples = sample(inputs, lhs)
+
+        h = fit(Histogram, samples.a, range(-1, 1; length=1001))
+        @test all(h.weights .== 1)
+
+        h = fit(Histogram, samples.b, range(0, 3; length=1001))
+        @test all(h.weights .== 1)
     end
 end

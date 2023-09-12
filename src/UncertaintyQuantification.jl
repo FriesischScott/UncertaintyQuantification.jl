@@ -11,7 +11,6 @@ using FiniteDifferences
 using Formatting
 using LinearAlgebra
 using Mustache
-using Primes
 using QuasiMonteCarlo
 using Random
 using Reexport
@@ -35,7 +34,10 @@ abstract type Copula <: UQType end
 abstract type AbstractMonteCarlo end
 abstract type AbstractQuasiMonteCarlo <: AbstractMonteCarlo end
 
+abstract type AbstractDesignOfExperiments end
+
 # Types
+export AbstractDesignOfExperiments
 export AbstractMonteCarlo
 export AbstractQuasiMonteCarlo
 export Copula
@@ -46,9 +48,13 @@ export UQModel
 export UQType
 
 # Structs
+export BoxBehnken
+export CentralComposite
 export ExternalModel
 export Extractor
 export FORM
+export FractionalFactorial
+export FullFactorial
 export GaussianCopula
 export GaussQuadrature
 export HaltonSampling
@@ -64,6 +70,7 @@ export Model
 export MonteCarlo
 export ParallelModel
 export Parameter
+export PlackettBurman
 export PolynomialChaosBasis
 export PolynomialChaosExpansion
 export PolyharmonicSpline
@@ -73,11 +80,13 @@ export SobolSampling
 export Solver
 export SubSetInfinity
 export SubSetSimulation
+export TwoLevelFactorial
 
 # Methods
 export calc
 export count_rvs
 export dimensions
+export doe_samples
 export evaluate
 export evaluate!
 export gradient
@@ -118,6 +127,7 @@ include("models/pce/polynomialchaosexpansion.jl")
 
 include("sensitivity/gradient.jl")
 
+include("simulations/doe.jl")
 include("simulations/linesampling.jl")
 include("simulations/montecarlo.jl")
 include("simulations/subset.jl")
