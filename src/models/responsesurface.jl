@@ -1,5 +1,5 @@
 """
-    ResponseSurface(data::DataFrame, dependendVarName::Symbol, deg::Int64, dim::Int64)
+    ResponseSurface(data::DataFrame, dependendVarName::Symbol, deg::Int, dim::Int)
 
 Creates a response surface using polynomial least squares regression with given degree.
 
@@ -8,17 +8,20 @@ Creates a response surface using polynomial least squares regression with given 
 julia> data = DataFrame(x = 1:10, y = [1, 4, 10, 15, 24, 37, 50, 62, 80, 101]);
 
 julia> rs = ResponseSurface(data, :y, 2) |> DisplayAs.withcontext(:compact => true)
-ResponseSurface([1.01894, -0.238636, 0.483333], :y, [:x], 2, DynamicPolynomials.Monomial{true}[x₁², x₁, 1])
+ResponseSurface([0.483333, -0.238636, 1.01894], :y, [:x], 2, Monomial{Commutative{CreationOrder}, Graded{LexOrder}}[1, x₁, x₁²])
 ```
 """
 struct ResponseSurface <: UQModel
     β::Array
     y::Symbol
-    names::Array{Symbol}
+    names::Vector{Symbol}
     p::Int64
-    monomials::MonomialVector{true}
+    monomials::DynamicPolynomials.MonomialVector{
+        DynamicPolynomials.Commutative{DynamicPolynomials.CreationOrder},
+        MultivariatePolynomials.Graded{MultivariatePolynomials.LexOrder},
+    }
 
-    function ResponseSurface(data::DataFrame, output::Symbol, p::Int64)
+    function ResponseSurface(data::DataFrame, output::Symbol, p::Int)
         if p < 0
             error("Degree(p) of ResponseSurface must be non-negative.")
         end
@@ -39,7 +42,12 @@ end
 
 # only to be called internally by constructor
 function multi_dimensional_polynomial_regression(
-    X::Matrix, y::Vector, monomials::MonomialVector{true}
+    X::Matrix,
+    y::Vector,
+    monomials::DynamicPolynomials.MonomialVector{
+        DynamicPolynomials.Commutative{DynamicPolynomials.CreationOrder},
+        MultivariatePolynomials.Graded{MultivariatePolynomials.LexOrder},
+    },
 )
 
     #fill monomials with the given x values for each row

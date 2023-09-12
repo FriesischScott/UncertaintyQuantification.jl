@@ -1,5 +1,5 @@
 # Reference: https://opensees.berkeley.edu/wiki/index.php/Simply_supported_beam_modeled_with_two_dimensional_solid_elements
-using UncertaintyQuantification, DelimitedFiles, Formatting
+using UncertaintyQuantification, DelimitedFiles
 
 # To run the model distributed add the desired workers and load the required packages with @everywhere
 # using Distributed, Formatting
@@ -12,13 +12,10 @@ E = RandomVariable(Normal(1000, 5), :E)
 sourcedir = joinpath(pwd(), "demo/models")
 
 # These files will be rendere through Mustach.jl and have values injected
-sourcefiles = ["supported-beam.tcl"]
+sourcefile = "supported-beam.tcl"
 
-# These files will be copied to the working directory without injecting values
-extrafiles = String[]
-
-# Dictionary to map FormatSpecs (Formatting.jl) to variables
-numberformats = Dict(:E => FormatSpec(".8e"))
+# Dictionary to map format Strings (Formatting.jl) to variables
+numberformats = Dict(:E => ".8e")
 
 # UQ will create subfolders in here to run the solver and store the results
 workdir = joinpath(pwd(), "supported-beam")
@@ -34,14 +31,14 @@ end, :disp)
 
 opensees = Solver(
     "OpenSees", # path to OpenSees binary
-    "", # extra args passed to the solver binary
-    "supported-beam.tcl",
+    "supported-beam.tcl";
+    args="", # (optional) extra arguments passed to the solver
 )
 
 ext = ExternalModel(
-    sourcedir, sourcefiles, extrafiles, numberformats, workdir, [disp], opensees
+    sourcedir, sourcefile, disp, opensees; workdir=workdir, formats=numberformats
 )
 
-pf, samples = probability_of_failure(ext, df -> 0.35 .- df.disp, [E], MonteCarlo(1000))
+pf, samples = probability_of_failure(ext, df -> 0.35 .- df.disp, E, MonteCarlo(1000))
 
 println("Probability of failure: $pf")

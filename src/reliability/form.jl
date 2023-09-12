@@ -8,11 +8,13 @@ struct FORM
 end
 
 function probability_of_failure(
-    models::Union{Array{<:UQModel},UQModel},
+    models::Union{Vector{<:UQModel},UQModel},
     performance::Function,
-    inputs::Union{Array{<:UQInput},UQInput},
+    inputs::Union{Vector{<:UQInput},UQInput},
     sim::FORM,
 )
+    models, inputs = wrap.([models, inputs])
+
     # create reference point in standard normal space origin
     random_names = names(filter(i -> isa(i, RandomUQInput), inputs))
     y::Vector{Float64} = zeros(length(random_names))

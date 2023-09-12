@@ -1,6 +1,5 @@
 module UncertaintyQuantification
 
-using Accessors
 using Bootstrap
 using DataFrames
 using Dates
@@ -13,18 +12,17 @@ using Formatting
 using KernelDensity
 using LinearAlgebra
 using Mustache
-using Primes
 using QuasiMonteCarlo
 using Random
 using Reexport
 using StatsBase
-using Symbolics
 
 @reexport using Distributions
 
 import Base: rand, names, copy, run, length
 import Distributions: cdf, quantile, pdf, logpdf, minimum, maximum, insupport
 import Statistics: mean, var
+import Distributions: logpdf, pdf, cdf, quantile, minimum, maximum, insupport, mean, var
 
 abstract type UQType end
 
@@ -39,7 +37,10 @@ abstract type Copula <: UQType end
 abstract type AbstractMonteCarlo end
 abstract type AbstractQuasiMonteCarlo <: AbstractMonteCarlo end
 
+abstract type AbstractDesignOfExperiments end
+
 # Types
+export AbstractDesignOfExperiments
 export AbstractMonteCarlo
 export AbstractQuasiMonteCarlo
 export Copula
@@ -51,9 +52,13 @@ export UQType
 
 # Structs
 export EmpiricalDistribution
+export BoxBehnken
+export CentralComposite
 export ExternalModel
 export Extractor
 export FORM
+export FractionalFactorial
+export FullFactorial
 export GaussianCopula
 export GaussQuadrature
 export HaltonSampling
@@ -66,7 +71,9 @@ export LegendreBasis
 export LineSampling
 export Model
 export MonteCarlo
+export ParallelModel
 export Parameter
+export PlackettBurman
 export PolynomialChaosBasis
 export PolynomialChaosExpansion
 export PolyharmonicSpline
@@ -76,11 +83,13 @@ export SobolSampling
 export Solver
 export SubSetInfinity
 export SubSetSimulation
+export TwoLevelFactorial
 
 # Methods
 export calc
 export count_rvs
 export dimensions
+export doe_samples
 export evaluate
 export evaluate!
 export gradient
@@ -121,6 +130,7 @@ include("models/pce/polynomialchaosexpansion.jl")
 
 include("sensitivity/gradient.jl")
 
+include("simulations/doe.jl")
 include("simulations/linesampling.jl")
 include("simulations/montecarlo.jl")
 include("simulations/subset.jl")
@@ -128,5 +138,7 @@ include("simulations/subset.jl")
 include("reliability/form.jl")
 include("reliability/probabilityoffailure.jl")
 include("sensitivity/sobolindices.jl")
+
+include("util/wrap.jl")
 
 end

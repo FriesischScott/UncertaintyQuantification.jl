@@ -1,5 +1,5 @@
 """
-	RandomVariable(dist::Sampleable{Univariate}, name::Symbol)
+	RandomVariable(dist::UnivariateDistribution, name::Symbol)
 
 Defines a random variable, with a univariate distribution from Distributions.jl and a name.
 
@@ -14,7 +14,7 @@ RandomVariable(Exponential{Float64}(θ=1.0), :x)
 ```
 """
 struct RandomVariable <: RandomUQInput
-    dist::Sampleable{Univariate}
+    dist::UnivariateDistribution
     name::Symbol
 end
 
@@ -25,8 +25,6 @@ Generates n samples from a random variable. Returns a DataFrame.
 
 # Examples
 
-
-
 See also: [`RandomVariable`](@ref)
 """
 function sample(rv::RandomVariable, n::Integer=1)
@@ -34,16 +32,63 @@ function sample(rv::RandomVariable, n::Integer=1)
 end
 
 function to_physical_space!(rv::RandomVariable, x::DataFrame)
-    x[!, rv.name] = quantile.(rv.dist, cdf.(Normal(), x[:, rv.name]))
+    x[!, rv.name] = _to_physical_space(rv.dist, x[:, rv.name])
     return nothing
+end
+
+function _to_physical_space(d::UnivariateDistribution, x::Vector)
+    return quantile.(d, cdf.(Normal(), x))
+end
+
+function _to_physical_space(d::Normal, x::Vector)
+    if d.μ == 0.0 && d.σ == 1.0
+        return x
+    else
+        return x .* d.σ .+ d.μ
+    end
+end
+
+function _to_physical_space(d::LogNormal, x::Vector)
+    return exp.(x .* d.σ .+ d.μ)
+end
+
+function _to_physical_space(d::Uniform, x::Vector)
+    return cdf.(Normal(), x) .* (d.b - d.a) .+ d.a
 end
 
 function to_standard_normal_space!(rv::RandomVariable, x::DataFrame)
-    x[!, rv.name] = quantile.(Normal(), cdf.(rv.dist, x[:, rv.name]))
+    x[!, rv.name] = _to_standard_normal_space(rv.dist, x[:, rv.name])
     return nothing
 end
 
-mean(rv::RandomVariable) = DataFrame(rv.name => Distributions.mean(rv.dist))
-mean(rvs::Array{RandomVariable}) = mapreduce(mean, hcat, rvs)
+function _to_standard_normal_space(d::UnivariateDistribution, x::Vector)
+    return quantile.(Normal(), cdf.(d, x))
+end
+
+function _to_standard_normal_space(d::Normal, x::Vector)
+    if d.μ == 0.0 && d.σ == 1.0
+        return x
+    else
+        return (x .- d.μ) ./ d.σ
+    end
+end
+
+function _to_standard_normal_space(d::LogNormal, x::Vector)
+    return (log.(x) .- d.μ) ./ d.σ
+end
+
+function _to_standard_normal_space(d::Uniform, x::Vector)
+    return quantile.(Normal(), (x .- d.a) ./ (d.b - d.a))
+end
 
 dimensions(rv::RandomVariable) = 1
+
+logpdf(rv::RandomVariable, x::Real) = logpdf(rv.dist, x)
+pdf(rv::RandomVariable, x::Real) = pdf(rv.dist, x)
+cdf(rv::RandomVariable, x::Real) = cdf(rv.dist, x)
+quantile(rv::RandomVariable, q::Real) = quantile(rv.dist, q)
+minimum(rv::RandomVariable) = minimum(rv.dist)
+maximum(rv::RandomVariable) = maximum(rv.dist)
+insupport(rv::RandomVariable, x::Real) = insupport(rv.dist, x)
+mean(rv::RandomVariable) = mean(rv.dist)
+var(rv::RandomVariable) = var(rv.dist)

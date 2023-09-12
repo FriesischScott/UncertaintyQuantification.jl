@@ -20,9 +20,9 @@ makedocs(
     pages=[
         "Home" => "index.md",
         "Manual" => [
-            "Uncertainty Propagation" => "manual/uncertainty.md",
-            "Sensitivity Analysis" => "manual/sensitivity.md",
+            "Getting Started" => "manual/gettingstarted.md",
             "Reliability Analysis" => "manual/reliability.md",
+            "Metamodelling" => "manual/metamodels.md",
         ],
         "API" => [
             "Inputs" => "api/inputs.md",
