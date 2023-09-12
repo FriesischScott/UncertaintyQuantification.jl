@@ -65,43 +65,21 @@ function probability_of_failure(
     return pf, cov, samples
 end
 
-# function probability_of_failure(
-#     models::Union{Vector{<:UQModel},UQModel},
-#     performance::Function,
-#     inputs::Union{Vector{<:UQInput},UQInput},
-#     design_point_from::FORM,
-#     sim::ImportanceSampling,
-# )
-#     samples, weights = sample(inputs, models, performance, design_point_from, sim)
-#     evaluate!(models, samples)
-
-#     # Probability of failure
-#     weighted_failures = (performance(samples) .< 0) .* weights.w
-#     pf = sum(weighted_failures) / sim.sampling.n
-
-#     variance = ((sum(weighted_failures .* weights.h) / sim.sampling.n) - pf^2) / sim.sampling.n
-#     cov = sqrt(variance) / pf
-
-#     return pf, cov, samples
-# end
-
 function probability_of_failure(
     models::Union{Vector{<:UQModel},UQModel},
     performance::Function,
     inputs::Union{Vector{<:UQInput},UQInput},
-    proposals::Union{Vector{<:UQInput},UQInput},
-    sim::ImportanceSampling,
+    sim::ImportanceSampling
 )
-    samples, weights = sample(inputs, proposals, sim)
+    samples, weights = sample(inputs, sim)
     evaluate!(models, samples)
 
     # Probability of failure
     weighted_failures = (performance(samples) .< 0) .* weights.w
-    pf = sum(weighted_failures) / sim.sampling.n
+    pf = sum(weighted_failures) / sim.n
 
-    variance = ((sum(weighted_failures .* weights.h) / sim.sampling.n) - pf^2) / sim.sampling.n
-    # absolute value to ensure √(positive number), probably not correct!
-    cov = sqrt(abs(variance)) / pf
+    variance = ((sum(weighted_failures .* weights.f) / sim.n) - pf^2) / sim.n
+    cov = variance / pf
 
     return pf, cov, samples
 end

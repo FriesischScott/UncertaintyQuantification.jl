@@ -66,5 +66,6 @@ function probability_of_failure(
     to_physical_space!(inputs, dp)
 
     dp = (; zip(random_names, collect(dp[1, :]))...)
+    α = (; zip(random_names, collect(α))...)
     return pf, β, dp, α
 end

@@ -12,6 +12,24 @@
         @test pi ≈ 3.141 atol = 0.01
     end
 
+    @testset "Importance Sampling" begin
+        x = RandomVariable(Uniform(0.0, 1.0), :x)
+        y = RandomVariable(Uniform(0.0, 1.0), :y)
+        r = Parameter(1, :r)
+
+        d = Model(df -> sqrt.(df.x .^ 2 + df.y .^ 2), :d)
+
+        g = df -> df.r .- df.d # performance function
+
+        pf, β, dp, α = probability_of_failure([d], g, [x, y, r], FORM())
+
+        pf, _ = probability_of_failure([d], g, [x, y, r], ImportanceSampling(100000, β, dp, α))
+
+        pi = 4.0 * (1 - pf)
+
+        @test pi ≈ 3.141 atol = 0.01
+    end
+
     @testset "Line sampling" begin
         x = RandomVariable(Uniform(0.0, 1.0), :x)
         y = RandomVariable(Uniform(0.0, 1.0), :y)

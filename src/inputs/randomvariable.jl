@@ -85,7 +85,6 @@ dimensions(rv::RandomVariable) = 1
 
 logpdf(rv::RandomVariable, x::Real) = logpdf(rv.dist, x)
 pdf(rv::RandomVariable, x::Real) = pdf(rv.dist, x)
-pdf(rv::RandomVariable, x::DataFrame) = pdf.(rv.dist, x[!, rv.name])
 cdf(rv::RandomVariable, x::Real) = cdf(rv.dist, x)
 quantile(rv::RandomVariable, q::Real) = quantile(rv.dist, q)
 minimum(rv::RandomVariable) = minimum(rv.dist)
@@ -93,7 +92,3 @@ maximum(rv::RandomVariable) = maximum(rv.dist)
 insupport(rv::RandomVariable, x::Real) = insupport(rv.dist, x)
 mean(rv::RandomVariable) = mean(rv.dist)
 var(rv::RandomVariable) = var(rv.dist)
-
-function pdf(inputs::Vector{<:UQInput}, x::DataFrame)
-    return mapreduce(i -> pdf(i, x), hcat, inputs)
-end

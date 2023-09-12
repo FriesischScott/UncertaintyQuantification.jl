@@ -34,7 +34,7 @@ displacement = Model(
 max_displacement = 0.01
 
 # Compute probability of failure using standard Monte Carlo
-mc = MonteCarlo(10^6)
+mc = MonteCarlo(10^3)
 
 mc_pf, mc_cov, mc_samples = probability_of_failure(
     [inertia, displacement], df -> max_displacement .- df.w, inputs, mc
@@ -42,6 +42,18 @@ mc_pf, mc_cov, mc_samples = probability_of_failure(
 
 println(
     "Monte Carlo probability of failure $mc_pf ($(size(mc_samples, 1)) model evaluations)"
+)
+
+# Compute probability of failure using Importance Sampling
+pf, β, dp, α = probability_of_failure([inertia, displacement], df -> max_displacement .- df.w, inputs, FORM())
+is = ImportanceSampling(1000, β, dp, α)
+
+is_pf, is_cov, is_samples = probability_of_failure(
+    [inertia, displacement], df -> max_displacement .- df.w, inputs, is
+)
+
+println(
+    "Importance Sampling probability of failure: $is_pf ($(size(is_samples, 1)) model evaluations)",
 )
 
 # Compute probability of failure using Line Sampling
@@ -55,6 +67,7 @@ println(
     "Line Sampling probability of failure: $ls_pf ($(size(ls_samples, 1)) model evaluations)",
 )
 
+# Compute probability of failure using Subset Sampling
 subset = UncertaintyQuantification.SubSetSimulation(2000, 0.1, 10, Uniform(-0.5, 0.5))
 
 subset_pf, subset_cov, subset_samples = probability_of_failure(
