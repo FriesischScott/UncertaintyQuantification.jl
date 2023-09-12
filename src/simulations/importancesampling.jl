@@ -3,9 +3,10 @@ struct ImportanceSampling
     β::Real
     dp::NamedTuple
     α::NamedTuple
-    function ImportanceSampling(n, β, dp, α) 
+    c::Real
+    function ImportanceSampling(n, β, dp, α; c=2.0) 
         @assert n > 0 "n must be greater than zero"
-        new(n, β, dp, α)
+        new(n, β, dp, α, c)
     end
 end
 
@@ -26,7 +27,7 @@ function sample(inputs::Vector{<:UQInput}, sim::ImportanceSampling)
 
     # force in direction parallel to important direction
     b = exp(-(β^2/2)) / (cdf(Normal(), -β) * sqrt(2 * π)) # mean
-    v = 2(b - β) # std, c = 2
+    v = sim.c * (b - β) # std
     Zforced = randn(sim.n) .* v .+ b
 
     Z += Zforced * α'
