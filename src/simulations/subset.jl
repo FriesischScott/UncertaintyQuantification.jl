@@ -30,6 +30,10 @@ struct SubSetSimulation <: AbstractSubSetSimulation
         skewness(proposal) != 0.0 && error("proposal must be a symmetric distribution")
         mean(proposal) != median(proposal) &&
             error("proposal must be a symmetric distribution")
+        mean(proposal) != 0 && error("proposal must be centered in 0")
+        if var(proposal) ≥ 2
+            @warn "proposal pdf with large variance can be unefficient. Use a variance lower than 2."
+        end
         return new(n, target, levels, proposal)
     end
 end
