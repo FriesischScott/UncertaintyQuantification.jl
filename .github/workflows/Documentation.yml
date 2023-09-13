@@ -24,4 +24,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}
           GKSwstype: "100"
-        run: julia --project=docs/ docs/literateMarkdown.jl; julia --project=docs/ docs/make.jl
+        run: julia --project=docs/ docs/literateDocs.jl; julia --project=docs/ docs/make.jl

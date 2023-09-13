@@ -1,5 +1,11 @@
 using Literate
 
+"""
+    function fuseConvert(path::String, out::IOStream, r::String, dir::String)
+
+Groups all files from a directory into a temp file and creates one markdown-file (saved to ./docs/src/examples) using Literate.jl.
+
+"""
 function fuseConvert(path::String, out::IOStream, r::String, dir::String)
     for (root, _, files) in walkdir(joinpath(r, dir))
         for file in files
@@ -26,21 +32,3 @@ for (r, d, f) in walkdir("./docs/literate/")
         fuseConvert(tmpPath, tmpFile, r, dir)
     end
 end
-
-# out = ""
-#         for (root, dirs, files) in walkdir(joinpath(r, dir))
-#             for file in files
-#                 if (cmp(file, dir * ".jl") != 0)
-#                     out = out * read(joinpath(root, file), String) * "\n\n"
-#                 end
-#             end
-#         end
-
-#         open(joinpath(joinpath(r, dir), dir * ".jl"), "w") do f
-#             write(f, out)
-#             close(f)
-#         end
-
-#         Literate.markdown(
-#             joinpath(joinpath(r, dir), dir * ".jl"), "./docs/src/examples"; documenter=true
-#         )
