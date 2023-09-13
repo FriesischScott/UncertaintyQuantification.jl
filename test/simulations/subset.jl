@@ -14,8 +14,7 @@
     @test_throws ErrorException("proposal must be centered in 0") SubSetSimulation(
         2000, 0.2, 10, Uniform()
     )
-    @test_logs (
-        :warn,
-        "proposal pdf with large variance can be unefficient. Use a variance lower than 2.",
-    ) SubSetSimulation(2000, 0.2, 10, Uniform(-4, 4))
+    @test_logs (:warn, "A proposal pdf with large variance (≥ 2) can be inefficient.") SubSetSimulation(
+        2000, 0.2, 10, Uniform(-4, 4)
+    )
 end
