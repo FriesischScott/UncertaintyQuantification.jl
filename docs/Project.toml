@@ -9,3 +9,4 @@ UncertaintyQuantification = "7183a548-a887-11e9-15ce-a56ab60bad7a"
 
 [compact]
 Documenter = "0.27"
+DocumenterCitations = "1.0"
