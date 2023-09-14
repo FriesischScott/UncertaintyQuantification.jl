@@ -10,7 +10,6 @@ design = FullFactorial([5, 5])
 
 training_data = sample(x, design)
 evaluate!(himmelblau, training_data)
-
 rs = ResponseSurface(training_data, :y, 4)
 
 test_data = sample(x, 1000)
@@ -21,3 +20,5 @@ evaluate!(himmelblau, p_data)
 
 mse = mean((p_data.y .- test_data.y) .^ 2)
 println("MSE is:  $mse")
+
+# This file was generated using Literate.jl, https://github.com/fredrikekre/Literate.jl
