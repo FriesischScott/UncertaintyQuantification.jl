@@ -2,7 +2,7 @@
 
 ## Subset Simulation
 
-Subset simulation ([auEstimationSmallFailure2001](@cite)) is an advanced simulation technique for the estimation of small failure probabilities. Here we solve a simple problem where the response $y$ depends on two independent random variables $x_1$ and $x_2$ following a standard normal distribution. The simple linear model is defined by
+Subset simulation [auEstimationSmallFailure2001](@cite) is an advanced simulation technique for the estimation of small failure probabilities. Here we solve a simple problem where the response $y$ depends on two independent random variables $x_1$ and $x_2$ following a standard normal distribution. The simple linear model is defined by
 
 $y(x_1,x_2) = x_1 + x_2$
 
@@ -14,7 +14,7 @@ The analytical probability of failure can be calculated as
 
 $pf = 1 - \Phi(\frac{9}{\sqrt(2)}) \approx 1 \times 10^{-10}.$
 
-This example is taken from [zuevSubsetSimulationMethod2015](@cite).
+This example is taken from [zuevSubsetSimulationMethod2013](@cite).
 
 In order to solve this, we start by creating the two random variables and group them in a vector `inputs`.
 

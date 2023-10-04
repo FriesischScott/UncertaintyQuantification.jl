@@ -24,6 +24,7 @@ makedocs(
             "Reliability Analysis" => "manual/reliability.md",
             "Metamodelling" => "manual/metamodels.md",
         ],
+        "Examples" => ["Metamodels" => "examples/metamodels.md"],
         "API" => [
             "Inputs" => "api/inputs.md",
             "Parameter" => "api/parameter.md",

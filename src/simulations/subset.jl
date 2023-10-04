@@ -27,9 +27,15 @@ struct SubSetSimulation <: AbstractSubSetSimulation
     function SubSetSimulation(
         n::Integer, target::Float64, levels::Integer, proposal::UnivariateDistribution
     )
-        skewness(proposal) != 0.0 && error("proposal must be a symmetric distribution")
-        mean(proposal) != median(proposal) &&
+        if skewness(proposal) != 0.0
             error("proposal must be a symmetric distribution")
+        elseif mean(proposal) != median(proposal)
+            error("proposal must be a symmetric distribution")
+        elseif mean(proposal) != 0
+            error("proposal must be centered in 0")
+        elseif var(proposal) ≥ 2
+            @warn "A proposal pdf with large variance (≥ 2) can be inefficient."
+        end
         return new(n, target, levels, proposal)
     end
 end
