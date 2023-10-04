@@ -22,4 +22,3 @@ to_standard_normal_space!(p::Parameter, x::DataFrame) = nothing
 to_physical_space!(p::Parameter, x::DataFrame) = nothing
 
 mean(p::Parameter) = p.value
-pdf(p::Parameter, x::DataFrame) = x[!, p.name] ./ x[!, p.name]
