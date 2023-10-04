@@ -95,7 +95,6 @@ export mean
 export multivariate_indices
 export polynomialchaos
 export probability_of_failure
-export proposaldistribution
 export qmc_samples
 export quadrature_nodes
 export quadrature_weights
