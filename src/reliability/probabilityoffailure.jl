@@ -79,7 +79,7 @@ function probability_of_failure(
     pf = sum(weighted_failures) / sim.n
 
     variance = ((sum(weighted_failures .* weights.f) / sim.n) - pf^2) / sim.n
-    cov = variance / pf
+    cov = sqrt(variance) / pf
 
     return pf, cov, samples
 end
