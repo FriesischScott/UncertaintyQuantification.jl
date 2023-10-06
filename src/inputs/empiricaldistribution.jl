@@ -24,7 +24,7 @@ function quantile(d::EmpiricalDistribution, x::Real)
 end
 
 function pdf(d::EmpiricalDistribution, x::Real)
-    return insupport(d, x) ? pdf(d.pdf, x) : zero(x)
+    return insupport(d, x) ? abs(pdf(d.pdf, x)) : zero(x)
 end
 
 function logpdf(d::EmpiricalDistribution, x::Real)
