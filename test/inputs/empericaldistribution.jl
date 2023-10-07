@@ -19,13 +19,12 @@
 
             samples = rand(Uniform(minimum(ed), maximum(ed)), 100)
             @test all(insupport.(ed, samples))
-            @test all(isapprox.(cdf.(ed, samples), cdf.(dist, samples); atol=0.1))
-            @test all(isapprox.(pdf.(ed, samples), pdf.(dist, samples); atol=0.1))
-            @show(maximum(abs.(pdf.(ed, samples) .- pdf.(dist, samples))))
-            @test all(isapprox.(logpdf.(ed, samples), log.(pdf.(ed, samples)); atol=0.1))
+            @test all(isapprox.(cdf.(ed, samples), cdf.(dist, samples); atol=0.05))
+            @test all(isapprox.(pdf.(ed, samples), pdf.(dist, samples); atol=0.05))
+            @test all(isapprox.(logpdf.(ed, samples), log.(pdf.(ed, samples)); atol=0.05))
 
             r = [0.25, 0.5, 0.75]
-            @test all(isapprox.(quantile.(ed, r), quantile.(dist, r); atol=0.08))
+            @test all(isapprox.(quantile.(ed, r), quantile.(dist, r); atol=0.05))
         end
     end
 end
