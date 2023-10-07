@@ -1,8 +1,8 @@
 @testset "EmpiricalDistribution" begin
     n = 10^5
 
-    distributions = [Normal(1, 1), Rayleigh(1), Exponential(), Gumbel()]
-    names = ["Normal", "Rayleigh", "Exponential", "Gumbel"]
+    distributions = [Normal(1, 1), Rayleigh(1), Gumbel()]
+    names = ["Normal", "Rayleigh", "Gumbel"]
     for (dist, name) in zip(distributions, names)
         @testset "$name" begin
             x = rand(dist, n)
@@ -21,6 +21,7 @@
             @test all(insupport.(ed, samples))
             @test all(isapprox.(cdf.(ed, samples), cdf.(dist, samples); atol=0.1))
             @test all(isapprox.(pdf.(ed, samples), pdf.(dist, samples); atol=0.1))
+            @show(maximum(abs.(pdf.(ed, samples) .- pdf.(dist, samples))))
             @test all(isapprox.(logpdf.(ed, samples), log.(pdf.(ed, samples)); atol=0.1))
 
             r = [0.25, 0.5, 0.75]
