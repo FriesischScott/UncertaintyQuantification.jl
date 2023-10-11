@@ -12,19 +12,19 @@
             h0 = ApproximateTwoSampleKSTest(x, y)
             @test pvalue(h0) > 0.05
 
-            @test ≈(mean(ed), mean(dist); rtol=0.05)
-            @test ≈(var(ed), var(dist); rtol=0.05)
+            @test mean(ed) ≈ mean(dist) rtol=0.05
+            @test var(ed) ≈ var(dist) rtol=0.05
             @test minimum(ed) == minimum(ed.data)
             @test maximum(ed) == maximum(ed.data)
 
             samples = rand(Uniform(minimum(ed), maximum(ed)), 100)
             @test all(insupport.(ed, samples))
-            @test all(isapprox.(cdf.(ed, samples), cdf.(dist, samples); atol=0.05))
-            @test all(isapprox.(pdf.(ed, samples), pdf.(dist, samples); atol=0.05))
-            @test all(isapprox.(logpdf.(ed, samples), log.(pdf.(ed, samples)); atol=0.05))
+            @test cdf.(ed, samples) ≈ cdf.(dist, samples) atol=0.05
+            @test pdf.(ed, samples) ≈ pdf.(dist, samples) atol=0.05
+            @test logpdf.(ed, samples) ≈ log.(pdf.(ed, samples)) atol=0.05
 
-            r = [0.25, 0.5, 0.75]
-            @test all(isapprox.(quantile.(ed, r), quantile.(dist, r); atol=0.05))
+            r = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+            @test quantile.(ed, r) ≈ quantile.(dist, r) atol=0.05
         end
     end
 end
