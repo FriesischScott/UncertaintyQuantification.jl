@@ -9,15 +9,18 @@ using DynamicPolynomials
 using FastGaussQuadrature
 using FiniteDifferences
 using Formatting
+using KernelDensity
 using LinearAlgebra
 using Mustache
 using QuasiMonteCarlo
 using Random
 using Reexport
+using StatsBase
 
 @reexport using Distributions
 
 import Base: rand, names, copy, run, length
+import Distributions: cdf, quantile, pdf, logpdf, minimum, maximum, insupport
 import Statistics: mean, var
 import Distributions: logpdf, pdf, cdf, quantile, minimum, maximum, insupport, mean, var
 
@@ -48,6 +51,7 @@ export UQModel
 export UQType
 
 # Structs
+export EmpiricalDistribution
 export BoxBehnken
 export CentralComposite
 export ExternalModel
@@ -105,6 +109,7 @@ export to_physical_space!
 export to_standard_normal_space
 export to_standard_normal_space!
 
+include("inputs/empiricaldistribution.jl")
 include("inputs/inputs.jl")
 include("inputs/parameter.jl")
 include("inputs/randomvariable.jl")

@@ -1,6 +1,7 @@
 using DataFrames
 using Distributed
 using Formatting
+using HypothesisTests
 using InteractiveUtils
 using QuasiMonteCarlo
 using Random
@@ -8,6 +9,7 @@ using StatsBase: fit, Histogram
 using Test
 using UncertaintyQuantification
 
+include("inputs/empericaldistribution.jl")
 include("inputs/parameter.jl")
 include("inputs/randomvariable.jl");
 include("inputs/jointdistribution.jl");
