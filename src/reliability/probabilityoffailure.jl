@@ -75,10 +75,10 @@ function probability_of_failure(
     evaluate!(models, samples)
 
     # Probability of failure
-    weighted_failures = (performance(samples) .< 0) .* weights.w
+    weighted_failures = (performance(samples) .< 0) .* weights
     pf = sum(weighted_failures) / sim.n
 
-    variance = ((sum(weighted_failures .* weights.w) / sim.n) - pf^2) / sim.n
+    variance = ((sum(weighted_failures .* weights) / sim.n) - pf^2) / sim.n
     cov = sqrt(variance) / pf
 
     return pf, cov, samples

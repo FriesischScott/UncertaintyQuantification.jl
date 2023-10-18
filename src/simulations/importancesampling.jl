@@ -32,9 +32,7 @@ function sample(inputs::Vector{<:UQInput}, sim::ImportanceSampling)
 
     Z += Zforced * α'
 
-    weights = DataFrame(ones(sim.n, 1), [:w]) 
-    weights.w = pdf.(Normal(), Zforced) ./ pdf.(Normal(b, v), Zforced)
-
+    weights = map((z -> pdf(Normal(), z) / pdf(Normal(b, v), z)), Zforced)
     samples = DataFrame(Z, random_names)
     to_physical_space!(filter(i -> isa(i, RandomUQInput), inputs), samples)
 
