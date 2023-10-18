@@ -25,6 +25,7 @@ function probability_of_failure(
     parameters =
         !isempty(deterministic_inputs) ? sample(deterministic_inputs, 1) : DataFrame()
 
+    α = Vector{Float64}(undef, length(random_names))
     β::Float64 = 0.0
     h₀::Float64 = Inf
 
@@ -65,5 +66,6 @@ function probability_of_failure(
     to_physical_space!(inputs, dp)
 
     dp = (; zip(random_names, collect(dp[1, :]))...)
-    return pf, β, dp
+    α = (; zip(random_names, collect(α))...)
+    return pf, β, dp, α
 end
