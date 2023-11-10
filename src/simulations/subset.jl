@@ -67,7 +67,7 @@ struct SubSetInfinity <: AbstractSubSetSimulation
     s::Real
 
     function SubSetInfinity(n::Integer, target::Float64, levels::Integer, s::Real)
-        (0 <= s <= 1) || error("standard deviation must be between 0.0")
+        (0 <= s <= 1) || error("standard deviation must be between 0.0 and 1.0")
         return new(n, target, levels, s)
     end
 end
