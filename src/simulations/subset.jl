@@ -130,6 +130,8 @@ function probability_of_failure(
             cov[i] = estimate_cov(Iᵢ, pf[i], sim.n)
         end
 
+        @info "Subset level $i"  pf[i]  threshold[i] cov[i]
+
         ## Break the loop
         if threshold[i] <= 0 || i == sim.levels
             break
@@ -262,6 +264,9 @@ function nextlevelsamples(
 
     reject = nextlevelperformance .> threshold
 
+    α = 1 - mean(reject)
+    @info "acceptance rate" α
+    
     nextlevelsamples[reject, :] = samples[reject, :]
     nextlevelperformance[reject] = performance[reject]
 
