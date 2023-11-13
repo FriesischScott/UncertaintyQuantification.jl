@@ -130,7 +130,7 @@ function probability_of_failure(
             cov[i] = estimate_cov(Iᵢ, pf[i], sim.n)
         end
 
-        @info "Subset level $i"  pf[i]  threshold[i] cov[i]
+        @info "Subset level $i" pf[i] threshold[i] cov[i]
 
         ## Break the loop
         if threshold[i] <= 0 || i == sim.levels
@@ -185,8 +185,11 @@ function nextlevelsamples(
     d = length(rvs)
     Φ = MvNormal(Diagonal(Matrix{Float64}(I, d, d)))
 
+    α_MCMC = zeros(samples_per_chain)
+    α_ss = zeros(samples_per_chain)
+
     # Modified metropolis hastings to generate samples for the next intermediate failure region
-    for _ in 1:samples_per_chain
+    for i in 1:samples_per_chain
         chainsamples = copy(nextlevelsamples[end])
         chainperformance = copy(nextlevelperformance[end])
 
@@ -200,6 +203,8 @@ function nextlevelsamples(
         α_accept = α .>= rand(size(α)...)
         chainsamples[α_accept, rvs] = ξ[α_accept, :]
 
+        α_MCMC[i] = mean(α_accept)
+
         to_physical_space!(inputs, chainsamples)
 
         ## Evaluating model just for new samples
@@ -210,6 +215,8 @@ function nextlevelsamples(
 
             new_samplesperformance = performancefunction(new_samples)
             reject = new_samplesperformance .> threshold
+
+            α_ss[i] = 1 - mean(reject)
 
             new_samples[reject, :] = nextlevelsamples[end][α_accept_indices[reject], :]
             new_samplesperformance[reject] = nextlevelperformance[end][α_accept_indices[reject]]
@@ -224,6 +231,9 @@ function nextlevelsamples(
         push!(nextlevelsamples, chainsamples)
         push!(nextlevelperformance, chainperformance)
     end
+
+    @info "acceptance rate MCMC" mean(α_MCMC)
+    @info "acceptance rate subset" mean(α_ss)
 
     # reduce and discard seeds
     nextlevelsamples = reduce(vcat, nextlevelsamples[2:end])
@@ -266,7 +276,7 @@ function nextlevelsamples(
 
     α = 1 - mean(reject)
     @info "acceptance rate" α
-    
+
     nextlevelsamples[reject, :] = samples[reject, :]
     nextlevelperformance[reject] = performance[reject]
 
