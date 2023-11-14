@@ -89,7 +89,6 @@ function sample(inputs::Vector{<:UQInput}, sim::AbstractSubSetSimulation)
     return samples
 end
 
-
 """
     SubSetInfinityAdaptive(n::Integer, target::Float64, levels::Integer, ....)
 
@@ -124,14 +123,16 @@ mutable struct SubSetInfinityAdaptive <: AbstractSubSetSimulation
     levels::Integer
     λ::Real
     Na::Integer     # Probably needs to be a multiple of N
-    s :: Real
+    s::Real
 
-    function SubSetInfinityAdaptive(n::Integer, target::Float64, levels::Integer, λ::Real, Na::Integer)
-        (0 <= λ <= 1) || error("Scaling parameter must be between 0.0 and 1.0. A good initial choice is")
+    function SubSetInfinityAdaptive(
+        n::Integer, target::Float64, levels::Integer, λ::Real, Na::Integer
+    )
+        (0 <= λ <= 1) ||
+            error("Scaling parameter must be between 0.0 and 1.0. A good initial choice is")
         return new(n, target, levels, 1, Na, 1)
     end
 end
-
 
 function probability_of_failure(
     models::Union{Vector{<:UQModel},UQModel},
@@ -327,8 +328,6 @@ function nextlevelsamples(
     return nextlevelsamples, nextlevelperformance
 end
 
-
-
 function nextlevelsamples(
     samples::DataFrame,
     performance::Vector{<:Real},
@@ -337,11 +336,9 @@ function nextlevelsamples(
     performancefunction::Function,
     inputs::Union{Vector{<:UQInput},UQInput},
     sim::SubSetInfinityAdaptive,
-)   
-
+)
     next_samples = [samples]
     next_performance = [performance]
-
 
     a_star = 0.44       # Optimal acceptance rate
     N_iter = 4          # Number of iterations or updates of s
@@ -349,24 +346,31 @@ function nextlevelsamples(
     Ns = size(samples, 1)
 
     N_iter = 4
-    N_seed = Int64(Ns/N_iter)          # Number of elements to choose from seeds
+    N_seed = Int64(Ns / N_iter)          # Number of elements to choose from seeds
 
     permutation = shuffle(1:Ns)
-    samples_perm = samples[permutation,:]    # Randomly permute the seeds
+    samples_perm = samples[permutation, :]    # Randomly permute the seeds
     performance_perm = performance[permutation]
 
-    chunk_samples = [samples_perm[1+N_seed*k:(k == N_iter-1 ? end : N_seed*k+N_seed), :] for k = 0:N_iter-1]
-    chunk_performance = [performance_perm[1+N_seed*k:(k == N_iter-1 ? end : N_seed*k+N_seed)] for k = 0:N_iter-1]
+    chunk_samples = [
+        samples_perm[(1 + N_seed * k):(k == N_iter - 1 ? end : N_seed * k + N_seed), :] for
+        k in 0:(N_iter - 1)
+    ]
+    chunk_performance = [
+        performance_perm[(1 + N_seed * k):(k == N_iter - 1 ? end : N_seed * k + N_seed)] for
+        k in 0:(N_iter - 1)
+    ]
 
     # chunks_1 = collect(Iterators.partition(eachrow(samples_perm), N_seed))
-    
+
+    N_total_per_chunck = Int64(sim.n / N_iter)
+
     s = sim.s
     λ = sim.λ
 
-    for i=1:N_iter
-
+    for i in 1:N_iter
         s_new = min(1, s * λ)
-        sim_i = SubSetInfinity(N_seed, sim.target, sim.levels, s_new)
+        sim_i = SubSetInfinity(N_total_per_chunck, sim.target, sim.levels, s_new)
 
         @info "Performing SS with " s_new
 
@@ -380,12 +384,19 @@ function nextlevelsamples(
             sim_i,
         )
 
-        a = 1 - mean(nextperformance .== chunk_performance[i])
+        # a = 1 - mean(nextperformance .== chunk_performance[i])
+        # a = length(unique(nextperformance))/(length(nextperformance))
+
+        N_copy = Int64(floor(N_total_per_chunck / length(chunk_performance[i])))
+        p_check = repeat(chunk_performance[i], N_copy)
+        a = 1 - mean(nextperformance .== p_check)
+
         λ = λ * exp(1 / sqrt(i) * (a - a_star))
+
+        @info "Estimated acceptance" a
 
         push!(next_samples, nextsamples)
         push!(next_performance, nextperformance)
-
     end
 
     next_samples = reduce(vcat, next_samples[2:end])
