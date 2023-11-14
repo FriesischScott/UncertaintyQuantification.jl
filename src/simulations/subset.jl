@@ -99,6 +99,12 @@ Defines the properties of a Subset-∞ simulation where `n` is the number of ini
 `target` is the target probability of failure at each level, `levels` is the maximum number
 of levels and `s` is the standard deviation for the proposal samples.
 
+
+    Idea behind this algorithm is to adaptively select the correlation parameter of s
+    (per dimension) at each intermediate level, by simulating a subset N_a of the chains
+    (which must be choosen without replacement at random) and modifying the acceptance rate towards the optiming
+    α_star = 0.44
+
 # Examples
 
 ```jldoctest
@@ -112,16 +118,17 @@ SubSetInfinity(100, 0.1, 10, 0.5)
 
 [patelliEfficientMonteCarlo2015](@cite)
 """
-struct SubSetInfinityAdaptive <: AbstractSubSetSimulation
+mutable struct SubSetInfinityAdaptive <: AbstractSubSetSimulation
     n::Integer
     target::Float64
     levels::Integer
     λ::Real
-    Na::Integer
+    Na::Integer     # Probably needs to be a multiple of N
+    s :: Real
 
     function SubSetInfinityAdaptive(n::Integer, target::Float64, levels::Integer, λ::Real, Na::Integer)
         (0 <= λ <= 1) || error("Scaling parameter must be between 0.0 and 1.0. A good initial choice is")
-        return new(n, target, levels, λ, Na)
+        return new(n, target, levels, 1, Na, 1)
     end
 end
 
