@@ -18,3 +18,43 @@
         2000, 0.2, 10, Uniform(-4, 4)
     )
 end
+
+@testset "SubSetInfinity" begin
+    subset = SubSetInfinity(2000, 0.2, 10, 0.5)
+
+    @test isa(subset, SubSetInfinity)
+    @test subset.n == 2000
+    @test subset.target == 0.2
+    @test subset.levels == 10
+    @test subset.s == 0.5
+
+    @test_throws ErrorException("standard deviation must be between 0.0 and 1.0") SubSetInfinity(
+        2000, 0.2, 10, 2.0
+    )
+    @test_throws ErrorException("standard deviation must be between 0.0 and 1.0") SubSetInfinity(
+        2000, 0.2, 10, -1.0
+    )
+end
+
+@testset "SubSetInfinityAdaptive" begin
+    subset = SubSetInfinityAdaptive(2000, 0.2, 10, 1, 4)
+
+    @test isa(subset, SubSetInfinityAdaptive)
+    @test subset.n == 2000
+    @test subset.target == 0.2
+    @test subset.levels == 10
+    @test subset.λ == 1
+    @test subset.Na == 4
+
+    @test_throws ErrorException(
+        "Scaling parameter must be between 0.0 and 1.0. A good initial choice is 1.0"
+    ) SubSetInfinityAdaptive(2000, 0.1, 10, 2.0, 4)
+
+    @test_throws ErrorException(
+        "Scaling parameter must be between 0.0 and 1.0. A good initial choice is 1.0"
+    ) SubSetInfinityAdaptive(2000, 0.1, 10, -2.0, 4)
+    
+    @test_throws ErrorException("Number of partitions Na must be a multiple of n") SubSetInfinityAdaptive(
+        2000, 0.1, 10, -2.0, 9
+    )
+end

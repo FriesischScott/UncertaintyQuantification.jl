@@ -96,8 +96,8 @@ Implementation of: Papaioannou, Iason, et al. "MCMC algorithms for subset simula
 
 Defines the properties of a Subset-∞ adaptive where `n` is the number of initial samples,
 `target` is the target probability of failure at each level, `levels` is the maximum number
-of levels and `λ` (λ = 1 recommended) is the initial scaling parameter and Na is the number of 
-subset partitions. The initial variance of the proposal distribution is λ.
+of levels and `λ` (λ = 1 recommended) is the initial scaling parameter and `Na` is the number of 
+subset partitions. The initial variance of the proposal distribution is `λ`.
 
 
 Idea behind this algorithm is to adaptively select the correlation parameter of s
@@ -109,7 +109,7 @@ at each intermediate level, by simulating a subset N_a of the chains
 
 ```jldoctest
 julia> SubSetInfinityAdaptive(100, 0.1, 10, 4, 1)
-SubSetInfinity(100, 0.1, 10, 0.5)
+SubSetInfinityAdaptive(100, 0.1, 10, 4, 1)
 ```
 
 # References
@@ -129,10 +129,10 @@ mutable struct SubSetInfinityAdaptive <: AbstractSubSetSimulation
     function SubSetInfinityAdaptive(
         n::Integer, target::Float64, levels::Integer, λ::Real, Na::Integer
     )   
-        (mod(n, Na) ==0) ||
-            error("Number of partitions must Na be a multiple of n")
+        (mod(n, Na) == 0) ||
+            error("Number of partitions Na must be a multiple of n")
         (0 <= λ <= 1) ||
-            error("Scaling parameter must be between 0.0 and 1.0. A good initial choice is")
+            error("Scaling parameter must be between 0.0 and 1.0. A good initial choice is 1.0")
         return new(n, target, levels, 1, Na, 1)
     end
 end
