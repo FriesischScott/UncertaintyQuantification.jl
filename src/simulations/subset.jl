@@ -90,32 +90,33 @@ function sample(inputs::Vector{<:UQInput}, sim::AbstractSubSetSimulation)
 end
 
 """
-    SubSetInfinityAdaptive(n::Integer, target::Float64, levels::Integer, ....)
+    SubSetInfinityAdaptive(n::Integer, target::Float64, levels::Integer, λ::Real, Na::Integer)
 
-Implementation of: Papaioannou, Iason, et al. "MCMC algorithms for subset simulation." Probabilistic Engineering Mechanics 41 (2015): 89-103`
+Implementation of: Papaioannou, Iason, et al. "MCMC algorithms for subset simulation." Probabilistic Engineering Mechanics 41 (2015): 89-103
 
-Defines the properties of a Subset-∞ simulation where `n` is the number of initial samples,
+Defines the properties of a Subset-∞ adaptive where `n` is the number of initial samples,
 `target` is the target probability of failure at each level, `levels` is the maximum number
-of levels and `s` is the standard deviation for the proposal samples.
+of levels and `λ` (λ = 1 recommended) is the initial scaling parameter and Na is the number of 
+subset partitions. The initial variance of the proposal distribution is λ.
 
 
-    Idea behind this algorithm is to adaptively select the correlation parameter of s
-    (per dimension) at each intermediate level, by simulating a subset N_a of the chains
-    (which must be choosen without replacement at random) and modifying the acceptance rate towards the optiming
-    α_star = 0.44
+Idea behind this algorithm is to adaptively select the correlation parameter of s
+at each intermediate level, by simulating a subset N_a of the chains
+(which must be choosen without replacement at random) and modifying the acceptance rate towards the optiming
+α_star = 0.44
 
 # Examples
 
 ```jldoctest
-julia> SubSetInfinity(100, 0.1, 10, 0.5)
+julia> SubSetInfinityAdaptive(100, 0.1, 10, 4, 1)
 SubSetInfinity(100, 0.1, 10, 0.5)
 ```
 
 # References
 
-[auRareEventSimulation2016](@cite)
+[papaioannou2015mcmc](@cite)
 
-[patelliEfficientMonteCarlo2015](@cite)
+[chan2022adaptive](@cite)
 """
 mutable struct SubSetInfinityAdaptive <: AbstractSubSetSimulation
     n::Integer
@@ -127,7 +128,9 @@ mutable struct SubSetInfinityAdaptive <: AbstractSubSetSimulation
 
     function SubSetInfinityAdaptive(
         n::Integer, target::Float64, levels::Integer, λ::Real, Na::Integer
-    )
+    )   
+        (mod(n, Na) ==0) ||
+            error("Number of partitions must Na be a multiple of n")
         (0 <= λ <= 1) ||
             error("Scaling parameter must be between 0.0 and 1.0. A good initial choice is")
         return new(n, target, levels, 1, Na, 1)
@@ -340,11 +343,11 @@ function nextlevelsamples(
     next_samples = [samples]
     next_performance = [performance]
 
-    a_star = 0.44       # Optimal acceptance rate
+    a_star = 0.44       # Optimal acceptance rate, so say Papaioannou, I., et. al.
 
     Ns = length(performance)            # Number of seeds
 
-    N_part = 4
+    N_part = sim.Na
     N_seed = Int64(Ns / N_part)          # Number of seeds per partition
 
     permutation = shuffle(1:Ns)
@@ -384,7 +387,7 @@ function nextlevelsamples(
             sim_i,
         )
 
-        samples_per_seed = Int64(floor(N_total_per_chunck / Ns))
+        samples_per_seed = Int64(floor(N_samples_per_partition / Ns))
         p_check = repeat(performance_partition[i], samples_per_seed)
 
         a = 1 - mean(nextperformance .== p_check)   # Calculate acceptance rate
