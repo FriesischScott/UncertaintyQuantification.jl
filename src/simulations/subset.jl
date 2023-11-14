@@ -341,42 +341,42 @@ function nextlevelsamples(
     next_performance = [performance]
 
     a_star = 0.44       # Optimal acceptance rate
-    N_iter = 4          # Number of iterations or updates of s
 
-    Ns = size(samples, 1)
+    Ns = length(performance)            # Number of seeds
 
-    N_iter = 4
-    N_seed = Int64(Ns / N_iter)          # Number of elements to choose from seeds
+    N_part = 4
+    N_seed = Int64(Ns / N_part)          # Number of seeds per partition
 
     permutation = shuffle(1:Ns)
-    samples_perm = samples[permutation, :]    # Randomly permute the seeds
+    samples_perm = samples[permutation, :]          # Randomly permute the seeds and performances
     performance_perm = performance[permutation]
 
-    chunk_samples = [
-        samples_perm[(1 + N_seed * k):(k == N_iter - 1 ? end : N_seed * k + N_seed), :] for
-        k in 0:(N_iter - 1)
+    # Partition samples and performances
+    samples_partition = [
+        samples_perm[(1 + N_seed * k):(k == N_part - 1 ? end : N_seed * k + N_seed), :] for
+        k in 0:(N_part - 1)
     ]
-    chunk_performance = [
-        performance_perm[(1 + N_seed * k):(k == N_iter - 1 ? end : N_seed * k + N_seed)] for
-        k in 0:(N_iter - 1)
+    performance_partition = [
+        performance_perm[(1 + N_seed * k):(k == N_part - 1 ? end : N_seed * k + N_seed)] for
+        k in 0:(N_part - 1)
     ]
 
-    # chunks_1 = collect(Iterators.partition(eachrow(samples_perm), N_seed))
-
-    N_total_per_chunck = Int64(sim.n / N_iter)
+    N_samples_per_partition = Int64(sim.n / N_part)
 
     s = sim.s
     λ = sim.λ
 
-    for i in 1:N_iter
+    # Perform N_part subset infinity calculations, 
+    # with updates of λ and s towards optimal acceptance rate: a_star = 0.44
+    for i in 1:N_part
         s_new = min(1, s * λ)
-        sim_i = SubSetInfinity(N_total_per_chunck, sim.target, sim.levels, s_new)
+        sim_i = SubSetInfinity(N_samples_per_partition, sim.target, sim.levels, s_new)
 
-        @info "Performing SS with " s_new
+        @info "Performing a SS iteration with " s_new
 
         nextsamples, nextperformance = UncertaintyQuantification.nextlevelsamples(
-            chunk_samples[i],
-            chunk_performance[i],
+            samples_partition[i],
+            performance_partition[i],
             threshold,
             models,
             performancefunction,
@@ -384,14 +384,12 @@ function nextlevelsamples(
             sim_i,
         )
 
-        # a = 1 - mean(nextperformance .== chunk_performance[i])
-        # a = length(unique(nextperformance))/(length(nextperformance))
+        samples_per_seed = Int64(floor(N_total_per_chunck / Ns))
+        p_check = repeat(performance_partition[i], samples_per_seed)
 
-        N_copy = Int64(floor(N_total_per_chunck / length(chunk_performance[i])))
-        p_check = repeat(chunk_performance[i], N_copy)
-        a = 1 - mean(nextperformance .== p_check)
+        a = 1 - mean(nextperformance .== p_check)   # Calculate acceptance rate
 
-        λ = λ * exp(1 / sqrt(i) * (a - a_star))
+        λ = λ * exp(1 / sqrt(i) * (a - a_star))     # Estimate new scaling factor for proposal variance
 
         @info "Estimated acceptance" a
 
