@@ -89,6 +89,43 @@ function sample(inputs::Vector{<:UQInput}, sim::AbstractSubSetSimulation)
     return samples
 end
 
+
+"""
+    SubSetInfinityAdaptive(n::Integer, target::Float64, levels::Integer, ....)
+
+Implementation of: Papaioannou, Iason, et al. "MCMC algorithms for subset simulation." Probabilistic Engineering Mechanics 41 (2015): 89-103`
+
+Defines the properties of a Subset-∞ simulation where `n` is the number of initial samples,
+`target` is the target probability of failure at each level, `levels` is the maximum number
+of levels and `s` is the standard deviation for the proposal samples.
+
+# Examples
+
+```jldoctest
+julia> SubSetInfinity(100, 0.1, 10, 0.5)
+SubSetInfinity(100, 0.1, 10, 0.5)
+```
+
+# References
+
+[auRareEventSimulation2016](@cite)
+
+[patelliEfficientMonteCarlo2015](@cite)
+"""
+struct SubSetInfinityAdaptive <: AbstractSubSetSimulation
+    n::Integer
+    target::Float64
+    levels::Integer
+    λ::Real
+    Na::Integer
+
+    function SubSetInfinityAdaptive(n::Integer, target::Float64, levels::Integer, λ::Real, Na::Integer)
+        (0 <= λ <= 1) || error("Scaling parameter must be between 0.0 and 1.0. A good initial choice is")
+        return new(n, target, levels, λ, Na)
+    end
+end
+
+
 function probability_of_failure(
     models::Union{Vector{<:UQModel},UQModel},
     performancefunction::Function,
@@ -281,6 +318,77 @@ function nextlevelsamples(
     nextlevelperformance[reject] = performance[reject]
 
     return nextlevelsamples, nextlevelperformance
+end
+
+
+
+function nextlevelsamples(
+    samples::DataFrame,
+    performance::Vector{<:Real},
+    threshold::Real,
+    models::Union{Vector{<:UQModel},UQModel},
+    performancefunction::Function,
+    inputs::Union{Vector{<:UQInput},UQInput},
+    sim::SubSetInfinityAdaptive,
+)   
+
+    next_samples = [samples]
+    next_performance = [performance]
+
+
+    a_star = 0.44       # Optimal acceptance rate
+    N_iter = 4          # Number of iterations or updates of s
+
+    Ns = size(samples, 1)
+
+    N_iter = 4
+    N_seed = Int64(Ns/N_iter)          # Number of elements to choose from seeds
+
+    permutation = shuffle(1:Ns)
+    samples_perm = samples[permutation,:]    # Randomly permute the seeds
+    performance_perm = performance[permutation]
+
+    chunk_samples = [samples_perm[1+N_seed*k:(k == N_iter-1 ? end : N_seed*k+N_seed), :] for k = 0:N_iter-1]
+    chunk_performance = [performance_perm[1+N_seed*k:(k == N_iter-1 ? end : N_seed*k+N_seed)] for k = 0:N_iter-1]
+
+    # chunks_1 = collect(Iterators.partition(eachrow(samples_perm), N_seed))
+    
+    s = sim.s
+    λ = sim.λ
+
+    for i=1:N_iter
+
+        s_new = min(1, s * λ)
+        sim_i = SubSetInfinity(N_seed, sim.target, sim.levels, s_new)
+
+        @info "Performing SS with " s_new
+
+        nextsamples, nextperformance = UncertaintyQuantification.nextlevelsamples(
+            chunk_samples[i],
+            chunk_performance[i],
+            threshold,
+            models,
+            performancefunction,
+            inputs,
+            sim_i,
+        )
+
+        a = 1 - mean(nextperformance .== chunk_performance[i])
+        λ = λ * exp(1 / sqrt(i) * (a - a_star))
+
+        push!(next_samples, nextsamples)
+        push!(next_performance, nextperformance)
+
+    end
+
+    next_samples = reduce(vcat, next_samples[2:end])
+    next_performance = reduce(vcat, next_performance[2:end])
+
+    @info "Scaling parameter" λ
+
+    sim.λ = λ
+
+    return next_samples, next_performance
 end
 
 """
