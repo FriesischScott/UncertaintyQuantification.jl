@@ -193,7 +193,7 @@ function probability_of_failure(
             cov[i] = estimate_cov(Iᵢ, pf[i], sim.n)
         end
 
-        @info "Subset level $i" pf[i] threshold[i] cov[i]
+        @debug "Subset level $i" pf[i] threshold[i] cov[i]
 
         ## Break the loop
         if threshold[i] <= 0 || i == sim.levels
@@ -295,8 +295,8 @@ function nextlevelsamples(
         push!(nextlevelperformance, chainperformance)
     end
 
-    @info "acceptance rate MCMC" mean(α_MCMC)
-    @info "acceptance rate subset" mean(α_ss)
+    @debug "acceptance rate MCMC" mean(α_MCMC)
+    @debug "acceptance rate subset" mean(α_ss)
 
     # reduce and discard seeds
     nextlevelsamples = reduce(vcat, nextlevelsamples[2:end])
@@ -338,7 +338,7 @@ function nextlevelsamples(
     reject = nextlevelperformance .> threshold
 
     α = 1 - mean(reject)
-    @info "acceptance rate" α
+    @debug "acceptance rate" α
 
     nextlevelsamples[reject, :] = samples[reject, :]
     nextlevelperformance[reject] = performance[reject]
@@ -390,7 +390,7 @@ function nextlevelsamples(
         s_new = min(1, s * λ)
         sim_i = SubSetInfinity(N_samples_per_partition, sim.target, sim.levels, s_new)
 
-        @info "Performing a SS iteration with " s_new
+        @debug "Performing a SS iteration with " s_new
 
         nextsamples, nextperformance = UncertaintyQuantification.nextlevelsamples(
             samples_partition[i],
@@ -418,7 +418,7 @@ function nextlevelsamples(
     next_samples = reduce(vcat, next_samples[2:end])
     next_performance = reduce(vcat, next_performance[2:end])
 
-    @info "Scaling parameter" λ
+    @debug "Scaling parameter" λ
 
     sim.λ = λ
 
