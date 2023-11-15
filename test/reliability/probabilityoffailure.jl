@@ -81,7 +81,7 @@
         pf, _, _ = probability_of_failure(g, F, [x1, x2, y], subset)
 
         # 95% conf intervals estimated from 1000 runs
-        @test 3.14e-11 < pf < 3.4e-9
+        @test 3.14e-11 < pf < 3.4e-10
 
     end
 end
