@@ -128,11 +128,16 @@ mutable struct SubSetInfinityAdaptive <: AbstractSubSetSimulation
 
     function SubSetInfinityAdaptive(
         n::Integer, target::Float64, levels::Integer, λ::Real, Na::Integer
-    )   
-        (mod(n, Na) == 0) ||
-            error("Number of partitions Na must be a multiple of n")
-        (0 <= λ <= 1) ||
-            error("Scaling parameter must be between 0.0 and 1.0. A good initial choice is 1.0")
+    )
+        number_of_seeds = Int64(max(1, ceil(n * target)))
+
+        (Na <= number_of_seeds) ||
+            error("Number of partitions Na must be less than `n` * `target`")
+        (mod(number_of_seeds, Na) == 0) ||
+            error("Number of partitions Na must be a multiple of `n` * `target`")
+        (0 <= λ <= 1) || error(
+            "Scaling parameter must be between 0.0 and 1.0. A good initial choice is 1.0",
+        )
         return new(n, target, levels, 1, Na, 1)
     end
 end
@@ -387,7 +392,9 @@ function nextlevelsamples(
             sim_i,
         )
 
-        samples_per_seed = Int64(floor(N_samples_per_partition / Ns))
+        samples_per_seed = Int64(
+            floor(N_samples_per_partition / length(performance_partition[i]))
+        )
         p_check = repeat(performance_partition[i], samples_per_seed)
 
         a = 1 - mean(nextperformance .== p_check)   # Calculate acceptance rate
