@@ -76,7 +76,7 @@
         # 95% conf intervals estimated from 1000 runs
         @test 1.8e-11 < pf < 1.6e-9
     
-        subset = SubSetInfinityAdaptive(10^4, 0.1, 20, 1, 4)
+        subset = SubSetInfinityAdaptive(10^4, 0.1, 20, 4)
 
         pf, _, _ = probability_of_failure(g, F, [x1, x2, y], subset)
 

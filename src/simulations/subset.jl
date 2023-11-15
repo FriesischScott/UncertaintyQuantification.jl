@@ -90,7 +90,7 @@ function sample(inputs::Vector{<:UQInput}, sim::AbstractSubSetSimulation)
 end
 
 """
-    SubSetInfinityAdaptive(n::Integer, target::Float64, levels::Integer, λ::Real, Na::Integer)
+    SubSetInfinityAdaptive(n::Integer, target::Float64, levels::Integer, Na::Integer, λ::Real, s::Real)
 
 Implementation of: Papaioannou, Iason, et al. "MCMC algorithms for subset simulation." Probabilistic Engineering Mechanics 41 (2015): 89-103
 
@@ -105,11 +105,16 @@ at each intermediate level, by simulating a subset N_a of the chains
 (which must be choosen without replacement at random) and modifying the acceptance rate towards the optiming
 α_star = 0.44
 
+# Constructors
+* `SubSetInfinityAdaptive(n::Integer, target::Float64, levels::Integer, Na::Integer)`   (default: λ = s = 1)
+* `SubSetInfinityAdaptive(n::Integer, target::Float64, levels::Integer, Na::Integer, λ::Real)` (λ = s)
+* `SubSetInfinityAdaptive(n::Integer, target::Float64, levels::Integer, Na::Integer, λ::Real, s::Real)`
+
 # Examples
 
 ```jldoctest
-julia> SubSetInfinityAdaptive(100, 0.1, 10, 1, 2)
-SubSetInfinityAdaptive(100, 0.1, 10, 1, 2)
+julia> SubSetInfinityAdaptive(200, 0.1, 10, 2)
+SubSetInfinityAdaptive(200, 0.1, 10, 2, 1, 1)
 ```
 
 # References
@@ -122,12 +127,12 @@ mutable struct SubSetInfinityAdaptive <: AbstractSubSetSimulation
     n::Integer
     target::Float64
     levels::Integer
+    Na::Integer
     λ::Real
-    Na::Integer     # Probably needs to be a multiple of N
     s::Real
 
     function SubSetInfinityAdaptive(
-        n::Integer, target::Float64, levels::Integer, λ::Real, Na::Integer
+        n::Integer, target::Float64, levels::Integer, Na::Integer, λ::Real, s::Real
     ) 
         number_of_seeds = Int64(max(1, ceil(n * target)))
 
@@ -137,9 +142,15 @@ mutable struct SubSetInfinityAdaptive <: AbstractSubSetSimulation
             error("Number of partitions Na must be a multiple of `n` * `target`")
         (0 <= λ <= 1) ||
             error("Scaling parameter must be between 0.0 and 1.0. A good initial choice is 1.0")
-        return new(n, target, levels, 1, Na, 1)
+        (0 <= s <= 1) || 
+            error("standard deviation must be between 0.0 and 1.0")
+        return new(n, target, levels, Na, λ, s)
     end
 end
+
+SubSetInfinityAdaptive(n::Integer, target::Float64, levels::Integer, Na::Integer, λ::Real) = SubSetInfinityAdaptive(n, target, levels, Na, λ, λ)
+SubSetInfinityAdaptive(n::Integer, target::Float64, levels::Integer, Na::Integer,) = SubSetInfinityAdaptive(n, target, levels, Na, 1, 1)
+
 
 function probability_of_failure(
     models::Union{Vector{<:UQModel},UQModel},
