@@ -97,10 +97,10 @@ Implementation of: Papaioannou, Iason, et al. "MCMC algorithms for subset simula
 Defines the properties of a Subset-∞ adaptive where `n` is the number of initial samples,
 `target` is the target probability of failure at each level, `levels` is the maximum number
 of levels and `λ` (λ = 1 recommended) is the initial scaling parameter and `Na` is the number of 
-subset partitions. The initial variance of the proposal distribution is `λ`.
+times to update `λ` per subset level (number of partitions of seeds). The initial variance of the proposal distribution is `λ`.
 
 
-Idea behind this algorithm is to adaptively select the correlation parameter of s
+Idea behind this algorithm is to adaptively select the correlation parameter of `s`
 at each intermediate level, by simulating a subset N_a of the chains
 (which must be choosen without replacement at random) and modifying the acceptance rate towards the optiming
 α_star = 0.44
@@ -108,8 +108,8 @@ at each intermediate level, by simulating a subset N_a of the chains
 # Examples
 
 ```jldoctest
-julia> SubSetInfinityAdaptive(100, 0.1, 10, 4, 1)
-SubSetInfinityAdaptive(100, 0.1, 10, 4, 1)
+julia> SubSetInfinityAdaptive(100, 0.1, 10, 1, 2)
+SubSetInfinityAdaptive(100, 0.1, 10, 1, 2)
 ```
 
 # References
