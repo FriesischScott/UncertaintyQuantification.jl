@@ -239,19 +239,18 @@ function nextlevelsamples(
     inputs::Union{Vector{<:UQInput},UQInput},
     sim::SubSetInfinity,
 )
-    samples_per_seed = Int64(floor(sim.n / nrow(samples)))
+    samples_per_seed = Int64(floor(sim.n / length(performance)))
 
     random_inputs = filter(i -> isa(i, RandomUQInput), inputs)
     rvs = names(random_inputs)
 
-    to_standard_normal_space!(inputs, samples)
-
     samples = repeat(samples, samples_per_seed)
     performance = repeat(performance, samples_per_seed)
 
-    means = Matrix{Float64}(samples[:, rvs]) .* sqrt(1 - sim.s^2)
-
     nextlevelsamples = copy(samples)
+    to_standard_normal_space!(inputs, nextlevelsamples)
+
+    means = Matrix{Float64}(nextlevelsamples[:, rvs]) .* sqrt(1 - sim.s^2)
     nextlevelsamples[:, rvs] = randn(size(means)) .* sim.s .+ means
 
     to_physical_space!(inputs, nextlevelsamples)
