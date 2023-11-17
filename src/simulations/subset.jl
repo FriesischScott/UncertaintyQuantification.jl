@@ -127,7 +127,7 @@ function probability_of_failure(
             Iᵢ = reshape(
                 performance[end] .<= max(threshold[i], 0), number_of_seeds, samples_per_seed
             )
-            cov[i] = estimate_cov(Iᵢ, pf[i], sim.n)
+            cov[i] = estimate_cov(Iᵢ, pf[i])
         end
 
         ## Break the loop
@@ -274,8 +274,9 @@ Evaluates the coefficient of variation at a subset simulation level.
 
 Reference: Au & Beck, (2001), 'Estimation of small failure probabilities in high dimensions by subset simulation'
 """
-function estimate_cov(Iᵢ::AbstractMatrix, pf::Float64, n::Int64)
+function estimate_cov(Iᵢ::AbstractMatrix, pf::Float64)
     Nc, Ns = size(Iᵢ) # Number of samples per seed, number of seeds
+    n = Nc * Ns
     rᵢ = zeros(Ns - 1)
     # Eq 29 - covariance vector between indicator(l) and indicator(l+k) -> ri
     for k in 1:(Ns - 1)
