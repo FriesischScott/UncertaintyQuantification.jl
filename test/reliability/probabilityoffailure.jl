@@ -18,13 +18,13 @@
         # Example 1
         u = RandomVariable.(Normal(), [:u1, :u2])
 
-        g = df -> 2^(1/2) .- (df.u1 .+ df.u2)
+        g = df -> 2^(1 / 2) .- (df.u1 .+ df.u2)
 
         _, β, dp, α = probability_of_failure(g, u, FORM())
 
         pf, _, _ = probability_of_failure(g, u, ImportanceSampling(10000, β, dp, α))
 
-        @test pf ≈ 0.159 rtol=0.05
+        @test pf ≈ 0.159 rtol = 0.05
     end
 
     @testset "Line sampling" begin
@@ -33,11 +33,11 @@
         # Example 1
         u = RandomVariable.(Normal(), [:u1, :u2])
 
-        g = df -> 2^(1/2) .- (df.u1 .+ df.u2)
+        g = df -> 2^(1 / 2) .- (df.u1 .+ df.u2)
 
         pf, _ = probability_of_failure(g, u, LineSampling(100))
 
-        @test pf ≈ 0.159 rtol=0.05
+        @test pf ≈ 0.159 rtol = 0.05
 
         @test_logs (:warn, "All samples for line 1 are outside the failure domain") probability_of_failure(
             g, u, LineSampling(1, [0, 0.1])
@@ -80,7 +80,7 @@
     end
 
     @testset "Subset Infinity Adaptive" begin
-        subset = SubSetInfinityAdaptive(10^4, 0.1, 20, 4)
+        subset = SubSetInfinityAdaptive(10^4, 0.1, 20, 100, 0.6, 1.0)
 
         pf, _, _ = probability_of_failure(g, F, [x1, x2, y], subset)
 

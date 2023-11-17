@@ -92,7 +92,7 @@ println(
 )
 
 # Compute probability of failure using adaptive Subset Sampling
-subset_adap = UncertaintyQuantification.SubSetInfinityAdaptive(2000, 0.1, 10, 1, 1)
+subset_adap = UncertaintyQuantification.SubSetInfinityAdaptive(2000, 0.1, 10, 10, 0.6, 1.0)
 
 subset_pf_adap, subset_cov_adap, subset_samples_adap = probability_of_failure(
     [inertia, displacement], df -> max_displacement .- df.w, inputs, subset_adap
