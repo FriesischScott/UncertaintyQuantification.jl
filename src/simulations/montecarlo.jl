@@ -16,7 +16,7 @@ struct SobolSampling <: AbstractQuasiMonteCarlo
             )
         if n > 0
             if !isinteger(log2(n))
-                n = 2^ceil(log2(n))
+                n = Int(2^ceil(log2(n)))
                 @warn("n must be a power of 2, automatically increased to $n")
             end
             return new(n, randomization, 2, 32)
@@ -45,7 +45,7 @@ struct HaltonSampling <: AbstractQuasiMonteCarlo
         pad < log(base, n) && error("pad must be ≥ log(base, n)")
         if n > 0
             if !isinteger(log(base, n))
-                n = base^ceil(log(base, n))
+                n = Int(base^ceil(log(base, n)))
                 @warn("n must be a power of 2, automatically increased to $n")
             end
             return new(n, randomization, base, pad)
@@ -79,7 +79,7 @@ struct LatticeRuleSampling <: AbstractQuasiMonteCarlo
         pad < log(base, n) && error("pad must be ≥ log(base, n)")
         if n > 0
             if !isinteger(log(base, n))
-                n = base^ceil(log(base, n))
+                n = Int(base^ceil(log(base, n)))
                 @warn("n must be a power of 2, automatically increased to $n")
             end
             return new(n, randomization, base, pad)
