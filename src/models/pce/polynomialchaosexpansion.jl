@@ -12,15 +12,8 @@ end
 struct GaussQuadrature end
 
 function polynomialchaos(
-    inputs::Vector{<:UQInput},
-    model::Vector{<:UQModel},
-    Ψ::PolynomialChaosBasis,
-    output::Symbol,
-    ls::LeastSquares,
+    samples::DataFrame, inputs::Vector{<:UQInput}, Ψ::PolynomialChaosBasis, output::Symbol
 )
-    samples = sample(inputs, ls.sim)
-    evaluate!(model, samples)
-
     random_inputs = filter(i -> isa(i, RandomUQInput), inputs)
     random_names = names(random_inputs)
 
@@ -36,6 +29,25 @@ function polynomialchaos(
     to_physical_space!(random_inputs, samples)
 
     return PolynomialChaosExpansion(y, Ψ, output, random_inputs), samples, mse
+end
+
+function polynomialchaos(
+    samples::DataFrame, inputs::UQInput, Ψ::PolynomialChaosBasis, output::Symbol
+)
+    return polynomialchaos(samples, [inputs], Ψ, output)
+end
+
+function polynomialchaos(
+    inputs::Vector{<:UQInput},
+    model::Vector{<:UQModel},
+    Ψ::PolynomialChaosBasis,
+    output::Symbol,
+    ls::LeastSquares,
+)
+    samples = sample(inputs, ls.sim)
+    evaluate!(model, samples)
+
+    return polynomialchaos(samples, inputs, Ψ, output)
 end
 
 function polynomialchaos(
@@ -132,6 +144,15 @@ function polynomialchaos(
     gq::GaussQuadrature,
 )
     return polynomialchaos([inputs], [model], Ψ, output, gq)
+end
+
+function polynomialchaos(samples::DataFrame, Ψ::PolynomialChaosBasis, output::Symbol)
+    @warn "No Information over input/s distribution/s is provided!A Gaussian Kernel will be used for input approximation via EmpericalDistribution. Results could be not accurate"
+    inputs_symbol = Symbol.(names(samples[:, Not(output)]))
+    inputs = map(
+        (s) -> RandomVariable(EmpiricalDistribution(samples[:, s]), s), inputs_symbol
+    )
+    return polynomialchaos(samples, inputs, Ψ, output)
 end
 
 function evaluate!(pce::PolynomialChaosExpansion, df::DataFrame)

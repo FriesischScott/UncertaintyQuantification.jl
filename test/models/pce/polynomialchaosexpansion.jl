@@ -35,6 +35,53 @@
         @test var(pce) ≈ 0.5 rtol = 1e-10
     end
 
+    @testset "From data" begin
+        samples = sample(x, 1000)
+        evaluate!(model, samples)
+
+        pce, samples, mse = polynomialchaos(samples, x, Ψ, :y)
+
+        new_samples = samples[:, Not(:y1, :y)]
+        evaluate!(pce, new_samples)
+        ϵ = mean((new_samples.y .- samples.y) .^ 2)
+
+        @test mean(pce) ≈ -1.5 rtol = 1e-10
+        @test var(pce) ≈ 0.5 rtol = 1e-10
+        @test mse ≈ ϵ atol = eps()
+    end
+
+    @testset "From data No Input" begin
+        x = RandomVariable.(Uniform(-1, 1), [:x1, :x2])
+
+        model = Model(
+            df -> begin
+                π .* (df.x1 .- 1) .* sin.(π .* df.x1) .* (1 .- df.x2 .^ 2)
+            end, :y
+        )
+
+        Ψ = PolynomialChaosBasis([LegendreBasis(), LegendreBasis()], p)
+
+        samples = sample(x, 1000)
+        evaluate!(model, samples)
+
+        @test_logs (
+            :warn,
+            "No Information over input/s distribution/s is provided! Approximation will Gaussian Distribution for each input will be performed. Results could be not accurate",
+        ) polynomialchaos(samples, Ψ, :y)
+
+        pce, samples, mse = polynomialchaos(samples, Ψ, :y)
+
+        ls = LeastSquares(SobolSampling(1000))
+        pce3, samples3, mse3 = polynomialchaos(x, model, Ψ, :y, ls)
+
+        new_samples = samples[:, Not(:y)]
+        evaluate!(pce, new_samples)
+        ϵ = mean((new_samples.y .- samples.y) .^ 2)
+
+        @test mean(pce) ≈ mean(pce3) rtol = 0.1
+        @test var(pce) ≈ var(pce3) rtol = 0.1
+    end
+
     @testset "Convenience Functions" begin
         x1 = RandomVariable(Uniform(-2, 0), :x1)
         x2 = RandomVariable(Uniform(-2, 0), :x2)
