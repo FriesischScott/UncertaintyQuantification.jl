@@ -5,12 +5,46 @@ end
 
 struct SobolSampling <: AbstractQuasiMonteCarlo
     n::Integer
-    SobolSampling(n) = n > 0 ? new(n) : error("n must be greater than zero")
+    randomization::Symbol
+    base::Integer
+    pad::Integer
+
+    function SobolSampling(n::Integer, randomization::Symbol=:matousekscramble)
+        randomization ∉ [:matousekscramble, :digitalshift, :shift, :owenscramble, :none] &&
+            error(
+                "type must be :matousekscramble, :digitalshift, :shift, :owenscramble or :none",
+            )
+        return if n > 0
+            new(n, randomization, 2, 32)
+        else
+            error("n must be greater than zero")
+        end
+    end
 end
 
 struct HaltonSampling <: AbstractQuasiMonteCarlo
     n::Integer
-    HaltonSampling(n) = n > 0 ? new(n) : error("n must be greater than zero")
+    randomization::Symbol
+    base::Integer
+    pad::Integer
+
+    function HaltonSampling(
+        n::Integer,
+        randomization::Symbol=:matousekscramble,
+        base::Integer=2,
+        pad::Integer=32,
+    )
+        randomization ∉ [:matousekscramble, :digitalshift, :shift, :owenscramble, :none] &&
+            error(
+                "type must be :matousekscramble, :digitalshift, :shift, :owenscramble or :none",
+            )
+        pad < log(base, n) && error("pad must be ≥ log(base, n)")
+        return if n > 0
+            new(n, randomization, base, pad)
+        else
+            error("n must be greater than zero")
+        end
+    end
 end
 
 struct LatinHypercubeSampling <: AbstractQuasiMonteCarlo
@@ -20,7 +54,27 @@ end
 
 struct LatticeRuleSampling <: AbstractQuasiMonteCarlo
     n::Integer
-    LatticeRuleSampling(n) = n > 0 ? new(n) : error("n must be greater than zero")
+    randomization::Symbol
+    base::Integer
+    pad::Integer
+
+    function LatticeRuleSampling(
+        n::Integer,
+        randomization::Symbol=:matousekscramble,
+        base::Integer=2,
+        pad::Integer=32,
+    )
+        randomization ∉ [:matousekscramble, :digitalshift, :shift, :owenscramble, :none] &&
+            error(
+                "type must be :matousekscramble, :digitalshift, :shift, :owenscramble or :none",
+            )
+        pad < log(base, n) && error("pad must be ≥ log(base, n)")
+        return if n > 0
+            new(n, randomization, base, pad)
+        else
+            error("n must be greater than zero")
+        end
+    end
 end
 
 function sample(inputs::Vector{<:UQInput}, sim::MonteCarlo)
@@ -34,7 +88,7 @@ function sample(inputs::Vector{<:UQInput}, sim::AbstractQuasiMonteCarlo)
     n_rv = count_rvs(random_inputs)
 
     u = qmc_samples(sim, n_rv)
-
+    print(u)
     samples = quantile.(Normal(), u)
     samples = DataFrame(names(random_inputs) .=> eachrow(samples))
 
@@ -50,12 +104,12 @@ end
 sample(input::UQInput, sim::AbstractMonteCarlo) = sample([input], sim)
 
 function qmc_samples(sim::SobolSampling, rvs::Integer)
-    return QuasiMonteCarlo.sample(sim.n, rvs, SobolSample())
+    return randomize(sim, QuasiMonteCarlo.sample(sim.n, rvs, SobolSample()))
 end
 
 function qmc_samples(sim::HaltonSampling, rvs::Integer)
     samples = QuasiMonteCarlo.sample(sim.n, rvs, HaltonSample())
-    return rvs > 1 ? samples : reshape(samples, 1, sim.n)
+    return randomize(sim, rvs > 1 ? samples : reshape(samples, 1, sim.n))
 end
 
 function qmc_samples(sim::LatinHypercubeSampling, rvs::Integer)
@@ -63,7 +117,21 @@ function qmc_samples(sim::LatinHypercubeSampling, rvs::Integer)
 end
 
 function qmc_samples(sim::LatticeRuleSampling, rvs::Integer)
-    return QuasiMonteCarlo.sample(sim.n, rvs, LatticeRuleSample())
+    return randomize(sim, QuasiMonteCarlo.sample(sim.n, rvs, LatticeRuleSample()))
+end
+
+function randomize(sim::AbstractQuasiMonteCarlo, u::Matrix)
+    if sim.randomization == :matousekscramble
+        u = QuasiMonteCarlo.randomize(u, MatousekScramble(; base=sim.base, pad=sim.pad))
+    elseif sim.randomization == :owenscramble
+        u = QuasiMonteCarlo.randomize(u, OwenScramble(; base=sim.base, pad=sim.pad))
+    elseif sim.randomization == :digitalshift
+        u = QuasiMonteCarlo.randomize(u, DigitalShift(; base=sim.base, pad=sim.pad))
+    elseif sim.randomization == :shift
+        u = QuasiMonteCarlo.randomize(u, Shift())
+    end
+
+    return u
 end
 
 double_samples(sim::MonteCarlo) = MonteCarlo(2 * sim.n)
