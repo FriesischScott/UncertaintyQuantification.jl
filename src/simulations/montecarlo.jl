@@ -88,7 +88,7 @@ function sample(inputs::Vector{<:UQInput}, sim::AbstractQuasiMonteCarlo)
     n_rv = count_rvs(random_inputs)
 
     u = qmc_samples(sim, n_rv)
-    print(u)
+
     samples = quantile.(Normal(), u)
     samples = DataFrame(names(random_inputs) .=> eachrow(samples))
 
