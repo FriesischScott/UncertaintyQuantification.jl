@@ -96,7 +96,7 @@ Implementation of: Papaioannou, Iason, et al. "MCMC algorithms for subset simula
 
 Defines the properties of a Subset-∞ adaptive where `n` is the number of initial samples,
 `target` is the target probability of failure at each level, `levels` is the maximum number
-of levels and `λ` (λ = 1 recommended) is the initial scaling parameter and `Na` is the number of 
+of levels and `λ` (λ = 1 recommended) is the initial scaling parameter and `Na` is the number of
 times to update `λ` per subset level (number of partitions of seeds). The initial variance of the proposal distribution is `λ`.
 
 
@@ -133,24 +133,29 @@ mutable struct SubSetInfinityAdaptive <: AbstractSubSetSimulation
 
     function SubSetInfinityAdaptive(
         n::Integer, target::Float64, levels::Integer, Na::Integer, λ::Real, s::Real
-    ) 
+    )
         number_of_seeds = Int64(max(1, ceil(n * target)))
 
         (Na <= number_of_seeds) ||
             error("Number of partitions Na must be less than `n` * `target`")
         (mod(number_of_seeds, Na) == 0) ||
             error("Number of partitions Na must be a multiple of `n` * `target`")
-        (0 <= λ <= 1) ||
-            error("Scaling parameter must be between 0.0 and 1.0. A good initial choice is 1.0")
-        (0 <= s <= 1) || 
-            error("standard deviation must be between 0.0 and 1.0")
+        (0 <= λ <= 1) || error(
+            "Scaling parameter must be between 0.0 and 1.0. A good initial choice is 1.0",
+        )
+        (0 <= s <= 1) || error("standard deviation must be between 0.0 and 1.0")
         return new(n, target, levels, Na, λ, s)
     end
 end
 
-SubSetInfinityAdaptive(n::Integer, target::Float64, levels::Integer, Na::Integer, λ::Real) = SubSetInfinityAdaptive(n, target, levels, Na, λ, λ)
-SubSetInfinityAdaptive(n::Integer, target::Float64, levels::Integer, Na::Integer,) = SubSetInfinityAdaptive(n, target, levels, Na, 1, 1)
-
+function SubSetInfinityAdaptive(
+    n::Integer, target::Float64, levels::Integer, Na::Integer, λ::Real
+)
+    return SubSetInfinityAdaptive(n, target, levels, Na, λ, λ)
+end
+function SubSetInfinityAdaptive(n::Integer, target::Float64, levels::Integer, Na::Integer)
+    return SubSetInfinityAdaptive(n, target, levels, Na, 1, 1)
+end
 
 function probability_of_failure(
     models::Union{Vector{<:UQModel},UQModel},
@@ -355,72 +360,72 @@ function nextlevelsamples(
     inputs::Union{Vector{<:UQInput},UQInput},
     sim::SubSetInfinityAdaptive,
 )
-    next_samples = [samples]
-    next_performance = [performance]
+    next_samples = DataFrame[]
+    next_performance = Vector{eltype(performance)}[]
 
-    a_star = 0.44       # Optimal acceptance rate, so say Papaioannou, I., et. al.
+    random_inputs = filter(i -> isa(i, RandomUQInput), inputs)
+    rvs = names(random_inputs)
 
-    Ns = length(performance)            # Number of seeds
+    a_star = 0.44 # Optimal acceptance rate, so say Papaioannou, I., et. al.
 
-    N_part = sim.Na
-    N_seed = Int64(Ns / N_part)          # Number of seeds per partition
-
+    Ns = length(performance) # Number of seeds
     permutation = shuffle(1:Ns)
-    samples_perm = samples[permutation, :]          # Randomly permute the seeds and performances
-    performance_perm = performance[permutation]
 
-    # Partition samples and performances
-    samples_partition = [
-        samples_perm[(1 + N_seed * k):(k == N_part - 1 ? end : N_seed * k + N_seed), :] for
-        k in 0:(N_part - 1)
-    ]
-    performance_partition = [
-        performance_perm[(1 + N_seed * k):(k == N_part - 1 ? end : N_seed * k + N_seed)] for
-        k in 0:(N_part - 1)
-    ]
+    samples[:, :] = samples[permutation, :]
+    performance[:] = performance[permutation]
 
-    N_samples_per_partition = Int64(sim.n / N_part)
+    samples_per_seed = Integer(sim.n / Ns)
+    number_of_batches = Integer(Ns / sim.Na)
 
-    s = sim.s
     λ = sim.λ
 
-    # Perform N_part subset infinity calculations, 
-    # with updates of λ and s towards optimal acceptance rate: a_star = 0.44
-    for i in 1:N_part
-        s_new = min(1, s * λ)
-        sim_i = SubSetInfinity(N_samples_per_partition, sim.target, sim.levels, s_new)
+    α = 0.0
+    for i in 1:number_of_batches
+        σ = min(1, λ * sim.s)
+        ρ = sqrt(1 - σ^2)
 
-        @debug "Performing a SS iteration with " s_new
+        batch_samples = Vector{DataFrame}(undef, samples_per_seed)
+        batch_performance = Vector{Vector{eltype(performance)}}(undef, samples_per_seed)
 
-        nextsamples, nextperformance = UncertaintyQuantification.nextlevelsamples(
-            samples_partition[i],
-            performance_partition[i],
-            threshold,
-            models,
-            performancefunction,
-            inputs,
-            sim_i,
-        )
+        batch_samples[1] = samples[((i - 1) * sim.Na + 1):(i * sim.Na), :]
+        batch_performance[1] = performance[((i - 1) * sim.Na + 1):(i * sim.Na)]
 
-        samples_per_seed = Int64(floor(N_samples_per_partition / length(performance_partition[i])))
-        p_check = repeat(performance_partition[i], samples_per_seed)
+        acceptance_rate = 0.0
 
-        a = 1 - mean(nextperformance .== p_check)   # Calculate acceptance rate
+        for k in 2:samples_per_seed
+            batch_samples[k] = copy(batch_samples[k - 1])
 
-        λ = λ * exp(1 / sqrt(i) * (a - a_star))     # Estimate new scaling factor for proposal variance
+            # to_standard_normal_space!(inputs, batch_samples[k])
 
-        @debug "Estimated acceptance" a
+            μ = Matrix{Float64}(batch_samples[k][:, rvs]) .* ρ
+            batch_samples[k][:, rvs] = randn(size(μ)) .* σ .+ μ
 
-        push!(next_samples, nextsamples)
-        push!(next_performance, nextperformance)
+            # to_physical_space!(inputs, batch_samples[k])
+
+            evaluate!(models, batch_samples[k])
+
+            batch_performance[k] = performancefunction(batch_samples[k])
+
+            rejected = batch_performance[k] .> threshold
+            batch_samples[k][rejected, rvs] = batch_samples[k - 1][rejected, rvs]
+            batch_performance[k][rejected] = batch_performance[k - 1][rejected]
+
+            acceptance_rate += (1 - mean(rejected))
+        end
+
+        ζ = 1 / sqrt(i)
+        λ = λ * exp(ζ * (acceptance_rate / sim.Na - a_star))
+
+        push!(next_samples, reduce(vcat, batch_samples))
+        push!(next_performance, reduce(vcat, batch_performance))
     end
 
-    next_samples = reduce(vcat, next_samples[2:end])
-    next_performance = reduce(vcat, next_performance[2:end])
-
-    @debug "Scaling parameter" λ
+    @info "aCs" λ α / number_of_batches
 
     sim.λ = λ
+
+    next_samples = reduce(vcat, next_samples)
+    next_performance = reduce(vcat, next_performance)
 
     return next_samples, next_performance
 end
