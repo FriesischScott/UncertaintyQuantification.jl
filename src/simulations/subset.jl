@@ -247,7 +247,7 @@ function nextlevelsamples(
     random_inputs = filter(i -> isa(i, RandomUQInput), inputs)
     rvs = names(random_inputs)
 
-    number_of_chains = nrow(samples)
+    number_of_chains = length(performance)
     samples_per_chain = Int64(floor(sim.n / number_of_chains))
 
     d = length(rvs)
@@ -293,15 +293,12 @@ function nextlevelsamples(
             chainperformance[α_accept_indices] = new_samplesperformance
         end
 
-        # chainsamples = chainsamples[α_accept_indices, :]
-        # chainperformance = chainperformance[α_accept_indices]
-
         push!(nextlevelsamples, chainsamples)
         push!(nextlevelperformance, chainperformance)
     end
 
-    @debug "acceptance rate MCMC" mean(α_MCMC)
-    @debug "acceptance rate subset" mean(α_ss)
+    @debug "Acceptance rate MCMC" mean(α_MCMC)
+    @debug "Acceptance rate subset" mean(α_ss)
 
     # reduce and discard seeds
     nextlevelsamples = reduce(vcat, nextlevelsamples[2:end])
@@ -342,7 +339,7 @@ function nextlevelsamples(
     reject = nextlevelperformance .> threshold
 
     α = 1 - mean(reject)
-    @debug "acceptance rate" α
+    @debug "Acceptance rate" α
 
     nextlevelsamples[reject, :] = samples[reject, :]
     nextlevelperformance[reject] = performance[reject]
@@ -412,6 +409,8 @@ function nextlevelsamples(
             acceptance_rate += (1 - mean(rejected))
         end
 
+        α += acceptance_rate / sim.Na
+
         ζ = 1 / sqrt(i)
         λ = λ * exp(ζ * (acceptance_rate / sim.Na - a_star))
 
@@ -419,7 +418,8 @@ function nextlevelsamples(
         push!(next_performance, reduce(vcat, batch_performance))
     end
 
-    @info "aCs" λ α / number_of_batches
+    α /= number_of_batches
+    @debug "Adaptive conditional sampling" λ α
 
     sim.λ = λ
 
