@@ -340,8 +340,6 @@ function nextlevelsamples(
     α = 1 - mean(reject)
     @debug "acceptance rate" α
 
-    to_physical_space!(inputs, samples)
-
     nextlevelsamples[reject, :] = samples[reject, :]
     nextlevelperformance[reject] = performance[reject]
 
@@ -411,6 +409,8 @@ function nextlevelsamples(
 
         λ = λ * exp(1 / sqrt(i) * (a - a_star))     # Estimate new scaling factor for proposal variance
 
+        @debug "Estimated acceptance" a
+
         push!(next_samples, nextsamples)
         push!(next_performance, nextperformance)
     end
@@ -428,9 +428,9 @@ end
 """
 	estimate_cov(Iᵢ::AbstractMatrix, pf::Float64, n::Int64)
 
-    
-    Reference: Au & Beck, (2001), 'Estimation of small failure probabilities in high dimensions by subset simulation'
-    Evaluates the coefficient of variation at a subset simulation level.
+Evaluates the coefficient of variation at a subset simulation level.
+
+Reference: Au & Beck, (2001), 'Estimation of small failure probabilities in high dimensions by subset simulation'
 """
 function estimate_cov(Iᵢ::AbstractMatrix, pf::Float64, n::Int64)
     Nc, Ns = size(Iᵢ) # Number of samples per seed, number of seeds
