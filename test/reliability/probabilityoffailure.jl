@@ -80,7 +80,7 @@
     end
 
     @testset "Subset Infinity Adaptive" begin
-        subset = SubSetInfinityAdaptive(10^4, 0.1, 20, 100, 0.6, 1.0)
+        subset = SubSetInfinityAdaptive(10^4, 0.1, 20, 10, 0.6, 1.0)
 
         pf, _, _ = probability_of_failure(g, F, [x1, x2, y], subset)
 

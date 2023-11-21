@@ -366,13 +366,17 @@ function nextlevelsamples(
     random_inputs = filter(i -> isa(i, RandomUQInput), inputs)
     rvs = names(random_inputs)
 
-    a_star = 0.44       # Optimal acceptance rate, so say Papaioannou, I., et. al.
+    a_star = 0.44 # Optimal acceptance rate, so say Papaioannou, I., et. al.
 
-    Ns = length(performance)            # Number of seeds
+    Ns = length(performance) # Number of seeds
     permutation = shuffle(1:Ns)
 
-    samples_per_seed = Int64(floor(sim.n / Ns))
-    number_of_batches = Ns / sim.Na
+    samples[:, :] = samples[permutation, :]
+    performance[:] = performance[permutation]
+
+    samples_per_seed = Integer(sim.n / Ns)
+    number_of_batches = Integer(Ns / sim.Na)
+
     λ = sim.λ
 
     α = 0.0
@@ -380,41 +384,50 @@ function nextlevelsamples(
         σ = min(1, λ * sim.s)
         ρ = sqrt(1 - σ^2)
 
-        seeds = [popfirst!(permutation) for _ in 1:(sim.Na)]
+        batch_samples = Vector{DataFrame}(undef, samples_per_seed)
+        batch_performance = Vector{Vector{eltype(performance)}}(undef, samples_per_seed)
 
-        batch_samples = repeat(samples[seeds, :], samples_per_seed)
-        batch_performance = repeat(performance[seeds], samples_per_seed)
+        batch_samples[1] = samples[((i - 1) * sim.Na + 1):(i * sim.Na), :]
+        batch_performance[1] = performance[((i - 1) * sim.Na + 1):(i * sim.Na)]
 
-        cs_samples = copy(batch_samples)
-        to_standard_normal_space!(inputs, cs_samples)
+        acceptance_rate = 0.0
 
-        means = Matrix{Float64}(cs_samples[:, rvs]) .* ρ
-        cs_samples[:, rvs] = randn(size(means)) .* sim.s .+ means
+        for k in 2:samples_per_seed
+            batch_samples[k] = copy(batch_samples[k - 1])
 
-        to_physical_space!(inputs, cs_samples)
+            # to_standard_normal_space!(inputs, batch_samples[k])
 
-        evaluate!(models, cs_samples)
+            μ = Matrix{Float64}(batch_samples[k][:, rvs]) .* ρ
+            batch_samples[k][:, rvs] = randn(size(μ)) .* σ .+ μ
 
-        cs_performance = performancefunction(cs_samples)
-        accepted = cs_performance .<= threshold
+            # to_physical_space!(inputs, batch_samples[k])
 
-        batch_samples[accepted, :] = cs_samples[accepted, :]
-        batch_performance[accepted] = cs_performance[accepted]
+            evaluate!(models, batch_samples[k])
 
-        λ = λ * exp(1 / sqrt(i) * ((mean(accepted)) - a_star))
+            batch_performance[k] = performancefunction(batch_samples[k])
 
-        @info "Scaling parameter" λ
-        @info "Acceptance" mean(accepted)
-        α += mean(accepted)
+            rejected = batch_performance[k] .> threshold
+            batch_samples[k][rejected, rvs] = batch_samples[k - 1][rejected, rvs]
+            batch_performance[k][rejected] = batch_performance[k - 1][rejected]
 
-        push!(next_samples, batch_samples)
-        push!(next_performance, batch_performance)
+            acceptance_rate += (1 - mean(rejected))
+        end
+
+        ζ = 1 / sqrt(i)
+        λ = λ * exp(ζ * (acceptance_rate / sim.Na - a_star))
+
+        push!(next_samples, reduce(vcat, batch_samples))
+        push!(next_performance, reduce(vcat, batch_performance))
     end
 
-    @info "Level Acceptance" α / number_of_batches
+    @info "aCs" λ α / number_of_batches
+
     sim.λ = λ
 
-    return reduce(vcat, next_samples), reduce(vcat, next_performance)
+    next_samples = reduce(vcat, next_samples)
+    next_performance = reduce(vcat, next_performance)
+
+    return next_samples, next_performance
 end
 
 """
