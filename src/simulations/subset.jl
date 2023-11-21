@@ -195,7 +195,7 @@ function probability_of_failure(
             Iᵢ = reshape(
                 performance[end] .<= max(threshold[i], 0), number_of_seeds, samples_per_seed
             )
-            cov[i] = estimate_cov(Iᵢ, pf[i], sim.n)
+            cov[i] = estimate_cov(Iᵢ, pf[i])
         end
 
         @debug "Subset level $i" pf[i] threshold[i] cov[i]
@@ -319,19 +319,18 @@ function nextlevelsamples(
     inputs::Union{Vector{<:UQInput},UQInput},
     sim::SubSetInfinity,
 )
-    samples_per_seed = Int64(floor(sim.n / nrow(samples)))
+    samples_per_seed = Int64(floor(sim.n / length(performance)))
 
     random_inputs = filter(i -> isa(i, RandomUQInput), inputs)
     rvs = names(random_inputs)
 
-    to_standard_normal_space!(inputs, samples)
-
     samples = repeat(samples, samples_per_seed)
     performance = repeat(performance, samples_per_seed)
 
-    means = Matrix{Float64}(samples[:, rvs]) .* sqrt(1 - sim.s^2)
-
     nextlevelsamples = copy(samples)
+    to_standard_normal_space!(inputs, nextlevelsamples)
+
+    means = Matrix{Float64}(nextlevelsamples[:, rvs]) .* sqrt(1 - sim.s^2)
     nextlevelsamples[:, rvs] = randn(size(means)) .* sim.s .+ means
 
     to_physical_space!(inputs, nextlevelsamples)
@@ -437,8 +436,9 @@ Evaluates the coefficient of variation at a subset simulation level.
 
 Reference: Au & Beck, (2001), 'Estimation of small failure probabilities in high dimensions by subset simulation'
 """
-function estimate_cov(Iᵢ::AbstractMatrix, pf::Float64, n::Int64)
+function estimate_cov(Iᵢ::AbstractMatrix, pf::Float64)
     Nc, Ns = size(Iᵢ) # Number of samples per seed, number of seeds
+    n = Nc * Ns
     rᵢ = zeros(Ns - 1)
     # Eq 29 - covariance vector between indicator(l) and indicator(l+k) -> ri
     for k in 1:(Ns - 1)
