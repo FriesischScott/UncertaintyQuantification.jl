@@ -13,15 +13,17 @@ end
     end
 
     @testset "SobolSampling" begin
-        sobol = SobolSampling(1000)
+        #TODO: Tests for randomized Sobol Sampling
+
+        sobol = SobolSampling(1000, :none)
 
         @test isa(sobol, SobolSampling)
-        @test sobol.n == 1000
+        @test sobol.n == 1024
 
         @testset "sample" begin
             inputs = [RandomVariable.(Uniform(), [:a, :b]); Parameter(1, :c)]
 
-            samples = sample(inputs, SobolSampling(4))
+            samples = sample(inputs, SobolSampling(4, :none))
 
             @test isapprox(samples.a, [0.375, 0.875, 0.625, 0.125])
             @test isapprox(samples.b, [0.375, 0.875, 0.125, 0.625])
@@ -30,10 +32,12 @@ end
     end
 
     @testset "HaltonSampling" begin
-        halton = HaltonSampling(1000)
+        #TODO: Tests for randomized Halton Sampling
+
+        halton = HaltonSampling(1000, :none)
 
         @test isa(halton, HaltonSampling)
-        @test halton.n == 1000
+        @test halton.n == 1024
 
         @testset "sample" begin
             inputs = [
@@ -50,10 +54,11 @@ end
     end
 
     @testset "LatticeRuleSampling" begin
-        lattice = LatticeRuleSampling(1000)
+        #TODO: Tests for randomized Lattice Rule Sampling
+        lattice = LatticeRuleSampling(1000, :none)
 
         @test isa(lattice, LatticeRuleSampling)
-        @test lattice.n == 1000
+        @test lattice.n == 1024
 
         @testset "sample" begin
             inputs = [RandomVariable.(Uniform(), [:a, :b]); Parameter(1, :c)]
