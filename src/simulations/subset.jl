@@ -404,12 +404,12 @@ function nextlevelsamples(
         for k in 2:samples_per_seed
             batch_samples[k] = copy(batch_samples[k - 1])
 
-            # to_standard_normal_space!(inputs, batch_samples[k])
+            to_standard_normal_space!(inputs, batch_samples[k])
 
             μ = Matrix{Float64}(batch_samples[k][:, rvs]) .* ρ
             batch_samples[k][:, rvs] = randn(size(μ)) .* σ .+ μ
 
-            # to_physical_space!(inputs, batch_samples[k])
+            to_physical_space!(inputs, batch_samples[k])
 
             evaluate!(models, batch_samples[k])
 
