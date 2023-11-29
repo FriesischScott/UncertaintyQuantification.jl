@@ -321,30 +321,43 @@ function nextlevelsamples(
     random_inputs = filter(i -> isa(i, RandomUQInput), inputs)
     rvs = names(random_inputs)
 
-    samples = repeat(samples, samples_per_seed)
-    performance = repeat(performance, samples_per_seed)
+    chain_samples = Vector{DataFrame}(undef, samples_per_seed)
+    chain_performance = Vector{Vector{eltype(performance)}}(undef, samples_per_seed)
 
-    nextlevelsamples = copy(samples)
-    to_standard_normal_space!(inputs, nextlevelsamples)
+    chain_samples[1] = samples
+    chain_performance[1] = performance
 
-    means = Matrix{Float64}(nextlevelsamples[:, rvs]) .* sqrt(1 - sim.s^2)
-    nextlevelsamples[:, rvs] = randn(size(means)) .* sim.s .+ means
+    α = 0.0
 
-    to_physical_space!(inputs, nextlevelsamples)
+    ρ = sqrt(1 - sim.s^2)
+    for k in 2:samples_per_seed
+        chain_samples[k] = copy(chain_samples[k - 1])
 
-    evaluate!(models, nextlevelsamples)
+        to_standard_normal_space!(inputs, chain_samples[k])
 
-    nextlevelperformance = performancefunction(nextlevelsamples)
+        μ = Matrix{Float64}(chain_samples[k][:, rvs]) .* ρ
+        chain_samples[k][:, rvs] = randn(size(μ)) .* sim.s .+ μ
 
-    reject = nextlevelperformance .> threshold
+        to_physical_space!(inputs, chain_samples[k])
 
-    α = 1 - mean(reject)
+        evaluate!(models, chain_samples[k])
+
+        chain_performance[k] = performancefunction(chain_samples[k])
+
+        rejected = chain_performance[k] .> threshold
+        chain_samples[k][rejected, rvs] = chain_samples[k - 1][rejected, rvs]
+        chain_performance[k][rejected] = chain_performance[k - 1][rejected]
+
+        α += (1 - mean(rejected))
+    end
+
+    α /= samples_per_seed
     @debug "Acceptance rate" α
 
-    nextlevelsamples[reject, :] = samples[reject, :]
-    nextlevelperformance[reject] = performance[reject]
+    next_samples = reduce(vcat, chain_samples)
+    next_performance = reduce(vcat, chain_performance)
 
-    return nextlevelsamples, nextlevelperformance
+    return next_samples, next_performance
 end
 
 function nextlevelsamples(
