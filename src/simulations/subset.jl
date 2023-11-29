@@ -318,25 +318,116 @@ function nextlevelsamples(
 )
     samples_per_seed = Int64(floor(sim.n / length(performance)))
 
+    ρ = sqrt(1 - sim.s^2)
+
+    next_samples, next_performance, α = conditional_sampling(
+        samples,
+        performance,
+        threshold,
+        models,
+        performancefunction,
+        inputs,
+        ρ,
+        sim.s,
+        samples_per_seed,
+    )
+
+    @debug "Acceptance rate" α
+
+    return next_samples, next_performance
+end
+
+function nextlevelsamples(
+    samples::DataFrame,
+    performance::Vector{<:Real},
+    threshold::Real,
+    models::Union{Vector{<:UQModel},UQModel},
+    performancefunction::Function,
+    inputs::Union{Vector{<:UQInput},UQInput},
+    sim::SubSetInfinityAdaptive,
+)
+    a_star = 0.44 # Optimal acceptance rate, so say Papaioannou, I., et. al.
+
+    Ns = length(performance) # Number of seeds
+    permutation = shuffle(1:Ns)
+
+    samples[:, :] = samples[permutation, :]
+    performance[:] = performance[permutation]
+
+    samples_per_seed = Integer(sim.n / Ns)
+    number_of_batches = Integer(Ns / sim.Na)
+
+    next_samples = Vector{DataFrame}(undef, number_of_batches)
+    next_performance = Vector{Vector{eltype(performance)}}(undef, number_of_batches)
+
+    λ = sim.λ
+
+    α = 0.0
+    for batch in 1:number_of_batches
+        σ = min(1, λ * sim.s)
+        ρ = sqrt(1 - σ^2)
+
+        batch_samples, batch_performance, acceptance_rate = conditional_sampling(
+            samples[((batch - 1) * sim.Na + 1):(batch * sim.Na), :],
+            performance[((batch - 1) * sim.Na + 1):(batch * sim.Na)],
+            threshold,
+            models,
+            performancefunction,
+            inputs,
+            ρ,
+            σ,
+            samples_per_seed,
+        )
+
+        α += acceptance_rate
+
+        ζ = 1 / sqrt(batch)
+        λ = λ * exp(ζ * (acceptance_rate - a_star))
+
+        next_samples[batch] = batch_samples
+        next_performance[batch] = batch_performance
+    end
+
+    α /= number_of_batches
+    @debug "Adaptive conditional sampling" λ α
+
+    sim.λ = λ
+
+    next_samples = vcat(next_samples...)
+    next_performance = vcat(next_performance...)
+
+    return next_samples, next_performance
+end
+
+function conditional_sampling(
+    seeds::DataFrame,
+    performance::AbstractVector,
+    threshold::Real,
+    models::Union{Vector{<:UQModel},UQModel},
+    performancefunction::Function,
+    inputs::Union{Vector{<:UQInput},UQInput},
+    ρ::Real,
+    σ::Real,
+    N::Integer,
+)
+    α = 0.0
+
     random_inputs = filter(i -> isa(i, RandomUQInput), inputs)
     rvs = names(random_inputs)
 
-    chain_samples = Vector{DataFrame}(undef, samples_per_seed)
-    chain_performance = Vector{Vector{eltype(performance)}}(undef, samples_per_seed)
+    chain_samples = Vector{DataFrame}(undef, N)
+    chain_performance = Vector{Vector{eltype(performance)}}(undef, N)
 
-    chain_samples[1] = samples
+    chain_samples[1] = seeds
     chain_performance[1] = performance
 
-    α = 0.0
-
-    ρ = sqrt(1 - sim.s^2)
-    for k in 2:samples_per_seed
+    for k in 2:N
         chain_samples[k] = copy(chain_samples[k - 1])
 
         to_standard_normal_space!(inputs, chain_samples[k])
 
         μ = Matrix{Float64}(chain_samples[k][:, rvs]) .* ρ
-        chain_samples[k][:, rvs] = randn(size(μ)) .* sim.s .+ μ
+        chain_samples[k][:, rvs] = randn(size(μ)) .* σ .+ μ
 
         to_physical_space!(inputs, chain_samples[k])
 
@@ -351,95 +442,7 @@ function nextlevelsamples(
         α += (1 - mean(rejected))
     end
 
-    α /= samples_per_seed
-    @debug "Acceptance rate" α
-
-    next_samples = reduce(vcat, chain_samples)
-    next_performance = reduce(vcat, chain_performance)
-
-    return next_samples, next_performance
-end
-
-function nextlevelsamples(
-    samples::DataFrame,
-    performance::Vector{<:Real},
-    threshold::Real,
-    models::Union{Vector{<:UQModel},UQModel},
-    performancefunction::Function,
-    inputs::Union{Vector{<:UQInput},UQInput},
-    sim::SubSetInfinityAdaptive,
-)
-    next_samples = DataFrame[]
-    next_performance = Vector{eltype(performance)}[]
-
-    random_inputs = filter(i -> isa(i, RandomUQInput), inputs)
-    rvs = names(random_inputs)
-
-    a_star = 0.44 # Optimal acceptance rate, so say Papaioannou, I., et. al.
-
-    Ns = length(performance) # Number of seeds
-    permutation = shuffle(1:Ns)
-
-    samples[:, :] = samples[permutation, :]
-    performance[:] = performance[permutation]
-
-    samples_per_seed = Integer(sim.n / Ns)
-    number_of_batches = Integer(Ns / sim.Na)
-
-    λ = sim.λ
-
-    α = 0.0
-    for i in 1:number_of_batches
-        σ = min(1, λ * sim.s)
-        ρ = sqrt(1 - σ^2)
-
-        batch_samples = Vector{DataFrame}(undef, samples_per_seed)
-        batch_performance = Vector{Vector{eltype(performance)}}(undef, samples_per_seed)
-
-        batch_samples[1] = samples[((i - 1) * sim.Na + 1):(i * sim.Na), :]
-        batch_performance[1] = performance[((i - 1) * sim.Na + 1):(i * sim.Na)]
-
-        acceptance_rate = 0.0
-
-        for k in 2:samples_per_seed
-            batch_samples[k] = copy(batch_samples[k - 1])
-
-            to_standard_normal_space!(inputs, batch_samples[k])
-
-            μ = Matrix{Float64}(batch_samples[k][:, rvs]) .* ρ
-            batch_samples[k][:, rvs] = randn(size(μ)) .* σ .+ μ
-
-            to_physical_space!(inputs, batch_samples[k])
-
-            evaluate!(models, batch_samples[k])
-
-            batch_performance[k] = performancefunction(batch_samples[k])
-
-            rejected = batch_performance[k] .> threshold
-            batch_samples[k][rejected, rvs] = batch_samples[k - 1][rejected, rvs]
-            batch_performance[k][rejected] = batch_performance[k - 1][rejected]
-
-            acceptance_rate += (1 - mean(rejected))
-        end
-
-        α += acceptance_rate / sim.Na
-
-        ζ = 1 / sqrt(i)
-        λ = λ * exp(ζ * (acceptance_rate / sim.Na - a_star))
-
-        push!(next_samples, reduce(vcat, batch_samples))
-        push!(next_performance, reduce(vcat, batch_performance))
-    end
-
-    α /= number_of_batches
-    @debug "Adaptive conditional sampling" λ α
-
-    sim.λ = λ
-
-    next_samples = reduce(vcat, next_samples)
-    next_performance = reduce(vcat, next_performance)
-
-    return next_samples, next_performance
+    return vcat(chain_samples...), vcat(chain_performance...), α / (N - 1)
 end
 
 """
