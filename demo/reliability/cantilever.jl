@@ -45,7 +45,9 @@ println(
 )
 
 # Compute probability of failure using Importance Sampling
-pf, β, dp, α = probability_of_failure([inertia, displacement], df -> max_displacement .- df.w, inputs, FORM())
+pf, β, dp, α = probability_of_failure(
+    [inertia, displacement], df -> max_displacement .- df.w, inputs, FORM()
+)
 is = ImportanceSampling(10^4, β, dp, α)
 
 is_pf, is_cov, is_samples = probability_of_failure(
@@ -76,4 +78,26 @@ subset_pf, subset_cov, subset_samples = probability_of_failure(
 
 println(
     "Subset Simulation probability of failure: $subset_pf ($(size(subset_samples, 1)) model evaluations)",
+)
+
+# Compute probability of failure using conditional Subset Sampling
+subset_inf = UncertaintyQuantification.SubSetInfinity(2000, 0.1, 10, 0.5)
+
+subset_pf_inf, subset_cov_inf, subset_samples_inf = probability_of_failure(
+    [inertia, displacement], df -> max_displacement .- df.w, inputs, subset_inf
+)
+
+println(
+    "Subset infinity probability of failure: $subset_pf_inf ($(size(subset_samples_inf, 1)) model evaluations)",
+)
+
+# Compute probability of failure using adaptive Subset Sampling
+subset_adap = UncertaintyQuantification.SubSetInfinityAdaptive(2000, 0.1, 10, 10, 0.6, 1.0)
+
+subset_pf_adap, subset_cov_adap, subset_samples_adap = probability_of_failure(
+    [inertia, displacement], df -> max_displacement .- df.w, inputs, subset_adap
+)
+
+println(
+    "Subset infinity adaptive probability of failure: $subset_pf_adap ($(size(subset_samples_adap, 1)) model evaluations)",
 )

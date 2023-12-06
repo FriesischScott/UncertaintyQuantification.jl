@@ -83,6 +83,7 @@ export ResponseSurface
 export SobolSampling
 export Solver
 export SubSetInfinity
+export SubSetInfinityAdaptive
 export SubSetSimulation
 export TwoLevelFactorial
 
