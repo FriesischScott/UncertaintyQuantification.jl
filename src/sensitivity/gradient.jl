@@ -1,5 +1,8 @@
 function gradient(
-    models::Vector{<:UQModel}, inputs::Vector{<:UQInput}, x::DataFrame, output::Symbol
+    models::Vector{<:UQModel},
+    inputs::Vector{<:PreciseUQInput},
+    x::DataFrame,
+    output::Symbol,
 )
     samples = copy(x)
 
@@ -23,7 +26,7 @@ end
 
 function gradient_in_standard_normal_space(
     models::Vector{<:UQModel},
-    inputs::Vector{<:UQInput},
+    inputs::Vector{<:PreciseUQInput},
     reference::DataFrame,
     output::Symbol,
 )

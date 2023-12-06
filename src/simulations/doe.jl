@@ -75,7 +75,7 @@ function bounds(jd::JointDistribution, σ::Int)
     return reduce(vcat, bounds.(jd.marginals, σ))
 end
 
-function sample(inputs::Array{<:UQInput}, design::AbstractDesignOfExperiments)
+function sample(inputs::Array{<:PreciseUQInput}, design::AbstractDesignOfExperiments)
     random_inputs = filter(i -> isa(i, RandomUQInput), inputs)
 
     deterministic_inputs = filter(i -> isa(i, DeterministicUQInput), inputs)

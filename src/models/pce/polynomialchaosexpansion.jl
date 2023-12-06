@@ -2,7 +2,7 @@ struct PolynomialChaosExpansion <: UQModel
     y::Vector{Float64}
     Ψ::PolynomialChaosBasis
     output::Symbol
-    inputs::Vector{<:UQInput}
+    inputs::Vector{<:PreciseUQInput}
 end
 
 struct LeastSquares
@@ -12,7 +12,7 @@ end
 struct GaussQuadrature end
 
 function polynomialchaos(
-    inputs::Vector{<:UQInput},
+    inputs::Vector{<:PreciseUQInput},
     model::Vector{<:UQModel},
     Ψ::PolynomialChaosBasis,
     output::Symbol,
@@ -39,7 +39,7 @@ function polynomialchaos(
 end
 
 function polynomialchaos(
-    inputs::UQInput,
+    inputs::PreciseUQInput,
     model::Vector{<:UQModel},
     Ψ::PolynomialChaosBasis,
     output::Symbol,
@@ -49,7 +49,7 @@ function polynomialchaos(
 end
 
 function polynomialchaos(
-    inputs::Vector{<:UQInput},
+    inputs::Vector{<:PreciseUQInput},
     model::UQModel,
     Ψ::PolynomialChaosBasis,
     output::Symbol,
@@ -59,7 +59,7 @@ function polynomialchaos(
 end
 
 function polynomialchaos(
-    inputs::UQInput,
+    inputs::PreciseUQInput,
     model::UQModel,
     Ψ::PolynomialChaosBasis,
     output::Symbol,
@@ -69,7 +69,7 @@ function polynomialchaos(
 end
 
 function polynomialchaos(
-    inputs::Vector{<:UQInput},
+    inputs::Vector{<:PreciseUQInput},
     model::Vector{<:UQModel},
     Ψ::PolynomialChaosBasis,
     output::Symbol,
@@ -105,7 +105,7 @@ function polynomialchaos(
 end
 
 function polynomialchaos(
-    inputs::UQInput,
+    inputs::PreciseUQInput,
     model::Vector{<:UQModel},
     Ψ::PolynomialChaosBasis,
     output::Symbol,
@@ -115,7 +115,7 @@ function polynomialchaos(
 end
 
 function polynomialchaos(
-    inputs::Vector{<:UQInput},
+    inputs::Vector{<:PreciseUQInput},
     model::UQModel,
     Ψ::PolynomialChaosBasis,
     output::Symbol,
@@ -125,7 +125,7 @@ function polynomialchaos(
 end
 
 function polynomialchaos(
-    inputs::UQInput,
+    inputs::PreciseUQInput,
     model::UQModel,
     Ψ::PolynomialChaosBasis,
     output::Symbol,

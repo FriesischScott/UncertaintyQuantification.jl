@@ -27,10 +27,12 @@ import Distributions: logpdf, pdf, cdf, quantile, minimum, maximum, insupport, m
 abstract type UQType end
 
 abstract type UQInput <: UQType end
+abstract type PreciseUQInput <: UQInput end
+abstract type ImpreciseUQInput <: UQInput end
 abstract type UQModel <: UQType end
 
-abstract type DeterministicUQInput <: UQInput end
-abstract type RandomUQInput <: UQInput end
+abstract type DeterministicUQInput <: PreciseUQInput end
+abstract type RandomUQInput <: PreciseUQInput end
 
 abstract type Copula <: UQType end
 
@@ -46,6 +48,8 @@ export AbstractQuasiMonteCarlo
 export Copula
 export DeterministicUQInput
 export RandomUQInput
+export PreciseUQInput
+export ImpreciseUQInput
 export UQInput
 export UQModel
 export UQType
