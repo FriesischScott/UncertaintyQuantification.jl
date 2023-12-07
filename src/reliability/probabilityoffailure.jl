@@ -98,12 +98,11 @@ function probability_of_failure(
     inputs::Union{Vector{<:UQInput},UQInput},
     sim::AbstractMonteCarlo,
 )
-
+    inputs = wrap(inputs)
     imprecise_inputs = filter(x -> isa(x, ImpreciseUQInput), inputs)
     precise_inputs = filter(x -> isa(x, PreciseUQInput), inputs)
     
     function montecarlo_pf(x)
-
         imprecise_inputs_x = map_to_precise_inputs(x, imprecise_inputs)
         mc_inputs = [precise_inputs..., imprecise_inputs_x...]
         mc_pf,_,_ = probability_of_failure(models, performance, mc_inputs, sim)
@@ -117,6 +116,7 @@ function probability_of_failure(
     pf_lb = info_min.fx
     _, info_max = prima(x -> -montecarlo_pf(x), x0; xl=lb, xu=ub)
     pf_ub = -info_max.fx
+
     return Interval(pf_lb, pf_ub, :pf)
 end
 
@@ -142,4 +142,3 @@ function map_to_precise_inputs(x::AbstractVector, inputs::AbstractVector{<:UQInp
     end
     return precise_inputs
 end
-
