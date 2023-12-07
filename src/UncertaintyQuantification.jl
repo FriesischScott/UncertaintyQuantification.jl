@@ -12,6 +12,7 @@ using Formatting
 using KernelDensity
 using LinearAlgebra
 using Mustache
+using PRIMA
 using QuasiMonteCarlo
 using Random
 using Reexport
@@ -68,6 +69,7 @@ export GaussQuadrature
 export HaltonSampling
 export HermiteBasis
 export ImportanceSampling
+export Interval
 export JointDistribution
 export LatinHypercubeSampling
 export LatticeRuleSampling
@@ -82,6 +84,7 @@ export PlackettBurman
 export PolynomialChaosBasis
 export PolynomialChaosExpansion
 export PolyharmonicSpline
+export ProbabilityBox
 export RandomVariable
 export ResponseSurface
 export SobolSampling
@@ -118,6 +121,9 @@ include("inputs/empiricaldistribution.jl")
 include("inputs/inputs.jl")
 include("inputs/parameter.jl")
 include("inputs/randomvariable.jl")
+
+include("inputs/imprecise/interval.jl")
+include("inputs/imprecise/p-box.jl")
 
 include("inputs/copulas/gaussian.jl")
 include("inputs/jointdistribution.jl")
