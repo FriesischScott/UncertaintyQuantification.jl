@@ -112,9 +112,10 @@ function probability_of_failure(
     lb, ub = bounds(inputs)
     x0 = (lb .+ ub) ./ 2
 
-    _, info_min = prima(montecarlo_pf, x0; xl=lb, xu=ub)
+    rhobeg = minimum((ub .- lb) ./ 2)
+    _, info_min = prima(montecarlo_pf, x0; xl=lb, xu=ub, rhobeg=rhobeg)
     pf_lb = info_min.fx
-    _, info_max = prima(x -> -montecarlo_pf(x), x0; xl=lb, xu=ub)
+    _, info_max = prima(x -> -montecarlo_pf(x), x0; xl=lb, xu=ub, rhobeg=rhobeg)
     pf_ub = -info_max.fx
 
     return Interval(pf_lb, pf_ub, :pf)
