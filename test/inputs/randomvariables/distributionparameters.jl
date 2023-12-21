@@ -17,6 +17,12 @@
     σ = std(d)
     @test [distribution_parameters(μ, σ, Gumbel)...] ≈ [1.0, 2.0]
 
+    # Logistic
+    d = Logistic(5.0, 2.0)
+    μ = mean(d)
+    σ = std(d)
+    @test [distribution_parameters(μ, σ, Logistic)...] ≈ [5.0, 2.0]
+
     # LogNormal
     d = LogNormal(10.0, 5.0)
     μ = mean(d)
