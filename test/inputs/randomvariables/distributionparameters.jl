@@ -1,4 +1,10 @@
 @testset "Distribution Parameters" begin
+    # Beta
+    d = Beta(0.5, 0.5)
+    μ = mean(d)
+    σ = std(d)
+    @test [distribution_parameters(μ, σ, Beta)...] ≈ [0.5, 0.5]
+
     # LogNormal
     d = LogNormal(10.0, 5.0)
     μ = mean(d)
