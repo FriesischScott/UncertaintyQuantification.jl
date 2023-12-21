@@ -38,3 +38,9 @@ function distribution_parameters(
     end
     return σ
 end
+
+function distribution_parameters(mean::Real, std::Real, _::Type{Distributions.Uniform})
+    a = mean - sqrt(3) * std
+    b = mean + sqrt(3) * std
+    return a, b
+end
