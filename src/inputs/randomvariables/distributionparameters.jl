@@ -27,3 +27,14 @@ function distribution_parameters(mean::Real, std::Real, _::Type{Distributions.Lo
     σ = sqrt(log(std^2 / mean^2 + 1))
     return μ, σ
 end
+
+function distribution_parameters(
+    val::Real, d::Type{Distributions.Rayleigh}; std::Bool=false
+)
+    if !std
+        σ = val / sqrt(π / 2)
+    else
+        σ = val / sqrt(2 - π / 2)
+    end
+    return σ
+end

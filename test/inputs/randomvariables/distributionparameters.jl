@@ -28,4 +28,11 @@
     μ = mean(d)
     σ = std(d)
     @test [distribution_parameters(μ, σ, LogNormal)...] ≈ [10.0, 5.0]
+
+    # Rayleigh
+    d = Rayleigh(3.0)
+    μ = mean(d)
+    σ = std(d)
+    @test distribution_parameters(μ, Rayleigh) ≈ 3.0
+    @test distribution_parameters(σ, Rayleigh; std=true) ≈ 3.0
 end
