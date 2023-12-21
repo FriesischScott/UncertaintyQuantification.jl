@@ -5,6 +5,12 @@ function distribution_parameters(mean::Real, std::Real, _::Type{Distributions.Be
     return α, β
 end
 
+function distribution_parameters(mean::Real, std::Real, _::Type{Distributions.Gamma})
+    α = (mean / std)^2
+    θ = std^2 / mean
+    return α, θ
+end
+
 function distribution_parameters(mean::Real, std::Real, _::Type{Distributions.Gumbel})
     β = std * sqrt(6) / π
     μ = mean - MathConstants.γ * β
