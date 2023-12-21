@@ -91,6 +91,7 @@ export TwoLevelFactorial
 export calc
 export count_rvs
 export dimensions
+export distribution_parameters
 export doe_samples
 export evaluate
 export evaluate!
@@ -114,8 +115,8 @@ export to_standard_normal_space!
 include("inputs/empiricaldistribution.jl")
 include("inputs/inputs.jl")
 include("inputs/parameter.jl")
-include("inputs/randomvariable.jl")
-
+include("inputs/randomvariables/randomvariable.jl")
+include("inputs/randomvariables/distributionparameters.jl")
 include("inputs/copulas/gaussian.jl")
 include("inputs/jointdistribution.jl")
 

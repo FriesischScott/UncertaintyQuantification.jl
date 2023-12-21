@@ -11,7 +11,8 @@ using UncertaintyQuantification
 
 include("inputs/empericaldistribution.jl")
 include("inputs/parameter.jl")
-include("inputs/randomvariable.jl");
+include("inputs/randomvariables/randomvariable.jl")
+include("inputs/randomvariables/distributionparameters.jl")
 include("inputs/jointdistribution.jl");
 include("inputs/inputs.jl")
 
