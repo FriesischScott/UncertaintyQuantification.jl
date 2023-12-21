@@ -3,3 +3,9 @@ function distribution_parameters(mean::Real, std::Real, _::Type{Distributions.Lo
     σ = sqrt(log(std^2 / mean^2 + 1))
     return μ, σ
 end
+
+function distribution_parameters(mean::Real, std::Real, _::Type{Distributions.Gumbel})
+    β = std * sqrt(6) / π
+    μ = mean - MathConstants.γ * β
+    return μ, β
+end

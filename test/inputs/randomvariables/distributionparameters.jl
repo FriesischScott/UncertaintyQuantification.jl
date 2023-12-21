@@ -1,4 +1,13 @@
 @testset "Distribution Parameters" begin
-    @test [distribution_parameters(80, 15, LogNormal)...] ≈
-        [4.364750443920552, 0.18588270900398385]
+    # LogNormal
+    d = LogNormal(10.0, 5.0)
+    μ = mean(d)
+    σ = std(d)
+    @test [distribution_parameters(μ, σ, LogNormal)...] ≈ [10.0, 5.0]
+
+    # Gumbel
+    d = Gumbel(1.0, 2.0)
+    μ = mean(d)
+    σ = std(d)
+    @test [distribution_parameters(μ, σ, Gumbel)...] ≈ [1.0, 2.0]
 end
