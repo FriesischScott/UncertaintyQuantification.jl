@@ -52,11 +52,14 @@ export UQType
 
 # Structs
 export EmpiricalDistribution
+export BackwardFiniteDifferences
 export BoxBehnken
 export CentralComposite
+export CentralFiniteDifferences
 export ExternalModel
 export Extractor
 export FORM
+export ForwardFiniteDifferences
 export FractionalFactorial
 export FullFactorial
 export GaussianCopula
@@ -131,6 +134,7 @@ include("models/responsesurface.jl")
 include("models/pce/pcebases.jl")
 include("models/pce/polynomialchaosexpansion.jl")
 
+include("sensitivity/finitedifferences.jl")
 include("sensitivity/gradient.jl")
 
 include("simulations/doe.jl")
