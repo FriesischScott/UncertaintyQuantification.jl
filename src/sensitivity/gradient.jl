@@ -1,5 +1,9 @@
 function gradient(
-    models::Vector{<:UQModel}, inputs::Vector{<:UQInput}, x::DataFrame, output::Symbol
+    models::Vector{<:UQModel},
+    inputs::Vector{<:UQInput},
+    x::DataFrame,
+    output::Symbol;
+    fdm::FiniteDifferencesMethod=CentralFiniteDifferences(3, 1),
 )
     samples = copy(x)
 
@@ -16,7 +20,7 @@ function gradient(
 
     reference = Matrix{Float64}(samples[:, random_names])
 
-    g = grad(forward_fdm(2, 1), f, reference)[1]
+    g = _grad(f, fdm, reference)
 
     return (; zip(random_names, g)...)
 end
@@ -25,7 +29,8 @@ function gradient_in_standard_normal_space(
     models::Vector{<:UQModel},
     inputs::Vector{<:UQInput},
     reference::DataFrame,
-    output::Symbol,
+    output::Symbol;
+    fdm::FiniteDifferencesMethod=CentralFiniteDifferences(3, 1),
 )
     samples = copy(reference)
 
@@ -43,7 +48,19 @@ function gradient_in_standard_normal_space(
 
     reference = Matrix{Float64}(samples[:, random_names])
 
-    g = grad(forward_fdm(2, 1), f, reference)[1]
+    g = _grad(f, fdm, reference)
 
     return (; zip(random_names, g)...)
+end
+
+function _grad(f::Function, fdm::CentralFiniteDifferences, x)
+    return grad(central_fdm(fdm.order, fdm.derivative), f, x)[1]
+end
+
+function _grad(f::Function, fdm::ForwardFiniteDifferences, x)
+    return grad(forward_fdm(fdm.order, fdm.derivative), f, x)[1]
+end
+
+function _grad(f::Function, fdm::BackwardFiniteDifferences, x)
+    return grad(backward_fdm(fdm.order, fdm.derivative), f, x)[1]
 end
