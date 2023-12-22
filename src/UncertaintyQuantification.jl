@@ -52,11 +52,14 @@ export UQType
 
 # Structs
 export EmpiricalDistribution
+export BackwardFiniteDifferences
 export BoxBehnken
 export CentralComposite
+export CentralFiniteDifferences
 export ExternalModel
 export Extractor
 export FORM
+export ForwardFiniteDifferences
 export FractionalFactorial
 export FullFactorial
 export GaussianCopula
