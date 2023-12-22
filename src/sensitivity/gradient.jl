@@ -3,7 +3,7 @@ function gradient(
     inputs::Vector{<:UQInput},
     x::DataFrame,
     output::Symbol;
-    fdm::FiniteDifferencesMethod=CentralFiniteDifferences(3, 1),
+    fdm::FiniteDifferencesMethod=CentralFiniteDifferences(3),
 )
     samples = copy(x)
 
@@ -30,7 +30,7 @@ function gradient_in_standard_normal_space(
     inputs::Vector{<:UQInput},
     reference::DataFrame,
     output::Symbol;
-    fdm::FiniteDifferencesMethod=CentralFiniteDifferences(3, 1),
+    fdm::FiniteDifferencesMethod=CentralFiniteDifferences(3),
 )
     samples = copy(reference)
 

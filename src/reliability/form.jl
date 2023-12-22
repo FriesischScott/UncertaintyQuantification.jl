@@ -6,7 +6,7 @@ struct FORM
     function FORM(
         n::Integer=10,
         tol::Real=1e-3;
-        fdm::FiniteDifferencesMethod=CentralFiniteDifferences(3, 1),
+        fdm::FiniteDifferencesMethod=CentralFiniteDifferences(3),
     )
         return new(n, tol, fdm)
     end
