@@ -54,12 +54,12 @@
 
             to_standard_normal_space!(rv, mapped)
 
-            @test mean(mapped.x) ≈ 0.0 atol = 0.01
-            @test std(mapped.x) ≈ 1.0 atol = 0.01
+            h0 = OneSampleADTest(mapped.x, Normal())
+            @test pvalue(h0) > 0.05
 
             to_physical_space!(rv, mapped)
 
-            samples.x == mapped.x
+            @test samples.x ≈ mapped.x
         end
     end
 end
