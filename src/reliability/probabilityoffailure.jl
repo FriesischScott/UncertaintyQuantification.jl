@@ -92,23 +92,25 @@ function probability_of_failure(
 end
 
 # ImpreciseUQInput functions
+
+## 1st Method -  External: Global Opt ; Internal: Sampling
 function probability_of_failure(
     models::Union{Vector{<:UQModel},UQModel},
     performance::Function,
     inputs::Union{Vector{<:UQInput},UQInput},
-    sim::AbstractMonteCarlo,
+    sim::AbstractMonteCarlo, ## TODO change to Abstract Simulation Type
 )
     inputs = wrap(inputs)
     imprecise_inputs = filter(x -> isa(x, ImpreciseUQInput), inputs)
     precise_inputs = filter(x -> isa(x, PreciseUQInput), inputs)
-    
+
     function montecarlo_pf(x)
         imprecise_inputs_x = map_to_precise_inputs(x, imprecise_inputs)
         mc_inputs = [precise_inputs..., imprecise_inputs_x...]
-        mc_pf,_,_ = probability_of_failure(models, performance, mc_inputs, sim)
+        mc_pf, _, _ = probability_of_failure(models, performance, mc_inputs, sim)
         return mc_pf
     end
-    
+
     lb, ub = bounds(inputs)
     x0 = (lb .+ ub) ./ 2
 
@@ -117,6 +119,52 @@ function probability_of_failure(
     pf_lb = info_min.fx
     _, info_max = prima(x -> -montecarlo_pf(x), x0; xl=lb, xu=ub, rhobeg=rhobeg)
     pf_ub = -info_max.fx
+
+    return Interval(pf_lb, pf_ub, :pf)
+end
+
+## 2nd Method -  External: Sampling ; Internal: Global Opt
+function probability_of_failure(
+    models::Union{Vector{<:UQModel},UQModel},
+    performance::Function,
+    inputs::Union{Vector{<:UQInput},UQInput},
+    n::Integer,
+)
+    inputs = wrap(inputs)
+    imprecise_inputs = filter(x -> isa(x, ImpreciseUQInput), inputs)
+    precise_inputs = convert(
+        Vector{PreciseUQInput}, filter(x -> isa(x, PreciseUQInput), inputs)
+    )
+
+    imprecise_names = [i.name for i in imprecise_inputs]
+
+    g_intervals = map(1:n) do _
+        df = sample(precise_inputs)
+
+        bounds = sample.(imprecise_inputs)
+        lb = getindex.(bounds, 1)
+        ub = getindex.(bounds, 2)
+
+        function g(x)
+            inner_sample = hcat(df, DataFrame(imprecise_names .=> x))
+            evaluate!(models, inner_sample)
+
+            return performance(inner_sample)[1]
+        end
+
+        x0 = (lb .+ ub) ./ 2
+        rhobeg = minimum((ub .- lb) ./ 2)
+
+        _, info_min = prima(g, x0; xl=lb, xu=ub, rhobeg=rhobeg)
+        g_lb = info_min.fx
+        _, info_max = prima(x -> -g(x), x0; xl=lb, xu=ub, rhobeg=rhobeg)
+        g_ub = -info_max.fx
+
+        return [g_lb, g_ub]
+    end
+
+    pf_ub = sum(getindex.(g_intervals, 1) .< 0) / n
+    pf_lb = sum(getindex.(g_intervals, 1) .< 0 .&& getindex.(g_intervals, 2) .< 0) / n
 
     return Interval(pf_lb, pf_ub, :pf)
 end

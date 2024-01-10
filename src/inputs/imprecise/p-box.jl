@@ -19,20 +19,35 @@ struct ProbabilityBox <: ImpreciseUQInput
     ub::AbstractVector{<:Real}
     dist::Function
     name::Symbol
-    function ProbabilityBox(lb::AbstractVector{<:Real}, ub::AbstractVector{<:Real}, dist::Function, name::Symbol)
-        any(lb .≥ ub) && error("lower bound parameters must be smaller than upper bound parameters for $name")
+    function ProbabilityBox(
+        lb::AbstractVector{<:Real}, ub::AbstractVector{<:Real}, dist::Function, name::Symbol
+    )
+        any(lb .≥ ub) && error(
+            "lower bound parameters must be smaller than upper bound parameters for $name",
+        )
         return new(lb, ub, dist, name)
     end
 end
-
 
 function map_to_precise(x::Vector{<:Real}, input::ProbabilityBox)
     lb = input.lb
     ub = input.ub
     name = input.name
-    length(x) != length(lb) && error("number of parameters $x must be equals to the number of parameter need by $name")
+    length(x) != length(lb) && error(
+        "number of parameters $x must be equals to the number of parameter need by $name",
+    )
     any(x .< lb) && error("One or more values in $x are lower than p-box's lower bound $lb")
-    any(x .> ub) && error("One or more values in $x are higher than p-box's upper bound $ub")
+    any(x .> ub) &&
+        error("One or more values in $x are higher than p-box's upper bound $ub")
 
     return RandomVariable(input.dist(x), input.name)
+end
+
+function sample(pbox::ProbabilityBox)
+    x = rand()
+
+    lb = quantile(pbox.dist(pbox.lb), x)
+    ub = quantile(pbox.dist(pbox.ub), x)
+
+    return sort([lb, ub])
 end

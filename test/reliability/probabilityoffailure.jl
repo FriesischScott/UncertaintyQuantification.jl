@@ -105,9 +105,15 @@
         mc = MonteCarlo(10^6)
         models = [inertia, displacement]
         performance = df -> max_displacement .- df.w
-
-        interval_pf = probability_of_failure(models, performance, inputs, mc)
-        @test interval_pf.lb ≈ 0.0078 atol = 0.002
-        @test interval_pf.ub ≈ 0.261 atol = 0.04
+        @testset "External GO" begin
+            interval_pf = probability_of_failure(models, performance, inputs, mc)
+            @test interval_pf.lb ≈ 0.0078 atol = 0.002
+            @test interval_pf.ub ≈ 0.261 atol = 0.04
+        end
+        @testset "Internal GO" begin
+            interval_pf = probability_of_failure(models, performance, inputs, 20_000)
+            @test interval_pf.lb ≈ 0.0078 atol = 0.002
+            @test interval_pf.ub ≈ 0.261 atol = 0.04
+        end
     end
 end

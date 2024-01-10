@@ -14,7 +14,9 @@ struct Interval <: ImpreciseUQInput
     ub::Real
     name::Symbol
     function Interval(lb::Real, ub::Real, name::Symbol)
-        lb ≥ ub && error("lower bound parameter must be smaller than upper bound parameter for $name")
+        lb ≥ ub && error(
+            "lower bound parameter must be smaller than upper bound parameter for $name"
+        )
         return new(lb, ub, name)
     end
 end
@@ -25,4 +27,8 @@ function map_to_precise(x::Real, input::Interval)
     x < lb && error("Choosen value $x is lower than Interval's lower bound $lb")
     x > ub && error("Choosen value $x is higher than Interval's upper bound $ub")
     return Parameter(x, input.name)
+end
+
+function sample(i::Interval)
+    return [i.lb, i.ub]
 end
