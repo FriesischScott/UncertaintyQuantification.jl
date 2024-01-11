@@ -98,7 +98,7 @@ function probability_of_failure(
     models::Union{Vector{<:UQModel},UQModel},
     performance::Function,
     inputs::Union{Vector{<:UQInput},UQInput},
-    sim::AbstractMonteCarlo, ## TODO change to Abstract Simulation Type
+    sim::AbstractSimulation,
 )
     inputs = wrap(inputs)
     imprecise_inputs = filter(x -> isa(x, ImpreciseUQInput), inputs)

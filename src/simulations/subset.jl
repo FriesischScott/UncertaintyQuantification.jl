@@ -1,4 +1,4 @@
-abstract type AbstractSubSetSimulation end
+abstract type AbstractSubSetSimulation <: AbstractSimulation end
 
 """
     SubSetSimulation(n::Integer, target::Float64, levels::Integer, proposal::UnivariateDistribution)

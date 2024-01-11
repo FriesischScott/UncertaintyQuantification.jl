@@ -37,7 +37,8 @@ abstract type RandomUQInput <: PreciseUQInput end
 
 abstract type Copula <: UQType end
 
-abstract type AbstractMonteCarlo end
+abstract type AbstractSimulation end
+abstract type AbstractMonteCarlo <: AbstractSimulation end
 abstract type AbstractQuasiMonteCarlo <: AbstractMonteCarlo end
 
 abstract type AbstractDesignOfExperiments end
@@ -46,6 +47,7 @@ abstract type AbstractDesignOfExperiments end
 export AbstractDesignOfExperiments
 export AbstractMonteCarlo
 export AbstractQuasiMonteCarlo
+export AbstractSimulation
 export Copula
 export DeterministicUQInput
 export RandomUQInput

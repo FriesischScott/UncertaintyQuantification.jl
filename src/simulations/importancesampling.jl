@@ -1,4 +1,4 @@
-struct ImportanceSampling
+struct ImportanceSampling <: AbstractSimulation
     n::Integer
     β::Real
     dp::NamedTuple
