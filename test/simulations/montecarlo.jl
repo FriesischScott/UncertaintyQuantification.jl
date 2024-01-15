@@ -13,8 +13,6 @@ end
     end
 
     @testset "SobolSampling" begin
-        #TODO: Tests for randomized Sobol Sampling
-
         sobol = SobolSampling(1000, :none)
 
         @test isa(sobol, SobolSampling)
@@ -31,13 +29,30 @@ end
         end
     end
 
-    @testset "HaltonSampling" begin
-        #TODO: Tests for randomized Halton Sampling
+    @testset "FaureSampling" begin
+        faure = FaureSampling(1000, :none)
 
+        @test isa(faure, FaureSampling)
+
+        @testset "sample" begin
+            inputs = [RandomVariable.(Uniform(), [:a, :b]); Parameter(1, :c)]
+
+            samples = sample(inputs, FaureSampling(4, :none))
+
+            @test isapprox(samples.a, [0.0625, 0.5625, 0.3125, 0.8125])
+            @test isapprox(samples.b, [0.0625, 0.5625, 0.8125, 0.3125])
+            @test samples.c == [1.0, 1.0, 1.0, 1.0]
+
+            @test_warn "n must be a power of the base (here 2), automatically increased to 8" sample(
+                inputs, FaureSampling(7, :none)
+            )
+        end
+    end
+
+    @testset "HaltonSampling" begin
         halton = HaltonSampling(1000, :none)
 
         @test isa(halton, HaltonSampling)
-        @test halton.n == 1024
 
         @testset "sample" begin
             inputs = [
@@ -54,11 +69,9 @@ end
     end
 
     @testset "LatticeRuleSampling" begin
-        #TODO: Tests for randomized Lattice Rule Sampling
         lattice = LatticeRuleSampling(1000, :none)
 
         @test isa(lattice, LatticeRuleSampling)
-        @test lattice.n == 1024
 
         @testset "sample" begin
             inputs = [RandomVariable.(Uniform(), [:a, :b]); Parameter(1, :c)]

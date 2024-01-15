@@ -6,20 +6,31 @@ end
 struct SobolSampling <: AbstractQuasiMonteCarlo
     n::Integer
     randomization::Symbol
-    base::Integer
-    pad::Integer
 
     function SobolSampling(n::Integer, randomization::Symbol=:matousekscramble)
-        randomization ∉ [:matousekscramble, :digitalshift, :shift, :owenscramble, :none] &&
-            error(
-                "type must be :matousekscramble, :digitalshift, :shift, :owenscramble or :none",
-            )
+        randomization ∉ [:matousekscramble, :owenscramble, :none] &&
+            error("type must be :matousekscramble :owenscramble or :none")
         if n > 0
             if !isinteger(log2(n))
                 n = Int(2^ceil(log2(n)))
                 @warn("n must be a power of 2, automatically increased to $n")
             end
-            return new(n, randomization, 2, 32)
+            return new(n, randomization)
+        else
+            error("n must be greater than zero")
+        end
+    end
+end
+
+struct FaureSampling <: AbstractQuasiMonteCarlo
+    n::Integer
+    randomization::Symbol
+
+    function FaureSampling(n::Integer, randomization::Symbol=:matousekScramble)
+        randomization ∉ [:matousekscramble, :owenscramble, :none] &&
+            error("type must be :matousekscramble, :owenscramble or :none")
+        if n > 0
+            return new(n, randomization)
         else
             error("n must be greater than zero")
         end
@@ -29,26 +40,11 @@ end
 struct HaltonSampling <: AbstractQuasiMonteCarlo
     n::Integer
     randomization::Symbol
-    base::Integer
-    pad::Integer
 
-    function HaltonSampling(
-        n::Integer,
-        randomization::Symbol=:matousekscramble,
-        base::Integer=2,
-        pad::Integer=32,
-    )
-        randomization ∉ [:matousekscramble, :digitalshift, :shift, :owenscramble, :none] &&
-            error(
-                "type must be :matousekscramble, :digitalshift, :shift, :owenscramble or :none",
-            )
-        pad < log(base, n) && error("pad must be ≥ log(base, n)")
+    function HaltonSampling(n::Integer, randomization::Symbol=:none)
+        randomization ∉ [:none] && error("type must be :none")
         if n > 0
-            if !isinteger(log(base, n))
-                n = Int(base^ceil(log(base, n)))
-                @warn("n must be a power of 2, automatically increased to $n")
-            end
-            return new(n, randomization, base, pad)
+            return new(n, randomization)
         else
             error("n must be greater than zero")
         end
@@ -63,26 +59,11 @@ end
 struct LatticeRuleSampling <: AbstractQuasiMonteCarlo
     n::Integer
     randomization::Symbol
-    base::Integer
-    pad::Integer
 
-    function LatticeRuleSampling(
-        n::Integer,
-        randomization::Symbol=:matousekscramble,
-        base::Integer=2,
-        pad::Integer=32,
-    )
-        randomization ∉ [:matousekscramble, :digitalshift, :shift, :owenscramble, :none] &&
-            error(
-                "type must be :matousekscramble, :digitalshift, :shift, :owenscramble or :none",
-            )
-        pad < log(base, n) && error("pad must be ≥ log(base, n)")
+    function LatticeRuleSampling(n::Integer, randomization::Symbol=:shift)
+        randomization ∉ [:shift, :none] && error("type must be :shift or :none")
         if n > 0
-            if !isinteger(log(base, n))
-                n = Int(base^ceil(log(base, n)))
-                @warn("n must be a power of 2, automatically increased to $n")
-            end
-            return new(n, randomization, base, pad)
+            return new(n, randomization)
         else
             error("n must be greater than zero")
         end
@@ -105,7 +86,7 @@ function sample(inputs::Vector{<:UQInput}, sim::AbstractQuasiMonteCarlo)
     samples = DataFrame(names(random_inputs) .=> eachrow(samples))
 
     if !isempty(deterministic_inputs)
-        samples = hcat(samples, sample(deterministic_inputs, sim.n))
+        samples = hcat(samples, sample(deterministic_inputs, size(samples, 1)))
     end
 
     to_physical_space!(inputs, samples)
@@ -117,6 +98,18 @@ sample(input::UQInput, sim::AbstractMonteCarlo) = sample([input], sim)
 
 function qmc_samples(sim::SobolSampling, rvs::Integer)
     return randomize(sim, QuasiMonteCarlo.sample(sim.n, rvs, SobolSample()))
+end
+
+function qmc_samples(sim::FaureSampling, rvs::Integer)
+    b = nextprime(rvs)
+    n = sim.n
+    if !isinteger(log(b, sim.n))
+        n = Int(b^ceil(log(b, sim.n)))
+        @warn(
+            "n must be a power of the base (here $b), automatically increased to $n for these samples."
+        )
+    end
+    return randomize(sim, QuasiMonteCarlo.sample(n, rvs, FaureSample()), b)
 end
 
 function qmc_samples(sim::HaltonSampling, rvs::Integer)
@@ -132,13 +125,13 @@ function qmc_samples(sim::LatticeRuleSampling, rvs::Integer)
     return randomize(sim, QuasiMonteCarlo.sample(sim.n, rvs, LatticeRuleSample()))
 end
 
-function randomize(sim::AbstractQuasiMonteCarlo, u::Matrix)
+function randomize(sim::AbstractQuasiMonteCarlo, u::Matrix, b=2)
     if sim.randomization == :matousekscramble
-        u = QuasiMonteCarlo.randomize(u, MatousekScramble(; base=sim.base, pad=sim.pad))
+        u = QuasiMonteCarlo.randomize(u, MatousekScramble(; base=b))
     elseif sim.randomization == :owenscramble
-        u = QuasiMonteCarlo.randomize(u, OwenScramble(; base=sim.base, pad=sim.pad))
+        u = QuasiMonteCarlo.randomize(u, OwenScramble(; base=b))
     elseif sim.randomization == :digitalshift
-        u = QuasiMonteCarlo.randomize(u, DigitalShift(; base=sim.base, pad=sim.pad))
+        u = QuasiMonteCarlo.randomize(u, DigitalShift())
     elseif sim.randomization == :shift
         u = QuasiMonteCarlo.randomize(u, Shift())
     end
@@ -147,7 +140,8 @@ function randomize(sim::AbstractQuasiMonteCarlo, u::Matrix)
 end
 
 double_samples(sim::MonteCarlo) = MonteCarlo(2 * sim.n)
-double_samples(sim::SobolSampling) = SobolSampling(2 * sim.n)
-double_samples(sim::HaltonSampling) = HaltonSampling(2 * sim.n)
+double_samples(sim::SobolSampling) = SobolSampling(2 * sim.n, sim.randomization)
+double_samples(sim::FaureSampling) = FaureSampling(2 * sim.n, sim.randomization)
+double_samples(sim::HaltonSampling) = HaltonSampling(2 * sim.n, sim.randomization)
 double_samples(sim::LatinHypercubeSampling) = LatinHypercubeSampling(2 * sim.n)
-double_samples(sim::LatticeRuleSampling) = LatticeRuleSampling(2 * sim.n)
+double_samples(sim::LatticeRuleSampling) = LatticeRuleSampling(2 * sim.n, sim.randomization)

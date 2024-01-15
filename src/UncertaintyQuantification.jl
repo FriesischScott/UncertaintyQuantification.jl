@@ -12,6 +12,7 @@ using Formatting
 using KernelDensity
 using LinearAlgebra
 using Mustache
+using Primes
 using QuasiMonteCarlo
 using Random
 using Reexport
@@ -56,6 +57,7 @@ export BoxBehnken
 export CentralComposite
 export ExternalModel
 export Extractor
+export FaureSampling
 export FORM
 export FractionalFactorial
 export FullFactorial
