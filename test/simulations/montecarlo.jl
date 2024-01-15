@@ -43,9 +43,10 @@ end
             @test isapprox(samples.b, [0.0625, 0.5625, 0.8125, 0.3125])
             @test samples.c == [1.0, 1.0, 1.0, 1.0]
 
-            @test_warn "n must be a power of the base (here 2), automatically increased to 8 for these samples." sample(
-                inputs, FaureSampling(7, :none)
-            )
+            @test_logs (
+                :warn,
+                "n must be a power of the base (here 2), automatically increased to 8 for these samples.",
+            ) sample(inputs, FaureSampling(7, :none))
         end
     end
 
