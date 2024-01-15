@@ -96,4 +96,17 @@ end
         h = fit(Histogram, samples.b, range(0, 3; length=1001))
         @test all(h.weights .== 1)
     end
+
+    @testset "RQMC" begin
+        inputs = RandomVariable.([Uniform(-1, 1), Uniform(0, 3)], [:a, :b])
+
+        sobol = SobolSampling(4, :matousekscramble)
+        @test sample(inputs, sobol) != sample(inputs, sobol)
+
+        faure = FaureSampling(4, :owenscramble)
+        @test sample(inputs, faure) != sample(inputs, faure)
+
+        lattice = LatticeRuleSampling(4, :shift)
+        @test sample(inputs, lattice) != sample(inputs, lattice)
+    end
 end

@@ -130,8 +130,6 @@ function randomize(sim::AbstractQuasiMonteCarlo, u::Matrix, b=2)
         u = QuasiMonteCarlo.randomize(u, MatousekScramble(; base=b))
     elseif sim.randomization == :owenscramble
         u = QuasiMonteCarlo.randomize(u, OwenScramble(; base=b))
-    elseif sim.randomization == :digitalshift
-        u = QuasiMonteCarlo.randomize(u, DigitalShift())
     elseif sim.randomization == :shift
         u = QuasiMonteCarlo.randomize(u, Shift())
     end
