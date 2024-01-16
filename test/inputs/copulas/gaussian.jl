@@ -26,7 +26,6 @@ correlation = [1 0.8; 0.8 1]
         @test std(s[:, 2]) ≈ 1 atol = 0.05
 
         h0 = CorrelationTest(s[:, 1], s[:, 2])
-        @show pvalue(h0)
         @test pvalue(h0) > 0.05
     end
 
