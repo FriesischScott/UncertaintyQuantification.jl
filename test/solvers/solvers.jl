@@ -1,20 +1,15 @@
 @testset "Solvers" begin
-    binary = ""
-    if Sys.iswindows()
-        binary = joinpath(pwd(), "solvers/bin/radius.exe")
-    elseif Sys.isapple()
-        binary = joinpath(pwd(), "solvers/bin/radius-mac")
-    else
-        binary = joinpath(pwd(), "solvers/bin/radius")
-    end
+    binary = joinpath(Sys.BINDIR, "julia")
 
-    solver = Solver(binary, "", "in.txt")
+    solver = Solver(binary, "radius.jl"; args="--project")
 
     tmp = tempdir()
 
-    open(joinpath(tmp, "in.txt"), "w") do input
-        println(input, "0.5")
-        println(input, "0.5")
+    open("radius.jl", "w") do input
+        println(input, "x = 0.5")
+        println(input, "y = 0.5")
+        println(input, "z = sqrt(x^2+y^2)")
+        println(input, "write(\"out.txt\", string(z))")
     end
 
     run(solver, tmp)
