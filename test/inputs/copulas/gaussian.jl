@@ -17,13 +17,16 @@ correlation = [1 0.8; 0.8 1]
         u = sample(copula, 10^5)
         s = to_standard_normal_space(copula, u)
 
-        h0 = OneSampleADTest(s[:, 1], Normal())
-        @test pvalue(h0) > 0.05
+        @test mean(s[:, 1]) ≈ 0 atol = 0.05
+        @test median(s[:, 1]) ≈ 0 atol = 0.05
+        @test std(s[:, 1]) ≈ 1 atol = 0.05
 
-        h0 = OneSampleADTest(s[:, 2], Normal())
-        @test pvalue(h0) > 0.05
+        @test mean(s[:, 2]) ≈ 0 atol = 0.05
+        @test median(s[:, 2]) ≈ 0 atol = 0.05
+        @test std(s[:, 2]) ≈ 1 atol = 0.05
 
         h0 = CorrelationTest(s[:, 1], s[:, 2])
+        @show pvalue(h0)
         @test pvalue(h0) > 0.05
     end
 

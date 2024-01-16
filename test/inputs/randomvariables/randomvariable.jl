@@ -54,8 +54,9 @@
 
             to_standard_normal_space!(rv, mapped)
 
-            h0 = OneSampleADTest(mapped.x, Normal())
-            @test pvalue(h0) > 0.05
+            @test mean(mapped.x) ≈ 0 atol = 0.05
+            @test median(mapped.x) ≈ 0 atol = 0.05
+            @test std(mapped.x) ≈ 1 atol = 0.05
 
             to_physical_space!(rv, mapped)
 

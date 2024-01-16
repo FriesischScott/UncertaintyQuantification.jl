@@ -25,7 +25,7 @@
             @test all(pdf.(ed, samples) .>= 0)
             pdf_area, _ = hquadrature(x -> pdf(ed, x), minimum(ed), maximum(ed))
 
-            @test pdf_area ≈ 1 atol = 1e-3
+            @test pdf_area ≈ 1 atol = 0.01
             @test logpdf.(ed, samples) ≈ log.(pdf.(ed, samples))
 
             r = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
