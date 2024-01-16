@@ -67,7 +67,7 @@ struct SubSetInfinity <: AbstractSubSetSimulation
     s::Real
 
     function SubSetInfinity(n::Integer, target::Float64, levels::Integer, s::Real)
-        (0 <= s <= 1) || error("standard deviation must be between 0.0")
+        (0 <= s <= 1) || error("standard deviation must be between 0.0 and 1.0")
         return new(n, target, levels, s)
     end
 end
@@ -87,6 +87,74 @@ function sample(inputs::Vector{<:UQInput}, sim::AbstractSubSetSimulation)
         samples = hcat(samples, sample(deterministic_inputs, sim.n))
     end
     return samples
+end
+
+"""
+    SubSetInfinityAdaptive(n::Integer, target::Float64, levels::Integer, Na::Integer, λ::Real, s::Real)
+
+Implementation of: Papaioannou, Iason, et al. "MCMC algorithms for subset simulation." Probabilistic Engineering Mechanics 41 (2015): 89-103
+
+Defines the properties of a Subset-∞ adaptive where `n` is the number of initial samples,
+`target` is the target probability of failure at each level, `levels` is the maximum number
+of levels and `λ` (λ = 1 recommended) is the initial scaling parameter and `Na` is the number of
+times to update `λ` per subset level (number of partitions of seeds). The initial variance of the proposal distribution is `λ`.
+
+
+Idea behind this algorithm is to adaptively select the correlation parameter of `s`
+at each intermediate level, by simulating a subset N_a of the chains
+(which must be choosen without replacement at random) and modifying the acceptance rate towards the optiming
+α_star = 0.44
+
+# Constructors
+* `SubSetInfinityAdaptive(n::Integer, target::Float64, levels::Integer, Na::Integer)`   (default: λ = s = 1)
+* `SubSetInfinityAdaptive(n::Integer, target::Float64, levels::Integer, Na::Integer, λ::Real)` (λ = s)
+* `SubSetInfinityAdaptive(n::Integer, target::Float64, levels::Integer, Na::Integer, λ::Real, s::Real)`
+
+# Examples
+
+```jldoctest
+julia> SubSetInfinityAdaptive(200, 0.1, 10, 2)
+SubSetInfinityAdaptive(200, 0.1, 10, 2, 1, 1)
+```
+
+# References
+
+[papaioannou2015mcmc](@cite)
+
+[chan2022adaptive](@cite)
+"""
+mutable struct SubSetInfinityAdaptive <: AbstractSubSetSimulation
+    n::Integer
+    target::Float64
+    levels::Integer
+    Na::Integer
+    λ::Real
+    s::Real
+
+    function SubSetInfinityAdaptive(
+        n::Integer, target::Float64, levels::Integer, Na::Integer, λ::Real, s::Real
+    )
+        number_of_seeds = Int64(max(1, ceil(n * target)))
+
+        (Na <= number_of_seeds) ||
+            error("Number of partitions Na must be less than `n` * `target`")
+        (mod(number_of_seeds, Na) == 0) ||
+            error("Number of partitions Na must be a multiple of `n` * `target`")
+        (0 <= λ <= 1) || error(
+            "Scaling parameter must be between 0.0 and 1.0. A good initial choice is 1.0",
+        )
+        (0 <= s <= 1) || error("standard deviation must be between 0.0 and 1.0")
+        return new(n, target, levels, Na, λ, s)
+    end
+end
+
+function SubSetInfinityAdaptive(
+    n::Integer, target::Float64, levels::Integer, Na::Integer, λ::Real
+)
+    return SubSetInfinityAdaptive(n, target, levels, Na, λ, λ)
+end
+function SubSetInfinityAdaptive(n::Integer, target::Float64, levels::Integer, Na::Integer)
+    return SubSetInfinityAdaptive(n, target, levels, Na, 1, 1)
 end
 
 function probability_of_failure(
@@ -127,8 +195,10 @@ function probability_of_failure(
             Iᵢ = reshape(
                 performance[end] .<= max(threshold[i], 0), number_of_seeds, samples_per_seed
             )
-            cov[i] = estimate_cov(Iᵢ, pf[i], sim.n)
+            cov[i] = estimate_cov(Iᵢ, pf[i])
         end
+
+        @debug "Subset level $i" pf[i] threshold[i] cov[i]
 
         ## Break the loop
         if threshold[i] <= 0 || i == sim.levels
@@ -177,14 +247,17 @@ function nextlevelsamples(
     random_inputs = filter(i -> isa(i, RandomUQInput), inputs)
     rvs = names(random_inputs)
 
-    number_of_chains = nrow(samples)
+    number_of_chains = length(performance)
     samples_per_chain = Int64(floor(sim.n / number_of_chains))
 
     d = length(rvs)
     Φ = MvNormal(Diagonal(Matrix{Float64}(I, d, d)))
 
+    α_MCMC = zeros(samples_per_chain)
+    α_ss = zeros(samples_per_chain)
+
     # Modified metropolis hastings to generate samples for the next intermediate failure region
-    for _ in 1:samples_per_chain
+    for i in 1:samples_per_chain
         chainsamples = copy(nextlevelsamples[end])
         chainperformance = copy(nextlevelperformance[end])
 
@@ -198,6 +271,8 @@ function nextlevelsamples(
         α_accept = α .>= rand(size(α)...)
         chainsamples[α_accept, rvs] = ξ[α_accept, :]
 
+        α_MCMC[i] = mean(α_accept)
+
         to_physical_space!(inputs, chainsamples)
 
         ## Evaluating model just for new samples
@@ -209,6 +284,8 @@ function nextlevelsamples(
             new_samplesperformance = performancefunction(new_samples)
             reject = new_samplesperformance .> threshold
 
+            α_ss[i] = 1 - mean(reject)
+
             new_samples[reject, :] = nextlevelsamples[end][α_accept_indices[reject], :]
             new_samplesperformance[reject] = nextlevelperformance[end][α_accept_indices[reject]]
 
@@ -216,12 +293,12 @@ function nextlevelsamples(
             chainperformance[α_accept_indices] = new_samplesperformance
         end
 
-        # chainsamples = chainsamples[α_accept_indices, :]
-        # chainperformance = chainperformance[α_accept_indices]
-
         push!(nextlevelsamples, chainsamples)
         push!(nextlevelperformance, chainperformance)
     end
+
+    @debug "Acceptance rate MCMC" mean(α_MCMC)
+    @debug "Acceptance rate subset" mean(α_ss)
 
     # reduce and discard seeds
     nextlevelsamples = reduce(vcat, nextlevelsamples[2:end])
@@ -239,33 +316,133 @@ function nextlevelsamples(
     inputs::Union{Vector{<:UQInput},UQInput},
     sim::SubSetInfinity,
 )
-    samples_per_seed = Int64(floor(sim.n / nrow(samples)))
+    samples_per_seed = Int64(floor(sim.n / length(performance)))
+
+    ρ = sqrt(1 - sim.s^2)
+
+    next_samples, next_performance, α = conditional_sampling(
+        samples,
+        performance,
+        threshold,
+        models,
+        performancefunction,
+        inputs,
+        ρ,
+        sim.s,
+        samples_per_seed,
+    )
+
+    @debug "Acceptance rate" α
+
+    return next_samples, next_performance
+end
+
+function nextlevelsamples(
+    samples::DataFrame,
+    performance::Vector{<:Real},
+    threshold::Real,
+    models::Union{Vector{<:UQModel},UQModel},
+    performancefunction::Function,
+    inputs::Union{Vector{<:UQInput},UQInput},
+    sim::SubSetInfinityAdaptive,
+)
+    a_star = 0.44 # Optimal acceptance rate, so say Papaioannou, I., et. al.
+
+    Ns = length(performance) # Number of seeds
+    permutation = shuffle(1:Ns)
+
+    samples[:, :] = samples[permutation, :]
+    performance[:] = performance[permutation]
+
+    samples_per_seed = Integer(sim.n / Ns)
+    number_of_batches = Integer(Ns / sim.Na)
+
+    next_samples = Vector{DataFrame}(undef, number_of_batches)
+    next_performance = Vector{Vector{eltype(performance)}}(undef, number_of_batches)
+
+    λ = sim.λ
+
+    α = 0.0
+    for batch in 1:number_of_batches
+        σ = min(1, λ * sim.s)
+        ρ = sqrt(1 - σ^2)
+
+        batch_samples, batch_performance, acceptance_rate = conditional_sampling(
+            samples[((batch - 1) * sim.Na + 1):(batch * sim.Na), :],
+            performance[((batch - 1) * sim.Na + 1):(batch * sim.Na)],
+            threshold,
+            models,
+            performancefunction,
+            inputs,
+            ρ,
+            σ,
+            samples_per_seed,
+        )
+
+        α += acceptance_rate
+
+        ζ = 1 / sqrt(batch)
+        λ = λ * exp(ζ * (acceptance_rate - a_star))
+
+        next_samples[batch] = batch_samples
+        next_performance[batch] = batch_performance
+    end
+
+    α /= number_of_batches
+    @debug "Adaptive conditional sampling" λ α
+
+    sim.λ = λ
+
+    next_samples = vcat(next_samples...)
+    next_performance = vcat(next_performance...)
+
+    return next_samples, next_performance
+end
+
+function conditional_sampling(
+    seeds::DataFrame,
+    performance::AbstractVector,
+    threshold::Real,
+    models::Union{Vector{<:UQModel},UQModel},
+    performancefunction::Function,
+    inputs::Union{Vector{<:UQInput},UQInput},
+    ρ::Real,
+    σ::Real,
+    N::Integer,
+)
+    α = 0.0
 
     random_inputs = filter(i -> isa(i, RandomUQInput), inputs)
     rvs = names(random_inputs)
 
-    to_standard_normal_space!(inputs, samples)
+    chain_samples = Vector{DataFrame}(undef, N)
+    chain_performance = Vector{Vector{eltype(performance)}}(undef, N)
 
-    samples = repeat(samples, samples_per_seed)
-    performance = repeat(performance, samples_per_seed)
+    chain_samples[1] = seeds
+    chain_performance[1] = performance
 
-    means = Matrix{Float64}(samples[:, rvs]) .* sqrt(1 - sim.s^2)
+    for k in 2:N
+        chain_samples[k] = copy(chain_samples[k - 1])
 
-    nextlevelsamples = copy(samples)
-    nextlevelsamples[:, rvs] = randn(size(means)) .* sim.s .+ means
+        to_standard_normal_space!(inputs, chain_samples[k])
 
-    to_physical_space!(inputs, nextlevelsamples)
+        μ = Matrix{Float64}(chain_samples[k][:, rvs]) .* ρ
+        chain_samples[k][:, rvs] = randn(size(μ)) .* σ .+ μ
 
-    evaluate!(models, nextlevelsamples)
+        to_physical_space!(inputs, chain_samples[k])
 
-    nextlevelperformance = performancefunction(nextlevelsamples)
+        evaluate!(models, chain_samples[k])
 
-    reject = nextlevelperformance .> threshold
+        chain_performance[k] = performancefunction(chain_samples[k])
 
-    nextlevelsamples[reject, :] = samples[reject, :]
-    nextlevelperformance[reject] = performance[reject]
+        rejected = chain_performance[k] .> threshold
+        chain_samples[k][rejected, rvs] = chain_samples[k - 1][rejected, rvs]
+        chain_performance[k][rejected] = chain_performance[k - 1][rejected]
 
-    return nextlevelsamples, nextlevelperformance
+        α += (1 - mean(rejected))
+    end
+
+    return vcat(chain_samples...), vcat(chain_performance...), α / (N - 1)
 end
 
 """
@@ -275,8 +452,9 @@ Evaluates the coefficient of variation at a subset simulation level.
 
 Reference: Au & Beck, (2001), 'Estimation of small failure probabilities in high dimensions by subset simulation'
 """
-function estimate_cov(Iᵢ::AbstractMatrix, pf::Float64, n::Int64)
+function estimate_cov(Iᵢ::AbstractMatrix, pf::Float64)
     Nc, Ns = size(Iᵢ) # Number of samples per seed, number of seeds
+    n = Nc * Ns
     rᵢ = zeros(Ns - 1)
     # Eq 29 - covariance vector between indicator(l) and indicator(l+k) -> ri
     for k in 1:(Ns - 1)

@@ -17,8 +17,6 @@ function run(solver::Solver, folder::String)
     source = solver.source
     args = solver.args
 
-    old_pwd = pwd()
-
     out = basename(binary) * "UncertaintyQuantification.out"
     err = basename(binary) * "UncertaintyQuantification.err"
 

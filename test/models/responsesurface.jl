@@ -1,23 +1,24 @@
 @testset "ResponseSurface" begin
-    x = RandomVariable.(Uniform(-π, π), [:x1, :x2, :x3])
-    a = 7
-    b = 0.1
+    x = RandomVariable.(Uniform(-5, 5), [:x1, :x2])
 
-    ishigami = Model(
-        df -> sin.(df.x1) .+ a .* sin.(df.x2) .^ 2 .+ b .* (df.x3 .^ 4) .* sin.(df.x1), :y
+    himmelblau = Model(
+        df -> (df.x1 .^ 2 .+ df.x2 .- 11) .^ 2 .+ (df.x1 .+ df.x2 .^ 2 .- 7) .^ 2, :y
     )
 
-    data = sample(x, SobolSampling(100))
-    evaluate!(ishigami, data)
+    data = sample(x, FullFactorial([5, 5]))
+    evaluate!(himmelblau, data)
 
-    rs = ResponseSurface(data, :y, 6)
+    rs = ResponseSurface(data, :y, 4)
 
-    rs_data = select(data, Not(:y))
-    evaluate!(rs, rs_data)
+    test_data = sample(x, SobolSampling(1024))
+    validate_data = copy(test_data)
 
-    mse = mean((data.y .- rs_data.y) .^ 2)
+    evaluate!(himmelblau, test_data)
+    evaluate!(rs, validate_data)
 
-    @test isapprox(mse, 0.02064568539852385; rtol=1e-5)
+    mse = mean((test_data.y .- validate_data.y) .^ 2)
+
+    @test mse < 1e-25
 
     @test_throws ErrorException("Degree(p) of ResponseSurface must be non-negative.") ResponseSurface(
         data, :y, -3
