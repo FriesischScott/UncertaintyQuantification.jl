@@ -1,9 +1,6 @@
 name = "UncertaintyQuantification"
 uuid = "7183a548-a887-11e9-15ce-a56ab60bad7a"
-authors = [
-    "Jasper Behrensdorf <behrensdorf@irz.uni-hannover.de>",
-    "Ander Gray <ander.gray@liverpool.ac.uk>",
-]
+authors = ["Jasper Behrensdorf <behrensdorf@irz.uni-hannover.de>", "Ander Gray <ander.gray@liverpool.ac.uk>"]
 version = "0.8.2"
 
 [deps]
@@ -21,6 +18,7 @@ Formatting = "59287772-0a20-5a39-b81b-1366585eb4c0"
 KernelDensity = "5ab0869b-81aa-558d-bb23-cbf5423bbe9b"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 Mustache = "ffc61752-8dc7-55ee-8c37-f3e9cdd09e70"
+Primes = "27ebfcd6-29c5-5fa9-bf4b-fb8fc14df3ae"
 QuasiMonteCarlo = "8a4e6c94-4038-4cdc-81c3-7e6ffdb2a71b"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
@@ -39,7 +37,9 @@ FiniteDifferences = "0.12"
 Formatting = "0.4"
 KernelDensity = "0.6"
 Mustache = "1.0"
+Primes = "0.5"
 QuasiMonteCarlo = "0.3"
 Reexport = "0.2, 1.0"
+Statistics = "1"
 StatsBase = "0.33, 0.34"
 julia = "1.6, 1.7, 1.8"
