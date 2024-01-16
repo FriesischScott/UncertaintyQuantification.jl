@@ -5,7 +5,7 @@
 
     tmp = tempdir()
 
-    open("radius.jl", "w") do input
+    open(joinpath(tmp, "radius.jl"), "w") do input
         println(input, "x = 0.5")
         println(input, "y = 0.5")
         println(input, "z = sqrt(x^2+y^2)")
