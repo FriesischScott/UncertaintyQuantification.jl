@@ -1,30 +1,34 @@
 @testset "ExternalModel" begin
     sourcedir = tempdir()
-    sourcefile = ["in.txt"]
+    sourcefile = ["radius.jl"]
+
+    # create source file for radius solver
+    open(joinpath(sourcedir, "radius.jl"), "w") do input
+        println(input, "x = {{{:x}}}")
+        println(input, "y = {{{:y}}}")
+        println(input, "z = sqrt(x^2+y^2)")
+        println(input, "write(\"out.txt\", string(z))")
+    end
+
+    # create source file for squared solver
+    open(joinpath(sourcedir, "squared.jl"), "w") do input
+        println(input, "x = parse(Float64, readline(\"out.txt\"))")
+        println(input, "y = x^2")
+        println(input, "write(\"out-squared.txt\", string(y))")
+    end
 
     numberformats = Dict(:x => ".8e", :* => ".8e")
 
     radius = Extractor(
         base -> begin
-            map(x -> parse(Float64, x), readlines(joinpath(base, "out.txt")))[1]
+            return parse(Float64, readline(joinpath(base, "out.txt")))
         end, :r
     )
 
-    if Sys.iswindows()
-        solver = Solver(joinpath(pwd(), "solvers/bin/radius.exe"), "in.txt")
-        solver2 = Solver(joinpath(pwd(), "solvers/bin/squared.exe"), "out.txt")
-    elseif Sys.isapple()
-        solver = Solver(joinpath(pwd(), "solvers/bin/radius-mac"), "in.txt")
-        solver2 = Solver(joinpath(pwd(), "solvers/bin/squared-mac"), "out.txt")
-    else
-        solver = Solver(joinpath(pwd(), "solvers/bin/radius"), "in.txt")
-        solver2 = Solver(joinpath(pwd(), "solvers/bin/squared"), "out.txt")
-    end
+    binary = joinpath(Sys.BINDIR, "julia")
 
-    open(joinpath(sourcedir, "in.txt"), "w") do input
-        println(input, "{{{ :x }}}")
-        println(input, "{{{ :y }}}")
-    end
+    solver = Solver(binary, "radius.jl")
+    solver2 = Solver(binary, "squared.jl")
 
     open(joinpath(sourcedir, "extra.txt"), "w") do input
         println(input, "This is an extra file")
@@ -47,10 +51,11 @@
         )
 
         evaluate!(ext, df)
+
         @test length(readdir(readdir(ext.workdir; join=true)[1])) == 5
         @test "extra.txt" in
             readdir(readdir(readdir(ext.workdir; join=true)[1]; join=true)[1])
-        @test isapprox(df.r, sqrt.(df.x .^ 2 .+ df.y .^ 2))
+        @test df.r ≈ sqrt.(df.x .^ 2 .+ df.y .^ 2)
     end
 
     @testset "Cleanup" begin
@@ -77,12 +82,12 @@
 
         squared = Extractor(
             base -> begin
-                map(x -> parse(Float64, x), readlines(joinpath(base, "out-squared.txt")))[1]
+                return parse(Float64, readline(joinpath(base, "out-squared.txt")))
             end,
             :r2,
         )
 
-        ext2 = ExternalModel("", "", squared, solver2; workdir=workdir, cleanup=true)
+        ext2 = ExternalModel(sourcedir, ["squared.jl"], squared, solver2; workdir=workdir, cleanup=true)
 
         evaluate!([ext1, ext2], df)
         @test df.r2 ≈ df.r .^ 2
