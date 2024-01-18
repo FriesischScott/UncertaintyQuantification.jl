@@ -5,16 +5,13 @@ b = Parameter(0.12, :b) # width
 
 h = RandomVariable(Normal(0.24, 0.01), :h) # height
 
-μ = log(10e9^2 / sqrt(1.6e9^2 + 10e9^2))
-σ = sqrt(log(1.6e9^2 / 10e9^2 + 1))
+μ, σ = distribution_parameters(10e9, 1.6e9, LogNormal)
 E = RandomVariable(LogNormal(μ, σ), :E) # young's modulus
 
-μ = log(5000^2 / sqrt(400^2 + 5000^2))
-σ = sqrt(log(400^2 / 5000^2 + 1))
+μ, σ = distribution_parameters(5000, 400, LogNormal)
 P = RandomVariable(LogNormal(μ, σ), :P) # tip load
 
-μ = log(600^2 / sqrt(140^2 + 600^2))
-σ = sqrt(log(140^2 / 600^2 + 1))
+μ, σ = distribution_parameters(600, 140, LogNormal)
 ρ = RandomVariable(LogNormal(μ, σ), :ρ) # density
 
 c = GaussianCopula([1 0.8; 0.8 1])
@@ -45,7 +42,9 @@ println(
 )
 
 # Compute probability of failure using Importance Sampling
-pf, β, dp, α = probability_of_failure([inertia, displacement], df -> max_displacement .- df.w, inputs, FORM())
+pf, β, dp, α = probability_of_failure(
+    [inertia, displacement], df -> max_displacement .- df.w, inputs, FORM()
+)
 is = ImportanceSampling(10^4, β, dp, α)
 
 is_pf, is_cov, is_samples = probability_of_failure(
@@ -76,4 +75,26 @@ subset_pf, subset_cov, subset_samples = probability_of_failure(
 
 println(
     "Subset Simulation probability of failure: $subset_pf ($(size(subset_samples, 1)) model evaluations)",
+)
+
+# Compute probability of failure using conditional Subset Sampling
+subset_inf = UncertaintyQuantification.SubSetInfinity(2000, 0.1, 10, 0.5)
+
+subset_pf_inf, subset_cov_inf, subset_samples_inf = probability_of_failure(
+    [inertia, displacement], df -> max_displacement .- df.w, inputs, subset_inf
+)
+
+println(
+    "Subset infinity probability of failure: $subset_pf_inf ($(size(subset_samples_inf, 1)) model evaluations)",
+)
+
+# Compute probability of failure using adaptive Subset Sampling
+subset_adap = UncertaintyQuantification.SubSetInfinityAdaptive(2000, 0.1, 10, 10, 0.6, 1.0)
+
+subset_pf_adap, subset_cov_adap, subset_samples_adap = probability_of_failure(
+    [inertia, displacement], df -> max_displacement .- df.w, inputs, subset_adap
+)
+
+println(
+    "Subset infinity adaptive probability of failure: $subset_pf_adap ($(size(subset_samples_adap, 1)) model evaluations)",
 )

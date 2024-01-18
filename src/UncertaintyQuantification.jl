@@ -13,6 +13,7 @@ using KernelDensity
 using LinearAlgebra
 using Mustache
 using PRIMA
+using Primes
 using QuasiMonteCarlo
 using Random
 using Reexport
@@ -59,11 +60,15 @@ export UQType
 
 # Structs
 export EmpiricalDistribution
+export BackwardFiniteDifferences
 export BoxBehnken
 export CentralComposite
+export CentralFiniteDifferences
 export ExternalModel
 export Extractor
+export FaureSampling
 export FORM
+export ForwardFiniteDifferences
 export FractionalFactorial
 export FullFactorial
 export GaussianCopula
@@ -92,6 +97,7 @@ export ResponseSurface
 export SobolSampling
 export Solver
 export SubSetInfinity
+export SubSetInfinityAdaptive
 export SubSetSimulation
 export TwoLevelFactorial
 
@@ -99,6 +105,7 @@ export TwoLevelFactorial
 export calc
 export count_rvs
 export dimensions
+export distribution_parameters
 export doe_samples
 export evaluate
 export evaluate!
@@ -122,11 +129,12 @@ export to_standard_normal_space!
 include("inputs/empiricaldistribution.jl")
 include("inputs/inputs.jl")
 include("inputs/parameter.jl")
-include("inputs/randomvariable.jl")
 
 include("inputs/imprecise/interval.jl")
 include("inputs/imprecise/p-box.jl")
 
+include("inputs/randomvariables/randomvariable.jl")
+include("inputs/randomvariables/distributionparameters.jl")
 include("inputs/copulas/gaussian.jl")
 include("inputs/jointdistribution.jl")
 
@@ -141,6 +149,7 @@ include("models/responsesurface.jl")
 include("models/pce/pcebases.jl")
 include("models/pce/polynomialchaosexpansion.jl")
 
+include("sensitivity/finitedifferences.jl")
 include("sensitivity/gradient.jl")
 
 include("simulations/doe.jl")

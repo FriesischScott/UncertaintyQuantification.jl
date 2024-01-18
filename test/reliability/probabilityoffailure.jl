@@ -47,28 +47,30 @@
         )
     end
 
+    # Kontantin Zuev - Subset Simulation Method for Rare Event Estimation: An Introduction
+    # Example 6.1
+    # Target pf of 1e-10
+    pf_analytical = 1e-10
+
+    x1 = RandomVariable(Normal(), :x1)
+    x2 = RandomVariable(Normal(), :x2)
+
+    y = Parameter(sqrt(2) * quantile(Normal(), 1 - pf_analytical), :y)
+
+    g = Model(df -> df.x1 + df.x2, :g)
+
+    F = df -> df.y .- df.g
+
     @testset "Subset Simulation" begin
-        # Kontantin Zuev - Subset Simulation Method for Rare Event Estimation: An Introduction
-        # Example 6.1
-        # Target pf of 1e-10
-        pf_analytical = 1e-10
-
-        x1 = RandomVariable(Normal(), :x1)
-        x2 = RandomVariable(Normal(), :x2)
-
-        y = Parameter(sqrt(2) * quantile(Normal(), 1 - pf_analytical), :y)
-
-        g = Model(df -> df.x1 + df.x2, :g)
-
-        F = df -> df.y .- df.g
-
         subset = SubSetSimulation(10^4, 0.1, 20, Normal())
 
         pf, _, _ = probability_of_failure(g, F, [x1, x2, y], subset)
 
         # 95% conf intervals estimated from 1000 runs
         @test 1.4e-11 < pf < 9.1e-10
+    end
 
+    @testset "Subset Infinity" begin
         subset = SubSetInfinity(10^4, 0.1, 20, 0.5)
 
         pf, _, _ = probability_of_failure(g, F, [x1, x2, y], subset)
@@ -77,6 +79,15 @@
         @test 1.8e-11 < pf < 1.6e-9
     end
 
+    @testset "Subset Infinity Adaptive" begin
+        subset = SubSetInfinityAdaptive(10^4, 0.1, 20, 10, 0.6, 1.0)
+
+        pf, _, _ = probability_of_failure(g, F, [x1, x2, y], subset)
+
+        # 95% conf intervals estimated from 1000 runs
+        @test 3.14e-11 < pf < 3.4e-10
+    end
+    
     @testset "Imprecise Probabilities Simulation" begin
         l = ProbabilityBox([1.75, 1.78], [1.77, 1.85], x -> Uniform(x...), :l) # length
         b = Interval(0.10, 0.14, :b) # width

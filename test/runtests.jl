@@ -1,6 +1,7 @@
 using DataFrames
 using Distributed
 using Formatting
+using HCubature
 using HypothesisTests
 using InteractiveUtils
 using QuasiMonteCarlo
@@ -11,10 +12,12 @@ using UncertaintyQuantification
 
 include("inputs/empericaldistribution.jl")
 include("inputs/parameter.jl")
-include("inputs/randomvariable.jl")
 include("inputs/jointdistribution.jl")
 include("inputs/imprecise/interval.jl")
 include("inputs/imprecise/p-box.jl")
+include("inputs/randomvariables/randomvariable.jl")
+include("inputs/randomvariables/distributionparameters.jl")
+include("inputs/jointdistribution.jl");
 include("inputs/inputs.jl")
 
 include("inputs/copulas/gaussian.jl")
