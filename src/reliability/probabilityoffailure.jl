@@ -163,8 +163,11 @@ function probability_of_failure(
         return [g_lb, g_ub]
     end
 
-    pf_ub = sum(getindex.(g_intervals, 1) .< 0) / n
-    pf_lb = sum(getindex.(g_intervals, 1) .< 0 .&& getindex.(g_intervals, 2) .< 0) / n
+    left_bound_failures = getindex.(g_intervals, 1) .< 0
+    pf_ub = sum(left_bound_failures) / n
+
+    both_bound_failures = getindex.(g_intervals[left_bound_failures], 2) .< 0
+    pf_lb = sum(both_bound_failures) / n
 
     return Interval(pf_lb, pf_ub, :pf)
 end
