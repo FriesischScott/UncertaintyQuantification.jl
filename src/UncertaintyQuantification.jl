@@ -64,6 +64,7 @@ export LatticeRuleSampling
 export LeastSquares
 export LegendreBasis
 export LineSampling
+export MetropolisHastings
 export Model
 export MonteCarlo
 export ParallelModel
