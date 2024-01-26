@@ -1,3 +1,39 @@
+struct MetropolisHastings <: AbstractBayesianMethod
+    pdf::Function
+    sample::Function
+    x0::DataFrame
+    n::Int
+    burnin::Int
+end
+
+function bayesianupdating(
+    prior::Function,
+    likelihood::Function,
+    mh::MetropolisHastings
+)
+
+samples = zeros(mh.n+mh.burnin, size(mh.x0, 2))
+samples[1,:] .= Vector(mh.x0[1,:])
+
+q = x -> likelihood(x)*prior(x)
+
+for i = 1:mh.n+mh.burnin-1
+    current = samples[i, :]
+    x = current .+ mh.sample()
+    @show current, x
+    α =  ((q(x)*mh.pdf(x - current)) / (q(current)*mh.pdf(current-x)))[1]
+
+    if α >= rand()
+        samples[i+1,:] .= x
+    else
+        samples[i+1, :] .= current
+    end
+end
+
+return DataFrame(samples[mh.burnin+1:end, :], names(mh.x0))
+
+end
+
 struct TMCMC <: AbstractBayesianMethod # Transitional Markov Chain Monte Carlo
     snum::Int64
     γ::Real
