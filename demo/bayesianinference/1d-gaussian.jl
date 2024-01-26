@@ -1,17 +1,15 @@
 using UncertaintyQuantification
+using DataFrames
 
 prior(x) = pdf(Normal(), x)
 likelihood(x) = pdf(Normal(2, 0.5), x)
 
-prop_pdf(x) = pdf(Normal(), x)
-prop_sample() = rand(Normal())
-x0 = DataFrame(:x => 0.0, :y => 0.0)
-n = 1000
+proposal = Normal()
+x0 = DataFrame(:x => 0.0)
+n = 10000
 burnin = 100
 
-mh = MetropolisHastings(
-    prop_pdf, prop_sample, x0, n, burnin
-)
+mh = SingleComponentMetropolisHastings(proposal, x0, n, burnin)
 
 mh_samples = bayesianupdating(prior, likelihood, mh)
 

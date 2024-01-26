@@ -10,6 +10,8 @@ using StatsBase: fit, Histogram
 using Test
 using UncertaintyQuantification
 
+include("inference/bayesianupdating.jl")
+
 include("inputs/empericaldistribution.jl")
 include("inputs/parameter.jl")
 include("inputs/randomvariables/randomvariable.jl")
@@ -32,7 +34,6 @@ include("reliability/probabilityoffailure.jl")
 include("sensitivity/gradient.jl")
 include("sensitivity/sobolindices.jl")
 
-include("simulations/bayesianinference.jl")
 include("simulations/doe.jl")
 include("simulations/montecarlo.jl")
 include("simulations/subset.jl")

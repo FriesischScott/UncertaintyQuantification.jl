@@ -78,7 +78,7 @@ export LatticeRuleSampling
 export LeastSquares
 export LegendreBasis
 export LineSampling
-export MetropolisHastings
+export SingleComponentMetropolisHastings
 export Model
 export MonteCarlo
 export ParallelModel
@@ -127,7 +127,6 @@ export smc
 export tmcmc
 export grconvergence
 export calcequaltails
-
 
 include("inputs/empiricaldistribution.jl")
 include("inputs/inputs.jl")
