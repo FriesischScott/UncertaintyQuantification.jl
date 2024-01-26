@@ -36,4 +36,31 @@
     @test insupport(x, -1) == insupport(x.dist, -1)
     @test insupport(x, 0) == insupport(x.dist, 0)
     @test insupport(x, 1) == insupport(x.dist, 1)
+
+    @testset "SNS Mappings" begin
+        rvs = [
+            RandomVariable(Normal(), :x),
+            RandomVariable(Normal(3, 0.5), :x),
+            RandomVariable(LogNormal(), :x),
+            RandomVariable(Uniform(-2, 3), :x),
+            RandomVariable(Exponential(0.5), :x),
+        ]
+
+        n = 10^5
+
+        for rv in rvs
+            samples = sample(rv, n)
+            mapped = copy(samples)
+
+            to_standard_normal_space!(rv, mapped)
+
+            @test mean(mapped.x) ≈ 0 atol = 0.05
+            @test median(mapped.x) ≈ 0 atol = 0.05
+            @test std(mapped.x) ≈ 1 atol = 0.05
+
+            to_physical_space!(rv, mapped)
+
+            @test samples.x ≈ mapped.x
+        end
+    end
 end

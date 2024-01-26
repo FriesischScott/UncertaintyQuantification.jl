@@ -1,14 +1,19 @@
 using DataFrames
 using Distributed
 using Formatting
+using HCubature
+using HypothesisTests
 using InteractiveUtils
 using QuasiMonteCarlo
 using Random
+using StatsBase: fit, Histogram
 using Test
 using UncertaintyQuantification
 
+include("inputs/empericaldistribution.jl")
 include("inputs/parameter.jl")
-include("inputs/randomvariable.jl");
+include("inputs/randomvariables/randomvariable.jl")
+include("inputs/randomvariables/distributionparameters.jl")
 include("inputs/jointdistribution.jl");
 include("inputs/inputs.jl")
 
@@ -28,6 +33,7 @@ include("sensitivity/gradient.jl")
 include("sensitivity/sobolindices.jl")
 
 include("simulations/bayesianinference.jl")
+include("simulations/doe.jl")
 include("simulations/montecarlo.jl")
 include("simulations/subset.jl")
 

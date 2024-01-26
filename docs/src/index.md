@@ -12,6 +12,7 @@ A Julia package for uncertainty quantification. Current functionality includes:
   * Sobol indices
 * Metamodeling
   * Polyharmonic splines
+  * Response Surface
 * Third-party solvers
   * Connect to any solver by injecting random samples into source files
 

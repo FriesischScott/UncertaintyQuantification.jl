@@ -2,6 +2,12 @@ struct Solver
     path::String
     source::String
     args::String
+    function Solver(path::String, source::String, args::String)
+        if !isabspath(path)
+            @warn "Solver path is not absolute. Make sure $path is on your PATH."
+        end
+        return new(path, source, args)
+    end
 end
 
 Solver(path::String, source::String; args::String="") = Solver(path, source, args)
@@ -11,17 +17,14 @@ function run(solver::Solver, folder::String)
     source = solver.source
     args = solver.args
 
-    old_pwd = pwd()
-    cd(folder)
+    out = basename(binary) * "UncertaintyQuantification.out"
+    err = basename(binary) * "UncertaintyQuantification.err"
 
-    out = joinpath(folder, basename(binary) * "UncertaintyQuantification.out")
-    err = joinpath(folder, basename(binary) * "UncertaintyQuantification.err")
+    p = pipeline(
+        !isempty(args) ? `$binary $args $source` : `$binary $source`; stdout=out, stderr=err
+    )
 
-    if !isempty(args)
-        Base.run(pipeline(`$binary $args $source`; stdout=out, stderr=err))
-    else
-        Base.run(pipeline(`$binary $source`; stdout=out, stderr=err))
-    end
+    cd(() -> run(p), folder)
 
-    return cd(old_pwd)
+    return nothing
 end

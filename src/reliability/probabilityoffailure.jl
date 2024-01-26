@@ -65,9 +65,28 @@ function probability_of_failure(
     return pf, cov, samples
 end
 
+function probability_of_failure(
+    models::Union{Vector{<:UQModel},UQModel},
+    performance::Function,
+    inputs::Union{Vector{<:UQInput},UQInput},
+    sim::ImportanceSampling
+)
+    samples, weights = sample(inputs, sim)
+    evaluate!(models, samples)
+
+    # Probability of failure
+    weighted_failures = (performance(samples) .< 0) .* weights
+    pf = sum(weighted_failures) / sim.n
+
+    variance = ((sum(weighted_failures .* weights) / sim.n) - pf^2) / sim.n
+    cov = sqrt(variance) / pf
+
+    return pf, cov, samples
+end
+
 # Allow to calculate the pf using only a performance function but no model
 function probability_of_failure(
     performance::Function, inputs::Union{Vector{<:UQInput},UQInput}, sim::Any
 )
-    return probability_of_failure(UQModel[], performance, inputs, sim)
+    return probability_of_failure(UQModel[], performance, wrap(inputs), sim)
 end

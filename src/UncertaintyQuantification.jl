@@ -9,6 +9,7 @@ using DynamicPolynomials
 using FastGaussQuadrature
 using FiniteDifferences
 using Formatting
+using KernelDensity
 using LinearAlgebra
 using Mustache
 using Primes
@@ -20,6 +21,7 @@ using StatsBase
 @reexport using Distributions
 
 import Base: rand, names, copy, run, length
+import Distributions: cdf, quantile, pdf, logpdf, minimum, maximum, insupport
 import Statistics: mean, var
 import Distributions: logpdf, pdf, cdf, quantile, minimum, maximum, insupport, mean, var
 
@@ -37,9 +39,11 @@ abstract type AbstractMonteCarlo end
 abstract type AbstractQuasiMonteCarlo <: AbstractMonteCarlo end
 
 abstract type AbstractBayesianMethod end
+abstract type AbstractDesignOfExperiments end
 
 # Types
 export AbstractBayesianMethod
+export AbstractDesignOfExperiments
 export AbstractMonteCarlo
 export AbstractQuasiMonteCarlo
 export Copula
@@ -51,13 +55,23 @@ export UQType
 
 # Structs
 export AdaptiveMetropolisHastings
+export EmpiricalDistribution
+export BackwardFiniteDifferences
+export BoxBehnken
+export CentralComposite
+export CentralFiniteDifferences
 export ExternalModel
 export Extractor
+export FaureSampling
 export FORM
+export ForwardFiniteDifferences
+export FractionalFactorial
+export FullFactorial
 export GaussianCopula
 export GaussQuadrature
 export HaltonSampling
 export HermiteBasis
+export ImportanceSampling
 export JointDistribution
 export LatinHypercubeSampling
 export LatticeRuleSampling
@@ -69,6 +83,7 @@ export Model
 export MonteCarlo
 export ParallelModel
 export Parameter
+export PlackettBurman
 export PolynomialChaosBasis
 export PolynomialChaosExpansion
 export PolyharmonicSpline
@@ -77,13 +92,17 @@ export ResponseSurface
 export SobolSampling
 export Solver
 export SubSetInfinity
+export SubSetInfinityAdaptive
 export SubSetSimulation
+export TwoLevelFactorial
 
 # Methods
 export bayesianupdating
 export calc
 export count_rvs
 export dimensions
+export distribution_parameters
+export doe_samples
 export evaluate
 export evaluate!
 export gradient
@@ -110,12 +129,13 @@ export grconvergence
 export calcequaltails
 
 
+include("inputs/empiricaldistribution.jl")
 include("inputs/inputs.jl")
 include("inputs/parameter.jl")
-include("inputs/randomvariable.jl")
-include("inputs/jointdistribution.jl")
-
+include("inputs/randomvariables/randomvariable.jl")
+include("inputs/randomvariables/distributionparameters.jl")
 include("inputs/copulas/gaussian.jl")
+include("inputs/jointdistribution.jl")
 
 include("solvers/solver.jl")
 include("solvers/extractor.jl")
@@ -128,14 +148,17 @@ include("models/responsesurface.jl")
 include("models/pce/pcebases.jl")
 include("models/pce/polynomialchaosexpansion.jl")
 
+include("sensitivity/finitedifferences.jl")
 include("sensitivity/gradient.jl")
 
 include("simulations/bayesianinference.jl")
+include("simulations/doe.jl")
 include("simulations/linesampling.jl")
 include("simulations/montecarlo.jl")
 include("simulations/subset.jl")
 
 include("reliability/form.jl")
+include("simulations/importancesampling.jl")
 include("reliability/probabilityoffailure.jl")
 include("sensitivity/sobolindices.jl")
 
