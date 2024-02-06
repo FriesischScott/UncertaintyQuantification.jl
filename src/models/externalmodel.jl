@@ -48,7 +48,8 @@ function evaluate!(
     df::DataFrame;
     datetime::String=Dates.format(now(), "YYYY-mm-dd-HH-MM-SS"),
 )
-    if !isnothing(m.slurm) return evaluate!(m, df, datetime, m.slurm) end
+    if !isnothing(m.slurm) return evaluate!(m, df, m.slurm, datetime = datetime) end
+
     n = size(df, 1)
     digits = ndigits(n)
 
@@ -91,9 +92,9 @@ end
 
 function evaluate!(
     m::ExternalModel,
-    df::DataFrame;
+    df::DataFrame,
+    slurm::SlurmInterface;
     datetime::String=Dates.format(now(), "YYYY-mm-dd-HH-MM-SS"),
-    slurm::SlurmInterface
 )
     n = size(df, 1)
     digits = ndigits(n)
@@ -121,7 +122,7 @@ function evaluate!(
         end
     end
 
-    run_slurm_Array(slurm, m, n)
+    run_slurm_array(slurm, m, n, datetime)
 
     results = map(1:n) do i
         path = joinpath(m.workdir, datetime, "sample-$(lpad(i, digits, "0"))")

@@ -58,6 +58,7 @@ export BoxBehnken
 export CentralComposite
 export CentralFiniteDifferences
 export ExternalModel
+export SlurmInterface
 export Extractor
 export FaureSampling
 export FORM
@@ -126,6 +127,7 @@ include("inputs/copulas/gaussian.jl")
 include("inputs/jointdistribution.jl")
 
 include("solvers/solver.jl")
+include("solvers/slurm.jl")
 include("solvers/extractor.jl")
 
 include("models/externalmodel.jl")

@@ -4,59 +4,73 @@ struct SlurmInterface
 
     name::String        # Does nothing
     account::String
+    partition::String
     nodes::Integer
     ntasks::Integer
-    time::String
-    partition::String
-    extras::Vector{String}
     batchsize::Integer
+    extras::Vector{String}
+    time::String
+
+    function SlurmInterface(;name::String, 
+        account::String,
+        partition::String,
+        nodes::Integer,
+        ntasks::Integer,
+        batchsize::Integer,
+        extras::Vector{String},
+        time::String)
+
+        return new(name, account, partition, nodes, ntasks, batchsize, extras, time)
+    end
+
 end
 
-function run_slurm_array(SI, m, n)
+function run_slurm_array(SI, m, n, path)
     #slurm_array.sh
 
-    binary = ExternalModel.solver.path
-    source = ExternalModel.solver.source
-    args = ExternalModel.solver.args
+    binary = m.solver.path
+    source = m.solver.source
+    args = m.solver.args
+
+    extras = SI.extras
 
     run_command = !isempty(args) ? "$binary $args $source" : "$binary $source"
 
     digits = ndigits(n)
 
     fname = "slurm_array.sh"
-    dirpath = m.workdir
+    dirpath = joinpath(m.workdir, path)
     fpath = joinpath(dirpath, fname)
     
     open(fpath, "w") do file
-        write(file, "#!/bin/bash -l")
-        write(file, "#SBATCH -A $(SI.account)")
-        write(file, "#SBATCH -p $(SI.partition)")
-        write(file, "#SBATCH -J UQ_array")
-        write(file, "#SBATCH --nodes=$(SI.nodes)")
-        write(file, "#SBATCH --ntasks=$(SI.ntasks)")
-        write(file, "#SBATCH --time=$(time)")
-        write(file, "#SBATCH --output=UncertaintyQuantification_%A-%a.out")
-        write(file, "#SBATCH --error=UncertaintyQuantification_%A-%a.err")
-        write(file, "#SBATCH --array=[1-$(n)]%$(SI.batch)")
-        write(file,"")
-        write(file,"")
-        write(file,"")
-        write(file,"")
-        write(file,"#### EXTRAS ####")
+        write(file, "#!/bin/bash -l\n")
+        write(file, "#SBATCH -A $(SI.account)\n")
+        write(file, "#SBATCH -p $(SI.partition)\n")
+        write(file, "#SBATCH -J UQ_array\n")
+        write(file, "#SBATCH --nodes=$(SI.nodes)\n")
+        write(file, "#SBATCH --ntasks=$(SI.ntasks)\n")
+        write(file, "#SBATCH --time=$(time)\n")
+        write(file, "#SBATCH --output=UncertaintyQuantification_%A-%a.out\n")
+        write(file, "#SBATCH --error=UncertaintyQuantification_%A-%a.err\n")
+        write(file, "#SBATCH --array=[1-$(n)]%$(SI.batchsize)\n")
+        write(file,"\n\n\n")
+        write(file,"#### EXTRAS ####\n")
 
         for extra in extras
-            write(file, extra)
+            write(file, "$extra\n")
         end
 
-        write(file,"#### RUN COMMAND ####")
-        write(file, "cd 'sample-%0$(digits)d' $SLURM_ARRAY_TASK_ID")
-        write(file, "$run_command")
+        write(file,"\n\n\n")
+        write(file,"#### RUN COMMAND ####\n")
+        write(file, "cd 'sample-%0$(digits)d' \$SLURM_ARRAY_TASK_ID\n")       ## Slurm array task not working
+        write(file, "$run_command\n")
     end
 
     p = pipeline(
-        `sbatch --wait --array=[1-$(n)]%$(batch) slurm_array.sh`
+        Cmd(["sbatch --wait slurm_array.sh]"])
     )
-    cd(() -> run(p), folder)
+    cd(() -> run(p), path)
+    # cd(() -> run(p))
 
     return nothing
 end
