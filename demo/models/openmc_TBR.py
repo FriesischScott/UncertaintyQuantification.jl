@@ -89,26 +89,12 @@ sp = openmc.StatePoint("statepoint.10.h5")
 tbr_tally = sp.get_tally(name='TBR')
 df = tbr_tally.get_pandas_dataframe()
 
-# prints the contents of the dataframe
-df
-
 # sums up all the values in the mean column
 tbr_tally_result = df['mean'].sum()
 
 # sums up all the values in the std. dev. column
 tbr_tally_std_dev = df['std. dev.'].sum()
 
-TBR_dict = {'TBR': tbr_tally_result,
-            'TBR_std': tbr_tally_std_dev
-            }
-
-# json_object = json.dumps(TBR_dict)
 
 with open("openmc.out", "w") as outfile:
-    outfile.write(tbr_tally_result)
-
-
-#df_out = pd.DataFrame([tbr_tally_result], columns=['TBR'])
-#df_out.to_csv("TBR.csv")
-#df_out.to_json("TBR.json")
-
+    outfile.write(f"{tbr_tally_result} {tbr_tally_std_dev}")
