@@ -6,7 +6,7 @@ using UncertaintyQuantification, DelimitedFiles
 # addprocs(6; exeflags="--project")
 # @everywhere using UncertaintyQuantification, DelimitedFiles
 
-E = RandomVariable(Normal(40, 60), :Enrich)
+E = RandomVariable(Uniform(40, 60), :Enrich)
 O = RandomVariable(Uniform(530, 690), :OuterWall)
 
 # Source/Extra files are expected to be in this folder
