@@ -98,11 +98,7 @@ function evaluate!(
     n = size(df, 1)
     digits = ndigits(n)
 
-    ## get current dir
-
     for i = 1:n
-
-        ## set current dir
 
         path = joinpath(m.workdir, datetime, "sample-$(lpad(i, digits, "0"))")
         mkpath(path)
@@ -125,9 +121,7 @@ function evaluate!(
         end
     end
 
-    make_input(slurm)
-    launch(slurm)
-
+    run_slurm_Array(slurm, m, n)
 
     results = map(1:n) do i
         path = joinpath(m.workdir, datetime, "sample-$(lpad(i, digits, "0"))")
