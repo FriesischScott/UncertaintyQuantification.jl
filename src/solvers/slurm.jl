@@ -59,7 +59,7 @@ function run_slurm_array(SI, m, n, path)
 
         write(file, "\n\n\n")
         write(file, "#### RUN COMMAND ####\n")
-        write(file, "cd 'sample-%0$(digits)d' \$SLURM_ARRAY_TASK_ID\n")
+        write(file, "cd sample-\$(printf %0$(digits)d \$SLURM_ARRAY_TASK_ID)\n")
         write(file, "$run_command\n")
     end
 
