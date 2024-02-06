@@ -1,5 +1,6 @@
 module UncertaintyQuantification
 
+using AbstractGPs
 using Bootstrap
 using DataFrames
 using Dates
