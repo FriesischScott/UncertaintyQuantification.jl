@@ -7,7 +7,7 @@ using UncertaintyQuantification, DelimitedFiles
 # @everywhere using UncertaintyQuantification, DelimitedFiles
 
 E = RandomVariable(Normal(40, 60), :Enrich)
-O = RandomVariable(Uniform(530, 690), :OuterWALL)
+O = RandomVariable(Uniform(530, 690), :OuterWall)
 
 # Source/Extra files are expected to be in this folder
 sourcedir = joinpath(pwd() * "/../..", "demo/models")
