@@ -7,7 +7,7 @@ struct ExternalModel <: UQModel
     extras::Vector{String}
     formats::Dict{Symbol,String}
     cleanup::Bool
-    slurm::Union{SlurmInterface, Nothing}
+    slurm::Union{SlurmInterface,Nothing}
 
     function ExternalModel(
         sourcedir::String,
@@ -18,7 +18,7 @@ struct ExternalModel <: UQModel
         extras::Union{String,Vector{String}},
         formats::Dict{Symbol,String},
         cleanup::Bool,
-        slurm::Union{SlurmInterface, Nothing}
+        slurm::Union{SlurmInterface,Nothing},
     )
         sources, extractors, extras = wrap.([sources, extractors, extras])
         return new(
@@ -36,11 +36,47 @@ function ExternalModel(
     extras::Union{String,Vector{String}}=String[],
     formats::Dict{Symbol,String}=Dict{Symbol,String}(),
     cleanup::Bool=false,
-    slurm::SlurmInterface = nothing
+    slurm::SlurmInterface=nothing,
 )
     return ExternalModel(
         sourcedir, sources, extractors, solver, workdir, extras, formats, cleanup, slurm
     )
+end
+
+function makedirectory(m::ExternalModel, n::Integer, i::Integer)
+    digits = ndigits(n)
+
+    path = joinpath(m.workdir, datetime, "sample-$(lpad(i, digits, "0"))")
+    mkpath(path)
+
+    row = formatinputs(df[i, :], m.formats)
+
+    for file in m.sources
+        if isempty(file)
+            continue
+        end
+        tokens = Mustache.load(joinpath(m.sourcedir, file))
+
+        open(joinpath(path, file), "w") do io
+            render(io, tokens, row)
+        end
+    end
+
+    for file in m.extras
+        cp(joinpath(m.sourcedir, file), joinpath(path, file))
+    end
+    return nothing
+end
+
+function getresult(m, n, i)
+    digits = ndigits(n)
+
+    path = joinpath(m.workdir, datetime, "sample-$(lpad(i, digits, "0"))")
+    result = map(e -> e.f(path), m.extractors)
+    if m.cleanup
+        rm(path; recursive=true)
+    end
+    return result
 end
 
 function evaluate!(
@@ -48,38 +84,18 @@ function evaluate!(
     df::DataFrame;
     datetime::String=Dates.format(now(), "YYYY-mm-dd-HH-MM-SS"),
 )
-    if !isnothing(m.slurm) return evaluate!(m, df, m.slurm, datetime = datetime) end
+    if !isnothing(m.slurm)
+        return evaluate!(m, df, m.slurm; datetime=datetime)
+    end
 
     n = size(df, 1)
-    digits = ndigits(n)
 
     results = pmap(1:n) do i
-        path = joinpath(m.workdir, datetime, "sample-$(lpad(i, digits, "0"))")
-        mkpath(path)
-
-        row = formatinputs(df[i, :], m.formats)
-
-        for file in m.sources
-            if isempty(file)
-                continue
-            end
-            tokens = Mustache.load(joinpath(m.sourcedir, file))
-
-            open(joinpath(path, file), "w") do io
-                render(io, tokens, row)
-            end
-        end
-
-        for file in m.extras
-            cp(joinpath(m.sourcedir, file), joinpath(path, file))
-        end
+        makedirectory(m, n, i)
 
         run(m.solver, path)
 
-        result = map(e -> e.f(path), m.extractors)
-        if m.cleanup
-            rm(path; recursive=true)
-        end
+        result = getresult(m, n, i)
         return result
     end
 
@@ -97,40 +113,15 @@ function evaluate!(
     datetime::String=Dates.format(now(), "YYYY-mm-dd-HH-MM-SS"),
 )
     n = size(df, 1)
-    digits = ndigits(n)
 
-    for i = 1:n
-
-        path = joinpath(m.workdir, datetime, "sample-$(lpad(i, digits, "0"))")
-        mkpath(path)
-
-        row = formatinputs(df[i, :], m.formats)
-
-        for file in m.sources
-            if isempty(file)
-                continue
-            end
-            tokens = Mustache.load(joinpath(m.sourcedir, file))
-
-            open(joinpath(path, file), "w") do io
-                render(io, tokens, row)
-            end
-        end
-
-        for file in m.extras
-            cp(joinpath(m.sourcedir, file), joinpath(path, file))
-        end
+    for i in 1:n
+        makedirectory(m, n, i)
     end
 
     run_slurm_array(slurm, m, n, datetime)
 
     results = map(1:n) do i
-        path = joinpath(m.workdir, datetime, "sample-$(lpad(i, digits, "0"))")
-        result = map(e -> e.f(path), m.extractors)
-        if m.cleanup
-            rm(path; recursive=true)
-        end
-        return result
+        return getresult(m, n, i)
     end
 
     results = hcat(results...)
@@ -138,7 +129,6 @@ function evaluate!(
     for (i, name) in enumerate(names(m.extractors))
         df[!, name] = results[i, :]
     end
-
 end
 
 function formatinputs(row::DataFrameRow, formats::Dict{Symbol,String})
