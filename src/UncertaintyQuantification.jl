@@ -40,6 +40,8 @@ abstract type AbstractQuasiMonteCarlo <: AbstractMonteCarlo end
 
 abstract type AbstractDesignOfExperiments end
 
+abstract type AbstractHPCScheduler end
+
 # Types
 export AbstractDesignOfExperiments
 export AbstractMonteCarlo
@@ -127,8 +129,9 @@ include("inputs/copulas/gaussian.jl")
 include("inputs/jointdistribution.jl")
 
 include("solvers/solver.jl")
-include("solvers/slurm.jl")
 include("solvers/extractor.jl")
+
+include("hpc/slurm.jl")
 
 include("models/externalmodel.jl")
 include("models/model.jl")

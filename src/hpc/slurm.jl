@@ -1,6 +1,6 @@
 ## Probably better to make a 'SlurmSolver' version of 'solver'
 
-struct SlurmInterface
+struct SlurmInterface <: AbstractHPCScheduler
     name::String
     account::String
     partition::String
