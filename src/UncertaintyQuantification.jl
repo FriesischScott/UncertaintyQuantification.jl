@@ -1,6 +1,5 @@
 module UncertaintyQuantification
 
-using AbstractGPs
 using Bootstrap
 using DataFrames
 using Dates
@@ -10,6 +9,7 @@ using DynamicPolynomials
 using FastGaussQuadrature
 using FiniteDifferences
 using Formatting
+using GaussianProcesses
 using KernelDensity
 using LinearAlgebra
 using Mustache
