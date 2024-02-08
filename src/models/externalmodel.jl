@@ -109,7 +109,8 @@ function evaluate!(
     datetime::String=Dates.format(now(), "YYYY-mm-dd-HH-MM-SS"),
 )
     n = size(df, 1)
-
+    digits = ndigits(n)
+    
     for i in 1:n
         path = joinpath(m.workdir, datetime, "sample-$(lpad(i, digits, "0"))")
         makedirectory(m, df[i, :], path)
