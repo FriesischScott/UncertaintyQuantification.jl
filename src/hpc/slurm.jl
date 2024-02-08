@@ -1,27 +1,40 @@
 ## Probably better to make a 'SlurmSolver' version of 'solver'
 
 struct SlurmInterface <: AbstractHPCScheduler
-    name::String
     account::String
     partition::String
     nodes::Integer
     ntasks::Integer
     batchsize::Integer
+    jobname::String
     extras::Vector{String}
     time::String
 
-    function SlurmInterface(;
-        name::String,
+    function SlurmInterface(
         account::String,
         partition::String,
         nodes::Integer,
         ntasks::Integer,
         batchsize::Integer,
+        jobname::String,
         extras::Vector{String},
-        time::String,
+        time::String
     )
-        return new(name, account, partition, nodes, ntasks, batchsize, extras, time)
+        return new(account, partition, nodes, ntasks, batchsize, jobname, extras, time)
     end
+end
+
+function SlurmInterface(;
+    account::String,
+    partition::String,
+    nodes::Integer,
+    ntasks::Integer,
+    batchsize::Integer,
+    jobname::String = "UQ_array",
+    extras::Vector{String} = String[],
+    time::String = ""
+)
+    return SlurmInterface(account, partition, nodes, ntasks, batchsize, jobname, extras, time)
 end
 
 function run_slurm_array(SI, m, n, path)
