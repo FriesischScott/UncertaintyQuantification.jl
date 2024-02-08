@@ -36,14 +36,16 @@ function ExternalModel(
     extras::Union{String,Vector{String}}=String[],
     formats::Dict{Symbol,String}=Dict{Symbol,String}(),
     cleanup::Bool=false,
-    slurm::SlurmInterface=nothing,
+    slurm::Union{SlurmInterface,Nothing}=nothing,
 )
     return ExternalModel(
         sourcedir, sources, extractors, solver, workdir, extras, formats, cleanup, slurm
     )
 end
 
-function makedirectory(m::ExternalModel, n::Integer, i::Integer)
+function makedirectory(
+    m::ExternalModel, n::Integer, i::Integer, df::DataFrame, datetime::String
+)
     digits = ndigits(n)
 
     path = joinpath(m.workdir, datetime, "sample-$(lpad(i, digits, "0"))")
@@ -68,7 +70,7 @@ function makedirectory(m::ExternalModel, n::Integer, i::Integer)
     return nothing
 end
 
-function getresult(m, n, i)
+function getresult(m::ExternalModel, n::Integer, i::Integer, datetime::String)
     digits = ndigits(n)
 
     path = joinpath(m.workdir, datetime, "sample-$(lpad(i, digits, "0"))")
@@ -89,13 +91,15 @@ function evaluate!(
     end
 
     n = size(df, 1)
+    digits = ndigits(n)
 
     results = pmap(1:n) do i
-        makedirectory(m, n, i)
+        makedirectory(m, n, i, df, datetime)
 
+        path = joinpath(m.workdir, datetime, "sample-$(lpad(i, digits, "0"))")
         run(m.solver, path)
 
-        result = getresult(m, n, i)
+        result = getresult(m, n, i, datetime)
         return result
     end
 
@@ -115,13 +119,13 @@ function evaluate!(
     n = size(df, 1)
 
     for i in 1:n
-        makedirectory(m, n, i)
+        makedirectory(m, n, i, df, datetime)
     end
 
     run_slurm_array(slurm, m, n, datetime)
 
     results = map(1:n) do i
-        return getresult(m, n, i)
+        return getresult(m, n, i, datetime)
     end
 
     results = hcat(results...)
