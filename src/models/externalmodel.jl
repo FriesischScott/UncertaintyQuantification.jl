@@ -43,15 +43,10 @@ function ExternalModel(
     )
 end
 
-function makedirectory(
-    m::ExternalModel, n::Integer, i::Integer, df::DataFrame, datetime::String
-)
-    digits = ndigits(n)
-
-    path = joinpath(m.workdir, datetime, "sample-$(lpad(i, digits, "0"))")
+function makedirectory(m::ExternalModel, sample, path::String)
     mkpath(path)
 
-    row = formatinputs(df[i, :], m.formats)
+    row = formatinputs(sample, m.formats)
 
     for file in m.sources
         if isempty(file)
@@ -70,10 +65,7 @@ function makedirectory(
     return nothing
 end
 
-function getresult(m::ExternalModel, n::Integer, i::Integer, datetime::String)
-    digits = ndigits(n)
-
-    path = joinpath(m.workdir, datetime, "sample-$(lpad(i, digits, "0"))")
+function getresult(m::ExternalModel, path::String)
     result = map(e -> e.f(path), m.extractors)
     if m.cleanup
         rm(path; recursive=true)
@@ -94,12 +86,12 @@ function evaluate!(
     digits = ndigits(n)
 
     results = pmap(1:n) do i
-        makedirectory(m, n, i, df, datetime)
-
         path = joinpath(m.workdir, datetime, "sample-$(lpad(i, digits, "0"))")
-        run(m.solver, path)
 
-        result = getresult(m, n, i, datetime)
+        makedirectory(m, df[i, :], path)
+        run(m.solver, path)
+        result = getresult(m, path)
+
         return result
     end
 
@@ -119,13 +111,15 @@ function evaluate!(
     n = size(df, 1)
 
     for i in 1:n
-        makedirectory(m, n, i, df, datetime)
+        path = joinpath(m.workdir, datetime, "sample-$(lpad(i, digits, "0"))")
+        makedirectory(m, df[i, :], path)
     end
 
     run_slurm_array(slurm, m, n, datetime)
 
     results = map(1:n) do i
-        return getresult(m, n, i, datetime)
+        path = joinpath(m.workdir, datetime, "sample-$(lpad(i, digits, "0"))")
+        return getresult(m, path)
     end
 
     results = hcat(results...)
