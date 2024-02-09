@@ -1,10 +1,6 @@
 # Reference: https://opensees.berkeley.edu/wiki/index.php/Simply_supported_beam_modeled_with_two_dimensional_solid_elements
 using UncertaintyQuantification, DelimitedFiles
 
-# To run the model distributed add the desired workers and load the required packages with @everywhere
-# using Distributed, Formatting
-# addprocs(6; exeflags="--project")
-# @everywhere using UncertaintyQuantification, DelimitedFiles
 
 E = RandomVariable(Normal(1000, 5), :E)
 
@@ -35,15 +31,15 @@ opensees = Solver(
     args="", # (optional) extra arguments passed to the solver
 )
 
-slurm = SlurmInterface(;
-    name="UQ_slurm",
-    account="UKAEA-AP001-CPU",
-    partition="cclake",
+slurm = SlurmInterface(
+    jobname="UQ_slurm",
+    account="EXAMPLE-0001-CPU",
+    partition="cpu_parition",
     nodes=1,
     ntasks=1,
-    batchsize=200,
-    time="24:00:00",
-    extras=["module load opensees", "module load openmc"],
+    batchsize=50,
+    time="00:10:00",
+    extras=["module load opensees"],
 )
 
 ext = ExternalModel(

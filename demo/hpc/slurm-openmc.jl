@@ -1,10 +1,5 @@
-# Reference: https://opensees.berkeley.edu/wiki/index.php/Simply_supported_beam_modeled_with_two_dimensional_solid_elements
+# Reference: https://github.com/fusion-energy/neutronics-workshop
 using UncertaintyQuantification, DelimitedFiles
-
-# To run the model distributed add the desired workers and load the required packages with @everywhere
-# using Distributed, Formatting
-# addprocs(6; exeflags="--project")
-# @everywhere using UncertaintyQuantification, DelimitedFiles
 
 E = RandomVariable(Uniform(40, 60), :Enrich)
 O = RandomVariable(Uniform(530, 690), :OuterWall)
@@ -37,12 +32,12 @@ openmc = Solver(
 )
 
 slurm = SlurmInterface(;
-    name="UQ_slurm",
-    account="UKAEA-AP001-CPU",
-    partition="cclake",
+    jobname="UQ_slurm",
+    account="EXAMPLE-0001-CPU",
+    partition="cpu_parition",
     nodes=1,
     ntasks=1,
-    batchsize=200,
+    batchsize=50,
     time="00:01:00",
     extras=["module load openmc", "source ~/.virtualenvs/openmc/bin/activate"],
 )
