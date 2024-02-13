@@ -3,7 +3,7 @@ using UncertaintyQuantification, DelimitedFiles
 
 E = RandomVariable(Normal(1000, 5), :E)
 
-sourcedir = joinpath(pwd() * "/../..", "demo/models")
+sourcedir = joinpath(pathof(UncertaintyQuantification), "demo/models")
 
 sourcefile = "supported-beam.tcl"
 
@@ -30,7 +30,7 @@ slurm = SlurmInterface(
     partition="cpu_parition",
     nodes=1,
     ntasks=1,
-    batchsize=50,
+    throttle=50,
     time="00:10:00",
     extras=["module load opensees"],
 )

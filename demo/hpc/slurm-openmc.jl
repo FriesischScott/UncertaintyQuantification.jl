@@ -3,7 +3,7 @@ using UncertaintyQuantification, DelimitedFiles
 E = RandomVariable(Uniform(40, 60), :Enrich)
 O = RandomVariable(Uniform(530, 690), :OuterWall)
 
-sourcedir = joinpath(pwd() * "/../..", "demo/models")
+sourcedir = joinpath(pathof(UncertaintyQuantification), "demo/models")
 
 sourcefile = "openmc_TBR.py"
 
@@ -30,7 +30,7 @@ slurm = SlurmInterface(;
     partition="cpu_parition",
     nodes=1,
     ntasks=1,
-    batchsize=50,
+    throttle=50,
     time="00:01:00",
     extras=["module load openmc", "source ~/.virtualenvs/openmc/bin/activate"],
 )

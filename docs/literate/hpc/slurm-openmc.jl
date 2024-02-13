@@ -15,7 +15,7 @@ E = RandomVariable(Uniform(40, 60), :Enrich)
 O = RandomVariable(Uniform(530, 690), :OuterWall)
 
 # Source/Extra files are expected to be in this folder
-sourcedir = joinpath(pwd() * "/../..", "demo/models")
+sourcedir = joinpath(pathof(UncertaintyQuantification), "demo/models")
 
 # These files will be rendere through Mustach.jl and have values injected
 sourcefile = "openmc_TBR.py"
@@ -47,7 +47,7 @@ slurm = SlurmInterface(;
     partition="cpu_parition",
     nodes=1,
     ntasks=1,
-    batchsize=50,
+    throttle=50,
     time="00:01:00",
     extras=["module load openmc", "source ~/.virtualenvs/openmc/bin/activate"],
 )
