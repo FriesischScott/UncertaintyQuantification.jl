@@ -20,7 +20,7 @@ slurm = SlurmInterface(;
     partition="CPU_partition",
     nodes=1,
     ntasks=32,
-    batchsize=50,
+    throttle=50,
     extras=["load python3"],
     time="01:00:00",
 )
@@ -39,7 +39,7 @@ Here `account` is your account (provided by your HPC admin/PI), and `partition` 
 
 `extras` are commands that will be executed before you model is run, for example loading any module files or data your model requires. Multiple commands can be passed: `extras = ["load python", "python3 get_data.py"]`.
 
-`batchsize` specifies the job array task throttle: the number of samples that will be run at any given time. For example, when running a `MonteCarlo` simulation with 2000 samples, and `batchsize = 50`, 2000 model evaluations will be run in total, but only 50 at the same time. If left empty, your scheduler's default throttle will be used.
+`throttle` specifies the job array task throttle: the number of samples that will be run at any given time. For example, when running a `MonteCarlo` simulation with 2000 samples, and `throttle = 50`, 2000 model evaluations will be run in total, but only 50 at the same time. If left empty, your scheduler's default throttle will be used.
 
 
 <!-- ## Useage
