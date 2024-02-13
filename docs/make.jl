@@ -23,8 +23,12 @@ makedocs(
             "Getting Started" => "manual/gettingstarted.md",
             "Reliability Analysis" => "manual/reliability.md",
             "Metamodelling" => "manual/metamodels.md",
+            "HPC" => "manual/hpc.md",
         ],
-        "Examples" => ["Metamodels" => "examples/metamodels.md"],
+        "Examples" => [
+            "Metamodels" => "examples/metamodels.md", 
+            "HPC" => "examples/hpc.md",
+        ],
         "API" => [
             "Inputs" => "api/inputs.md",
             "Parameter" => "api/parameter.md",

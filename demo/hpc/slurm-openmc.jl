@@ -1,15 +1,3 @@
-using UncertaintyQuantification
-
-slurm = SlurmInterface(;
-    account="HPC_account_1",
-    partition="CPU_partition",
-    nodes=1,
-    ntasks=32,
-    batchsize=50,
-    extras=["load python3"],
-    time="00:10:00",
-)
-
 using UncertaintyQuantification, DelimitedFiles
 
 E = RandomVariable(Uniform(40, 60), :Enrich)
