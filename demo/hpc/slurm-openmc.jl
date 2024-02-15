@@ -1,7 +1,7 @@
 using UncertaintyQuantification, DelimitedFiles
 
-E = RandomVariable(Uniform(30, 70), :E)
-R1 = RandomVariable(Uniform(8, 50), :R1)
+E = RandomVariable(Uniform(0.3, 0.7), :E)
+R1 = RandomVariable(Uniform(8, 14), :R1)
 
 sourcedir = joinpath(pwd(), "demo/models")
 
@@ -19,7 +19,7 @@ TBR = Extractor(base -> begin
 end, :TBR)
 
 openmc = Solver(
-    "python3", # path to OpenSees binary
+    "python3", # path to python3 binary
     "openmc_TBR.py";
     args="", # (optional) extra arguments passed to the solver
 )
@@ -31,7 +31,7 @@ slurm = SlurmInterface(;
     nodes=1,
     ntasks=1,
     throttle=50,
-    time="00:01:00",
+    time="00:01:00",    # Time per simulation
     extras=["module load openmc", "source ~/.virtualenvs/openmc/bin/activate"],
 )
 
@@ -39,8 +39,26 @@ ext = ExternalModel(
     sourcedir, sourcefile, TBR, openmc; workdir=workdir, formats=numberformats, slurm=slurm
 )
 
-pf, samples = probability_of_failure(ext, df -> 1.0 .- df.TBR, [E, R1], MonteCarlo(1000))
+function limitstate(df)
+    return  reduce(vcat, df.TBR) .- 1
+end
 
+@time pf, cov, samples = probability_of_failure(ext, limitstate, [E, R1], MonteCarlo(5000))
+println("Probability of failure: $pf")
+
+
+using StatsBase
+
+TBR = samples.TBR #hide
+TBR_mean = mean(TBR) #hide
+TBR_std  = std(TBR) #hide
+lower_quantile = quantile(TBR, 0.025) #hide
+upper_quantile = quantile(TBR, 0.975) #hide
+println("TBR mean: $TBR_mean, TBR std: $TBR_std, TBR 95%: [$lower_quantile, $upper_quantile]") #hide
+
+subset = SubSetInfinity(800, 0.1, 10, 0.5)
+
+@time pf, cov, samples = probability_of_failure(ext, limitstate, [E, R1], subset)
 println("Probability of failure: $pf")
 
 # This file was generated using Literate.jl, https://github.com/fredrikekre/Literate.jl
