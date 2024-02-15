@@ -5,7 +5,7 @@ prior(x) = pdf(Normal(), x)
 likelihood(x) = pdf(Normal(2, 0.5), x)
 
 proposal = Normal()
-x0 = DataFrame(:x => 0.0)
+x0 = (x=0.0,)
 n = 10000
 burnin = 100
 

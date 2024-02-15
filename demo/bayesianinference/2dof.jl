@@ -9,7 +9,7 @@ function analyticalexample_2D_noise(θ::AbstractArray)
     λ2_model = ((θ[1] + 2 * θ[2]) - sqrt(θ[1]^2 + 4 * θ[2]^2)) / 2
 
     λ1_noise = λ1_model + rand(Normal())
-    λ2_noise = λ2_model + rand(Normal(0, 0.5))
+    λ2_noise = λ2_model + rand(Normal(0, 0.1))
     return [λ1_noise λ2_noise]
 end
 
@@ -21,7 +21,7 @@ end
 
 function likelihood(θ::AbstractArray, model::Function, Yexp::AbstractMatrix)
     σ1 = 1
-    σ2 = 0.5
+    σ2 = 0.1
     Ysim = model(θ)
     temp_exp =
         -0.5 *
@@ -53,7 +53,7 @@ end
 #    λ_obs[i_obs, :] = analyticalexample_2D_noise([0.5 1.5])
 #end
 
-### Prior 
+### Prior
 function prior(x)
     return pdf(Uniform(0, 4), x[1]) * pdf(Uniform(0, 4), x[2])
 end
@@ -61,13 +61,13 @@ end
 ### True value
 λ_true = analyticalexample_2D([0.5 1.5])
 
-### Bayesian Model Updating 
+### Bayesian Model Updating
 Like(x) = likelihood(x, analyticalexample_2D, λ_obs)
 
 proposal = Normal()
-x0 = DataFrame(:x => 2.84, :y => 2.33)
-n = 1000
-burnin = 100
+x0 = (x=2.84, y=2.33)
+n = 10000
+burnin = 450
 
 mh = SingleComponentMetropolisHastings(proposal, x0, n, burnin)
 

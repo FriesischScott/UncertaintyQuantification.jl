@@ -1,6 +1,6 @@
 struct SingleComponentMetropolisHastings <: AbstractBayesianMethod
     proposal::UnivariateDistribution
-    x0::DataFrame
+    x0::NamedTuple
     n::Int
     burnin::Int
 end
@@ -8,10 +8,10 @@ end
 function bayesianupdating(
     prior::Function, likelihood::Function, mh::SingleComponentMetropolisHastings
 )
-    number_of_dimensions = size(mh.x0, 2)
+    number_of_dimensions = length(mh.x0)
 
     samples = zeros(mh.n + mh.burnin, number_of_dimensions)
-    samples[1, :] .= Vector(mh.x0[1, :])
+    samples[1, :] .= collect(mh.x0)
 
     posterior = x -> likelihood(x) .* prior(x)
 
@@ -33,7 +33,7 @@ function bayesianupdating(
         samples[i + 1, :] .= x
     end
 
-    return DataFrame(samples[(mh.burnin + 1):end, :], names(mh.x0))
+    return DataFrame(samples[(mh.burnin + 1):end, :], collect(keys(mh.x0)))
 end
 
 struct TMCMC <: AbstractBayesianMethod # Transitional Markov Chain Monte Carlo
