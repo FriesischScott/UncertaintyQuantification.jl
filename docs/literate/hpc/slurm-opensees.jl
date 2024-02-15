@@ -5,7 +5,7 @@ using UncertaintyQuantification, DelimitedFiles
 E = RandomVariable(Normal(1000, 5), :E)
 
 # Source/Extra files are expected to be in this folder
-sourcedir = joinpath(pathof(UncertaintyQuantification), "demo/models")
+sourcedir = joinpath(pwd(), "demo/models")
 
 # These files will be rendere through Mustach.jl and have values injected
 sourcefile = "supported-beam.tcl"

@@ -1,9 +1,9 @@
 using UncertaintyQuantification, DelimitedFiles
 
-E = RandomVariable(Uniform(40, 60), :Enrich)
-O = RandomVariable(Uniform(530, 690), :OuterWall)
+E = RandomVariable(Uniform(30, 70), :E)
+R1 = RandomVariable(Uniform(8, 50), :R1)
 
-sourcedir = joinpath(pathof(UncertaintyQuantification), "demo/models")
+sourcedir = joinpath(pwd(), "demo/models")
 
 sourcefile = "openmc_TBR.py"
 
@@ -39,7 +39,7 @@ ext = ExternalModel(
     sourcedir, sourcefile, TBR, openmc; workdir=workdir, formats=numberformats, slurm=slurm
 )
 
-pf, samples = probability_of_failure(ext, df -> 1.0 .- df.TBR, [E, O], MonteCarlo(1000))
+pf, samples = probability_of_failure(ext, df -> 1.0 .- df.TBR, [E, R1], MonteCarlo(1000))
 
 println("Probability of failure: $pf")
 

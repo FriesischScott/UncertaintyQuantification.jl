@@ -3,7 +3,7 @@ using UncertaintyQuantification, DelimitedFiles
 
 E = RandomVariable(Normal(1000, 5), :E)
 
-sourcedir = joinpath(pathof(UncertaintyQuantification), "demo/models")
+sourcedir = joinpath(pwd(), "demo/models")
 
 sourcefile = "supported-beam.tcl"
 

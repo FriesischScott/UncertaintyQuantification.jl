@@ -4,81 +4,108 @@ import openmc
 
 import json
 import pandas as pd
+   #MATERIALS#
 
-# MATERIALS
+min = 1
+max = 100
 
-breeder_material = openmc.Material()  # lithium lead chemical equation is Pb84.2Li15.8
-breeder_material.add_element('Pb', 84.2, percent_type='ao')
-# 50% enriched lithium 6, natural percentage of lithium 6 is just 7% 
-breeder_material.add_element('Li', 15.8, percent_type='ao', enrichment={{{:Enrich}}}, enrichment_target='Li6', enrichment_type='ao')
-breeder_material.set_density('atom/b-cm', 3.2720171e-2)  # around 11 g/cm3
+R1 = {{{:R1}}}
+R2 = 96.723
 
+mats = openmc.Materials()
 
-steel = openmc.Material()
-steel.set_density('g/cm3', 7.75)
-steel.add_element('Fe', 0.95, percent_type='wo')
-steel.add_element('C', 0.05, percent_type='wo')
+tungsten = openmc.Material(name='Tungsten', material_id=1)
+tungsten.set_density('g/cm3', 19.0)
+tungsten.add_element('W', 1.0)
+mats.append(tungsten)
 
-mats = openmc.Materials([breeder_material, steel])
+breeder_material = openmc.Material(name='PbLi', material_id=2) #Pb84.2Li15.8 with natural enrichment of Li6
+# enrichment_fraction = 0.50
+enrichment_fraction = {{{:E}}}
+breeder_material.add_element('Pb', 84.2,'ao')
+breeder_material.add_nuclide('Li6', enrichment_fraction*15.8, 'ao')
+breeder_material.add_nuclide('Li7', (1.0-enrichment_fraction)*15.8, 'ao')
+breeder_material.set_density('atom/b-cm',3.2720171e-2)
+mats.append(breeder_material)
 
+eurofer = openmc.Material(name='EUROFER97',material_id=3)
+eurofer.set_density('g/cm3', 7.75)
+eurofer.add_element('Fe', 89.067, percent_type='wo')
+eurofer.add_element('C', 0.11, percent_type='wo')
+eurofer.add_element('Mn', 0.4, percent_type='wo')
+eurofer.add_element('Cr', 9.0, percent_type='wo')
+eurofer.add_element('Ta', 0.12, percent_type='wo')
+eurofer.add_element('W', 1.1, percent_type='wo')
+eurofer.add_element('N', 0.003, percent_type='wo')
+eurofer.add_element('V', 0.2, percent_type='wo')
+mats.append(eurofer)
+mats.export_to_xml()
+#GEOMETRY#
 
-# GEOMETRY
+sphere1 = openmc.Sphere(r=min)
+sphere2 = openmc.Sphere(r=R1)
+sphere3 = openmc.Sphere(r=R2)
+sphere4 = openmc.Sphere(r=max, boundary_type='vacuum')
 
-# surfaces
-vessel_inner = openmc.Sphere(r=500)
-first_wall_outer_surface = openmc.Sphere(r=510)
-breeder_blanket_outer_surface = openmc.Sphere(r={{{:OuterWall}}}, boundary_type='vacuum')
+vac1 = -sphere1
+mat1 = +sphere1 & -sphere2
+mat2 = +sphere2 & -sphere3
+mat3 = +sphere3 & -sphere4
+vac2 = +sphere4
 
+vacuum1 = openmc.Cell(region=vac1, cell_id=1)
+first = openmc.Cell(region=mat1, cell_id=2)
+first.fill = tungsten
+second = openmc.Cell(region=mat2, cell_id=3)
+second.fill = breeder_material
+third = openmc.Cell(region=mat3, cell_id=4)
+third.fill = eurofer
+vacuum2 = openmc.Cell(region=vac2, cell_id=5)
 
-# cells
-inner_vessel_region = -vessel_inner
-inner_vessel_cell = openmc.Cell(region=inner_vessel_region)
+root = openmc.Universe(cells=(vacuum1, first, second, third, vacuum2))
+geom = openmc.Geometry(root)
+geom.export_to_xml()
 
-first_wall_region = -first_wall_outer_surface & +vessel_inner
-first_wall_cell = openmc.Cell(region=first_wall_region)
-first_wall_cell.fill = steel
+#SETTINGS#
 
-breeder_blanket_region = +first_wall_outer_surface & -breeder_blanket_outer_surface
-breeder_blanket_cell = openmc.Cell(region=breeder_blanket_region)
-breeder_blanket_cell.fill = breeder_material
+batches = 10
+inactive = 0
+particles = 1000
 
-universe = openmc.Universe(cells=[inner_vessel_cell, first_wall_cell, breeder_blanket_cell])
-geom = openmc.Geometry(universe)
-
-
-# SIMULATION SETTINGS
-
-# Instantiate a Settings object
-sett = openmc.Settings()
-sett.batches = 10
-sett.inactive = 0
-sett.particles = 500
-sett.run_mode = 'fixed source'
-
-# Create a DT point source
 source = openmc.Source()
-source.space = openmc.stats.Point((0, 0, 0))
+source.space = openmc.stats.Point((0,0,0))
 source.angle = openmc.stats.Isotropic()
 source.energy = openmc.stats.Discrete([14e6], [1])
-sett.source = source
 
+sett = openmc.Settings()
+sett.batches = batches
+sett.inactive = inactive
+sett.particles = particles
+sett.output = {'tallies': False}
+sett.run_mode = 'fixed source'
+sett.source = source
+sett.export_to_xml()
+
+#TALLIES#
 
 tallies = openmc.Tallies()
 
-# added a cell tally for tritium production
-cell_filter = openmc.CellFilter(breeder_blanket_cell)
+cell_filter = openmc.CellFilter(second)
 tbr_tally = openmc.Tally(name='TBR')
 tbr_tally.filters = [cell_filter]
-tbr_tally.scores = ['(n,Xt)']  # Where X is a wildcard character, this catches any tritium production
-# this allows the tally to be recorded per nuclide so we can see which one contributes to tritium production more
-tbr_tally.nuclides = [openmc.Nuclide('Li6'), openmc.Nuclide('Li7')] 
+tbr_tally.scores = ['(n,Xt)'] # MT 205 is the (n,Xt) reaction where X is a wildcard, if MT 105 or (n,t) then some tritium production will be missed, for example (n,nt) which happens in Li7 would be missed
 tallies.append(tbr_tally)
 
+filter = openmc.SurfaceFilter(sphere4)
+leakage_tally = openmc.Tally(name='leakage')
+leakage_tally.filters = [filter]
+leakage_tally.scores = ['current']
+tallies.append(leakage_tally)
+tallies.export_to_xml()
 
-# Run OpenMC!
 model = openmc.model.Model(geom, mats, sett, tallies)
 
-model.export_to_xml()
+# model.export_to_xml()
 
 os.system('openmc')
 
