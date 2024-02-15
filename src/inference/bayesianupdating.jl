@@ -10,30 +10,36 @@ function bayesianupdating(
 )
     number_of_dimensions = length(mh.x0)
 
-    samples = zeros(mh.n + mh.burnin, number_of_dimensions)
-    samples[1, :] .= collect(mh.x0)
+    samples = DataFrame(collect(mh.x0)', collect(keys(mh.x0)))
 
     posterior = x -> likelihood(x) .* prior(x)
 
+    rejection = 0.0
+
     for i in 1:(mh.n + mh.burnin - 1)
-        current = samples[i, :]
-        x = samples[i, :]
+        current = deepcopy(samples[i, :])
+        x = deepcopy(samples[i, :])
 
         for d in 1:number_of_dimensions
-            x[d] = samples[i, d] .+ rand(mh.proposal)
+            x[d] += rand(mh.proposal)
 
-            α = min(1, (posterior(x) / posterior(current))[1])
+            α = min(1, (posterior(x) / posterior(samples[i, :]))[1])
 
             if α >= rand()
-                current[d] = x[d]
+                current[:] = x[:]
             else
-                x[d] = current[d]
+                x[:] = current[:]
+                rejection += 1
             end
         end
-        samples[i + 1, :] .= x
+
+        push!(samples, x)
     end
 
-    return DataFrame(samples[(mh.burnin + 1):end, :], collect(keys(mh.x0)))
+    rejection /= ((mh.n + mh.burnin) * number_of_dimensions)
+
+    # discard burnin samples during return
+    return samples[(mh.burnin + 1):end, :], rejection
 end
 
 struct TMCMC <: AbstractBayesianMethod # Transitional Markov Chain Monte Carlo

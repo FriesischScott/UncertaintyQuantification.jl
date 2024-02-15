@@ -19,10 +19,10 @@ function analyticalexample_2D(θ::AbstractArray)
     return [λ1_model λ2_model]
 end
 
-function likelihood(θ::AbstractArray, model::Function, Yexp::AbstractMatrix)
+function likelihood(df, model::Function, Yexp::AbstractMatrix)
     σ1 = 1
     σ2 = 0.1
-    Ysim = model(θ)
+    Ysim = model([df.x, df.y])
     temp_exp =
         -0.5 *
         sum((((Yexp[:, 1] .- Ysim[1]) / σ1) .^ 2 + ((Yexp[:, 2] .- Ysim[2]) / σ2) .^ 2))
@@ -55,7 +55,7 @@ end
 
 ### Prior
 function prior(x)
-    return pdf(Uniform(0, 4), x[1]) * pdf(Uniform(0, 4), x[2])
+    return pdf(Uniform(0, 4), x.x) * pdf(Uniform(0, 4), x.y)
 end
 
 ### True value
@@ -64,16 +64,16 @@ end
 ### Bayesian Model Updating
 Like(x) = likelihood(x, analyticalexample_2D, λ_obs)
 
-proposal = Normal()
+proposal = Normal(0, 0.1)
 x0 = (x=2.84, y=2.33)
 n = 10000
 burnin = 450
 
 mh = SingleComponentMetropolisHastings(proposal, x0, n, burnin)
 
-mh_samples = bayesianupdating(prior, Like, mh)
+mh_samples, α = bayesianupdating(prior, Like, mh)
 
-@show mean(mh_samples.x), std(mh_samples.y)
+@show mean(mh_samples.x), std(mh_samples.y), α
 
 #corrplot(Matrix(mh_samples))
 ### Figures
