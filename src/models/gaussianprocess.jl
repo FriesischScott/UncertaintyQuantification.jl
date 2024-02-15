@@ -11,6 +11,14 @@ julia> rs = ResponseSurface(data, :y, 2) |> DisplayAs.withcontext(:compact => tr
 ResponseSurface([0.483333, -0.238636, 1.01894], :y, [:x], 2, Monomial{Commutative{CreationOrder}, Graded{LexOrder}}[1, x₁, x₁²])
 ```
 """
+struct Normalizer # Maybe move this somewhere else...
+    μ::Union{Real, Matrix{<:Real}}
+    σ::Union{Real, Matrix{<:Real}}
+end
+
+normalize(data::Union{Vector{Real}, Matrix{<:Real}}, normalizer::Normalizer) = (data .- normalizer.μ) ./ normalizer.σ
+denormalize(data::Union{Vector{Real}, Matrix{<:Real}}, normalizer::Normalizer) = data .* normalizer.σ .+ normalizer.μ
+
 mutable struct GaussianProcessRegressor <: UQModel
     gp::GPBase
     inputs::Union{Vector{<:UQInput}, Vector{Symbol}}
@@ -19,20 +27,12 @@ mutable struct GaussianProcessRegressor <: UQModel
     output_normalizer::Union{Normalizer, Nothing}
 end
 
-struct Normalizer
-    μ::Union{Real, Matrix{<:Real}}
-    σ::Union{Real, Matrix{<:Real}}
-end
-
-normalize(data::Union{Vector{Real}, Matrix{<:Real}}, normalizer::Normalizer) = (data .- normalizer.μ) ./ normalizer.σ
-denormalize(data::Union{Vector{Real}, Matrix{<:Real}}, normalizer::Normalizer) = data .* normalizer.σ .+ normalizer.μ
-
 function gaussianprocess(
     df::DataFrame,
     inputs::Vector{Symbol},
     output::Symbol,
     kernel::Kernel,
-    mean::Mean=MeanZero(),
+    mean::GaussianProcesses.Mean=MeanZero(),
     log_noise::Real=-2.0,
     normalize_input::Bool=false,
     normalize_output::Bool=false
@@ -41,26 +41,41 @@ function gaussianprocess(
     y = df[:, output]
 
     if normalize_input
-        normalizer_in = Normalizer(mean(X, dims=2), std(X, dims=2))
-        X = normalize(X, normalizer_in)
+        input_normalizer = Normalizer(mean(X, dims=2), std(X, dims=2))
+        X = normalize(X, input_normalizer)
     else
-        normalizer_in = nothing
+        input_normalizer = nothing
     end
     if normalize_output
-        normalizer_out = Normalizer(mean(y), std(y))
-        y = normalize(y, normalizer_out)
+        output_normalizer = Normalizer(mean(y), std(y))
+        y = normalize(y, output_normalizer)
+        log_noise -= log(output_normalizer.σ)
     else
-        normalizer_out = nothing
+        output_normalizer = nothing
     end
     
-    gp = GP(X, y, mean, kernel)
-    optimize!(gp)
+    gp = GP(X, y, mean, kernel, log_noise)
 
-    gp = GaussianProcess(
-        gp, inputs, output, size(X, 2), InputStandardizationGP(minimum(X), maximum(X))
-    )
+    gp = GaussianProcessRegressor(
+        gp, inputs, output, 
+        input_normalizer, output_normalizer
+        )
 
     return gp, df
+end
+
+# Wrapper for optimize! method from GaussianProcesses.jl
+function optimize_hyperparams!(gpr::GaussianProcessRegressor, args...; method = LBFGS(), 
+    domean::Bool = true, kern::Bool = true, noise::Bool = true, 
+    lik::Bool = true, meanbounds = nothing, kernbounds = nothing,
+    noisebounds = nothing, likbounds = nothing, kwargs...
+)
+
+    optimize!(gpr.gp, args...; method = method, 
+    domean=domean, kern=kern, noise=noise, lik=lik,
+    meanbounds=meanbounds, kernbounds=kernbounds,
+    noisebounds=noisebounds, likbounds=likbounds, 
+    kwargs...)
 end
 
 
