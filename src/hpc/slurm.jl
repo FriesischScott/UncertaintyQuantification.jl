@@ -106,9 +106,39 @@ function run_slurm_array(SI, m, n, path)
         end
 
         write(file, "\n\n\n")
+
+        write(file, "echo ========================================================")
+        write(file, "echo SLURM job: submitted date = `date`")
+        write(file, "date_start=`date +%s`")
+        write(file, "echo =========================================================")
+        write(file, "echo Job output begins")
+        write(file, "echo -----------------")
+        write(file, "echo")
+        write(file, "hostname")
+        write(file, "echo Running with \$SLURM_NTASKS cores")
+
+        write(file, "\n\n\n")
+
         write(file, "#### RUN COMMAND ####\n")
         write(file, "cd sample-\$(printf %0$(digits)d \$SLURM_ARRAY_TASK_ID)\n")
         write(file, "$run_command\n")
+
+        write(file, "\n\n\n")
+        
+        write(file, "echo")
+        write(file, "echo ---------------")
+        write(file, "echo Job output ends")
+        write(file, "date_end=`date +%s`")
+        write(file, "seconds=\$((date_end-date_start))")
+        write(file, "minutes=\$((seconds/60))")
+        write(file, "seconds=\$((seconds-60*minutes))")
+        write(file, "hours=\$((minutes/60))")
+        write(file, "minutes=\$((minutes-60*hours))")
+        write(file, "echo =========================================================")
+        write(file, "echo SLURM job: finished date = `date`")
+        write(file, "echo Total run time : \$hours Hours \$minutes Minutes \$seconds Seconds")
+        write(file, "echo =========================================================")
+
     end
 
     p = pipeline(`sbatch --wait slurm_array.sh`)
