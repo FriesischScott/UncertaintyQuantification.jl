@@ -13,6 +13,7 @@ using GaussianProcesses
 using KernelDensity
 using LinearAlgebra
 using Mustache
+using Optim # needed for GPs to support other optimizers + settings
 using Primes
 using QuasiMonteCarlo
 using Random
@@ -66,6 +67,7 @@ export ForwardFiniteDifferences
 export FractionalFactorial
 export FullFactorial
 export GaussianCopula
+export GaussianProcessRegressor # do I need that to be exported?
 export GaussQuadrature
 export HaltonSampling
 export HermiteBasis
@@ -101,10 +103,12 @@ export distribution_parameters
 export doe_samples
 export evaluate
 export evaluate!
+export gaussianprocess
 export gradient
 export gradient_in_standard_normal_space
 export mean
 export multivariate_indices
+export optimize_hyperparams! # Maybe rename this, so it is clear that this works on gaussianprocesses
 export polynomialchaos
 export probability_of_failure
 export qmc_samples
@@ -130,6 +134,7 @@ include("solvers/solver.jl")
 include("solvers/extractor.jl")
 
 include("models/externalmodel.jl")
+include("models/gaussianprocess.jl")
 include("models/model.jl")
 include("models/polyharmonicspline.jl")
 include("models/responsesurface.jl")
