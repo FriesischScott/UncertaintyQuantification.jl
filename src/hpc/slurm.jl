@@ -21,6 +21,7 @@ If left empty, you scheduler's default throttle will be used.
     ntasks    : total number of cores
     throttle  : the number of jobs to be run at the same time
     jobname   : name of the job
+    mempercpu : string, amount of RAM to give per cpu
     extras    : instructions to be executed before the model is run, e.g. activating a python environment
     time      : how long each job takes, e.g. 00:10:00 for 10 minutes per sample
 
@@ -40,6 +41,7 @@ struct SlurmInterface <: AbstractHPCScheduler
     ntasks::Integer
     throttle::Integer
     jobname::String
+    mempercpu::String
     extras::Vector{String}
     time::String
 
@@ -50,10 +52,11 @@ struct SlurmInterface <: AbstractHPCScheduler
         ntasks::Integer,
         throttle::Integer,
         jobname::String,
+        mempercpu::String,
         extras::Vector{String},
         time::String,
     )
-        return new(account, partition, nodes, ntasks, throttle, jobname, extras, time)
+        return new(account, partition, nodes, ntasks, throttle, jobname, mempercpu, extras, time)
     end
 end
 
@@ -64,11 +67,12 @@ function SlurmInterface(;
     ntasks::Integer,
     throttle::Integer = 0,
     jobname::String="UQ_array",
+    mempercpu::String="",
     extras::Vector{String}=String[],
     time::String="",
 )
     return SlurmInterface(
-        account, partition, nodes, ntasks, throttle, jobname, extras, time
+        account, partition, nodes, ntasks, throttle, jobname, mempercpu, extras, time
     )
 end
 
@@ -98,6 +102,7 @@ function run_slurm_array(SI, m, n, path)
         write(file, "#SBATCH --time=$(SI.time)\n")
         write(file, "#SBATCH --output=UncertaintyQuantification_%A-%a.out\n")
         write(file, "#SBATCH --error=UncertaintyQuantification_%A-%a.err\n")
+        !isempty(SI.mempercpu) ? write(file, "#SBATCH --mem-per-cpu=$(SI.mempercpu)\n") : 
         write(file, array_command)
         write(file, "\n\n\n")
         write(file, "#### EXTRAS ####\n")
