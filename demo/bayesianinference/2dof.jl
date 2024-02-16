@@ -1,20 +1,16 @@
 using UncertaintyQuantification
 using Plots
-using LaTeXStrings
-using StatsPlots
 
 λ1 = @. Model(df -> ((df.θ1 + 2 * df.θ2) + sqrt(df.θ1^2 + 4 * df.θ2^2)) / 2, :λ1)
 λ2 = @. Model(df -> ((df.θ1 + 2 * df.θ2) - sqrt(df.θ1^2 + 4 * df.θ2^2)) / 2, :λ2)
 
 function likelihood(df, data::AbstractMatrix)
-    σ1 = 1
-    σ2 = 0.1
-    temp_exp =
-        -0.5 * sum((((data[:, 1] .- df.λ1) / σ1) .^ 2 + ((data[:, 2] .- df.λ2) / σ2) .^ 2))
-    return exp.(temp_exp)
+    σ = [1 0.1]
+    λ = [df.λ1 df.λ2]
+    return exp(-0.5 * sum(((data .- λ) ./ σ) .^ 2))
 end
 
-### Obervations
+# Obervations
 data = [
     1.51 0.33
     4.01 0.3
@@ -33,13 +29,12 @@ data = [
     2.62 0.25
 ]
 
-### Prior
+# Prior
 function prior(df)
     return pdf(Uniform(0, 4), df.θ1) .* pdf(Uniform(0, 4), df.θ2)
 end
 
-### Bayesian Model Updating
-Like(df) = likelihood(df, data)
+lh(df) = likelihood(df, data)
 
 proposal = Normal(0, 0.1)
 x0 = (θ1=2.84, θ2=2.33)
@@ -50,13 +45,14 @@ mh = SingleComponentMetropolisHastings(proposal, x0, n, burnin)
 
 mh_samples, α = bayesianupdating(prior, Like, [λ1, λ2], mh)
 
-@show mean(mh_samples.θ1), std(mh_samples.θ2), α
+println("Acceptance rate: $α")
+println("Identified (θ1, θ2): ($(mean(mh_samples.θ1)), $(mean(mh_samples.θ2)))")
 
 scatter(
     mh_samples.θ1,
     mh_samples.θ2;
-    xlabel=L"θ_1",
-    ylabel=L"θ_2",
+    xlabel="θ1",
+    ylabel="θ2",
     color="red",
     label="Posterior Input",
 )
