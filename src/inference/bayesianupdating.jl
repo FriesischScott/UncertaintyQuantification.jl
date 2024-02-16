@@ -6,40 +6,66 @@ struct SingleComponentMetropolisHastings <: AbstractBayesianMethod
 end
 
 function bayesianupdating(
-    prior::Function, likelihood::Function, mh::SingleComponentMetropolisHastings
+    prior::Function,
+    likelihood::Function,
+    models::Vector{<:UQModel},
+    mh::SingleComponentMetropolisHastings,
 )
     number_of_dimensions = length(mh.x0)
 
     samples = DataFrame(collect(mh.x0)', collect(keys(mh.x0)))
 
-    posterior = x -> likelihood(x) .* prior(x)
+    if !isempty(models)
+        evaluate!(models, samples)
+    end
+
+    posterior = df -> likelihood(df) .* prior(df)
 
     rejection = 0.0
 
     for i in 1:(mh.n + mh.burnin - 1)
-        current = deepcopy(samples[i, :])
-        x = deepcopy(samples[i, :])
+        current = DataFrame(samples[i, :])
+        x = DataFrame(samples[i, :])
 
         for d in 1:number_of_dimensions
-            x[d] += rand(mh.proposal)
+            x[1, d] += rand(mh.proposal)
 
-            α = min(1, (posterior(x) / posterior(samples[i, :]))[1])
+            if !isempty(models)
+                evaluate!(models, x)
+            end
+
+            α = min(1, posterior(x)[1] / posterior(current)[1])
 
             if α >= rand()
-                current[:] = x[:]
+                current[1, d] = x[1, d]
             else
-                x[:] = current[:]
+                x[1, d] = current[1, d]
                 rejection += 1
             end
         end
 
-        push!(samples, x)
+        push!(samples, x[1, :])
     end
 
     rejection /= ((mh.n + mh.burnin) * number_of_dimensions)
 
     # discard burnin samples during return
     return samples[(mh.burnin + 1):end, :], rejection
+end
+
+function bayesianupdating(
+    prior::Function,
+    likelihood::Function,
+    models::UQModel,
+    mh::SingleComponentMetropolisHastings,
+)
+    return bayesianupdating(prior, likelihood, wrap(models), mh)
+end
+
+function bayesianupdating(
+    prior::Function, likelihood::Function, mh::SingleComponentMetropolisHastings
+)
+    return bayesianupdating(prior, likelihood, UQModel[], mh)
 end
 
 struct TMCMC <: AbstractBayesianMethod # Transitional Markov Chain Monte Carlo

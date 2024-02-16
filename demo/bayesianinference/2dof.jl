@@ -1,38 +1,21 @@
 using UncertaintyQuantification
 using Plots
 using LaTeXStrings
-using DataFrames
 using StatsPlots
 
-function analyticalexample_2D_noise(θ::AbstractArray)
-    λ1_model = ((θ[1] + 2 * θ[2]) + sqrt(θ[1]^2 + 4 * θ[2]^2)) / 2
-    λ2_model = ((θ[1] + 2 * θ[2]) - sqrt(θ[1]^2 + 4 * θ[2]^2)) / 2
+λ1 = @. Model(df -> ((df.θ1 + 2 * df.θ2) + sqrt(df.θ1^2 + 4 * df.θ2^2)) / 2, :λ1)
+λ2 = @. Model(df -> ((df.θ1 + 2 * df.θ2) - sqrt(df.θ1^2 + 4 * df.θ2^2)) / 2, :λ2)
 
-    λ1_noise = λ1_model + rand(Normal())
-    λ2_noise = λ2_model + rand(Normal(0, 0.1))
-    return [λ1_noise λ2_noise]
-end
-
-function analyticalexample_2D(θ::AbstractArray)
-    λ1_model = ((θ[1] + 2 * θ[2]) + sqrt(θ[1]^2 + 4 * θ[2]^2)) / 2
-    λ2_model = ((θ[1] + 2 * θ[2]) - sqrt(θ[1]^2 + 4 * θ[2]^2)) / 2
-    return [λ1_model λ2_model]
-end
-
-function likelihood(df, model::Function, Yexp::AbstractMatrix)
+function likelihood(df, data::AbstractMatrix)
     σ1 = 1
     σ2 = 0.1
-    Ysim = model([df.x, df.y])
     temp_exp =
-        -0.5 *
-        sum((((Yexp[:, 1] .- Ysim[1]) / σ1) .^ 2 + ((Yexp[:, 2] .- Ysim[2]) / σ2) .^ 2))
-    return exp(temp_exp)
+        -0.5 * sum((((data[:, 1] .- df.λ1) / σ1) .^ 2 + ((data[:, 2] .- df.λ2) / σ2) .^ 2))
+    return exp.(temp_exp)
 end
 
 ### Obervations
-#N_obs = 15
-#λ_obs = Matrix{Float64}(undef, N_obs, 2)
-λ_obs = [
+data = [
     1.51 0.33
     4.01 0.3
     3.16 0.27
@@ -49,48 +32,29 @@ end
     3.58 0.25
     2.62 0.25
 ]
-#for i_obs in 1:N_obs
-#    λ_obs[i_obs, :] = analyticalexample_2D_noise([0.5 1.5])
-#end
 
 ### Prior
-function prior(x)
-    return pdf(Uniform(0, 4), x.x) * pdf(Uniform(0, 4), x.y)
+function prior(df)
+    return pdf(Uniform(0, 4), df.θ1) .* pdf(Uniform(0, 4), df.θ2)
 end
 
-### True value
-λ_true = analyticalexample_2D([0.5 1.5])
-
 ### Bayesian Model Updating
-Like(x) = likelihood(x, analyticalexample_2D, λ_obs)
+Like(df) = likelihood(df, data)
 
 proposal = Normal(0, 0.1)
-x0 = (x=2.84, y=2.33)
+x0 = (θ1=2.84, θ2=2.33)
 n = 10000
 burnin = 450
 
 mh = SingleComponentMetropolisHastings(proposal, x0, n, burnin)
 
-mh_samples, α = bayesianupdating(prior, Like, mh)
+mh_samples, α = bayesianupdating(prior, Like, [λ1, λ2], mh)
 
-@show mean(mh_samples.x), std(mh_samples.y), α
-
-#corrplot(Matrix(mh_samples))
-### Figures
-scatter(
-    λ_obs[:, 1],
-    λ_obs[:, 2];
-    xlabel="Eigenvalue " * L"λ_1^{noisy}",
-    ylabel="Eigenvalue " * L"λ_2^{noisy}",
-    color="red",
-    label="Noisy eigenvalue",
-)
-
-scatter!([λ_true[1, 1]], [λ_true[1, 2]]; color="black", label="True eigenvalue", marker=:+)
+@show mean(mh_samples.θ1), std(mh_samples.θ2), α
 
 scatter(
-    mh_samples.x,
-    mh_samples.y;
+    mh_samples.θ1,
+    mh_samples.θ2;
     xlabel=L"θ_1",
     ylabel=L"θ_2",
     color="red",
