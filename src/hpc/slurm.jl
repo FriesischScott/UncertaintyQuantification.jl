@@ -21,7 +21,7 @@ If left empty, you scheduler's default throttle will be used.
     ntasks    : total number of cores
     throttle  : the number of jobs to be run at the same time
     jobname   : name of the job
-    mempercpu : string, amount of RAM to give per cpu
+    mempercpu : string, amount of RAM to give per cpu (default MB)
     extras    : instructions to be executed before the model is run, e.g. activating a python environment
     time      : how long each job takes, e.g. 00:10:00 for 10 minutes per sample
 
@@ -56,7 +56,9 @@ struct SlurmInterface <: AbstractHPCScheduler
         extras::Vector{String},
         time::String,
     )
-        return new(account, partition, nodes, ntasks, throttle, jobname, mempercpu, extras, time)
+        return new(
+            account, partition, nodes, ntasks, throttle, jobname, mempercpu, extras, time
+        )
     end
 end
 
@@ -65,7 +67,7 @@ function SlurmInterface(;
     partition::String,
     nodes::Integer,
     ntasks::Integer,
-    throttle::Integer = 0,
+    throttle::Integer=0,
     jobname::String="UQ_array",
     mempercpu::String="",
     extras::Vector{String}=String[],
@@ -84,7 +86,11 @@ function run_slurm_array(SI, m, n, path)
     extras = SI.extras
 
     run_command = !isempty(args) ? "$binary $args $source" : "$binary $source"
-    array_command = iszero(SI.throttle) ? "#SBATCH --array=[1-$(n)]\n" : "#SBATCH --array=[1-$(n)]%$(SI.throttle)\n"
+    array_command = if iszero(SI.throttle)
+        "#SBATCH --array=[1-$(n)]\n"
+    else
+        "#SBATCH --array=[1-$(n)]%$(SI.throttle)\n"
+    end
 
     digits = ndigits(n)
 
@@ -100,9 +106,13 @@ function run_slurm_array(SI, m, n, path)
         write(file, "#SBATCH --nodes=$(SI.nodes)\n")
         write(file, "#SBATCH --ntasks=$(SI.ntasks)\n")
         write(file, "#SBATCH --time=$(SI.time)\n")
-        write(file, "#SBATCH --output=UncertaintyQuantification_%A-%a.out\n")
-        write(file, "#SBATCH --error=UncertaintyQuantification_%A-%a.err\n")
-        !isempty(SI.mempercpu) ? write(file, "#SBATCH --mem-per-cpu=$(SI.mempercpu)\n") : 
+        write(
+            file, "#SBATCH --output=sample-%$(digits)a/UncertaintyQuantification-%a.out\n"
+        )
+        write(file, "#SBATCH --error=sample-%$(digits)a/UncertaintyQuantification-%a.err\n")
+        if !isempty(SI.mempercpu)
+            write(file, "#SBATCH --mem-per-cpu=$(SI.mempercpu)\n")
+        end
         write(file, array_command)
         write(file, "\n\n\n")
         write(file, "#### EXTRAS ####\n")
@@ -130,7 +140,7 @@ function run_slurm_array(SI, m, n, path)
         write(file, "$run_command\n")
 
         write(file, "\n\n\n")
-        
+
         write(file, "echo\n")
         write(file, "echo ---------------\n")
         write(file, "echo Job output ends\n")
@@ -142,9 +152,11 @@ function run_slurm_array(SI, m, n, path)
         write(file, "minutes=\$((minutes-60*hours))\n")
         write(file, "echo =========================================================\n")
         write(file, "echo SLURM job: finished date = `date`\n")
-        write(file, "echo Total run time : \$hours Hours \$minutes Minutes \$seconds Seconds\n")
+        write(
+            file,
+            "echo Total run time : \$hours Hours \$minutes Minutes \$seconds Seconds\n",
+        )
         write(file, "echo =========================================================\n")
-
     end
 
     p = pipeline(`sbatch --wait slurm_array.sh`)
