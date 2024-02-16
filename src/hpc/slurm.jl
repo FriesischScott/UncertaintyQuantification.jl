@@ -9,9 +9,9 @@ When using `SlurmInterface`, you no longer need to load workers into Julia with 
 required by individual model evaluations. Use `extras` to specify anything that must be preloaded for your models to be executed (for example loading modules).
 
 The `throttle` specifies the number of simulations in the job array which are run concurrently. I.e., if you perform 
-`MonteCarlo` simulation with `N=1000` samples, with `throttle=200`, it will run 1000 simulations in total, but only 200 at the same time. 
+`MonteCarlo` simulation with `N=1000` samples, with `throttle=200`, it will run 1000 simulations in total, but only 200 at the same time.
 Your HPC scheduler (and admin) may be unhappy if you request too many concurrent jobs.
-
+If left empty, you scheduler's default throttle will be used.
 
 # parameters
 
@@ -62,7 +62,7 @@ function SlurmInterface(;
     partition::String,
     nodes::Integer,
     ntasks::Integer,
-    throttle::Integer,
+    throttle::Integer = 0,
     jobname::String="UQ_array",
     extras::Vector{String}=String[],
     time::String="",
@@ -80,6 +80,7 @@ function run_slurm_array(SI, m, n, path)
     extras = SI.extras
 
     run_command = !isempty(args) ? "$binary $args $source" : "$binary $source"
+    array_command = iszero(SI.throttle) ? "#SBATCH --array=[1-$(n)]\n" : "#SBATCH --array=[1-$(n)]%$(SI.throttle)\n"
 
     digits = ndigits(n)
 
@@ -97,7 +98,7 @@ function run_slurm_array(SI, m, n, path)
         write(file, "#SBATCH --time=$(SI.time)\n")
         write(file, "#SBATCH --output=UncertaintyQuantification_%A-%a.out\n")
         write(file, "#SBATCH --error=UncertaintyQuantification_%A-%a.err\n")
-        write(file, "#SBATCH --array=[1-$(n)]%$(SI.throttle)\n")
+        write(file, array_command)
         write(file, "\n\n\n")
         write(file, "#### EXTRAS ####\n")
 
