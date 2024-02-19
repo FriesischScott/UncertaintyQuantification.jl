@@ -78,7 +78,7 @@ function SlurmInterface(;
     )
 end
 
-function run_slurm_array(SI, m, n, path)
+function generate_slurm_job(SI, m, n, path)
     binary = m.solver.path
     source = m.solver.source
     args = m.solver.args
@@ -159,8 +159,14 @@ function run_slurm_array(SI, m, n, path)
         write(file, "echo =========================================================\n")
     end
 
-    p = pipeline(`sbatch --wait slurm_array.sh`)
+    return nothing
+end
 
+function run_slurm_job(m, path)
+
+    dirpath = joinpath(m.workdir, path)    
+
+    p = pipeline(`sbatch --wait slurm_array.sh`)
     cd(() -> run(p), dirpath)
 
     return nothing

@@ -116,7 +116,8 @@ function evaluate!(
         makedirectory(m, df[i, :], path)
     end
 
-    run_slurm_array(slurm, m, n, datetime)
+    generate_slurm_job(slurm, m, n, datetime)
+    run_slurm_job(m, datetime)
 
     results = map(1:n) do i
         path = joinpath(m.workdir, datetime, "sample-$(lpad(i, digits, "0"))")
