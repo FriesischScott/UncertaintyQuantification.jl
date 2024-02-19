@@ -1,4 +1,5 @@
-include("slurm_test_utils.jl")
+include("../test_utilities/slurm_test_utils.jl")
+include("../test_utilities/read_write_utils.jl")
 
 @testset "SlurmTest" begin
     sourcedir = tempdir()
