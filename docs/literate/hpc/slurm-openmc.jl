@@ -2,7 +2,7 @@
 # High Performance Computing
 ## OpenMC TBR uncertainty
 
-In this example, we will run OpenMC, to compute the tritium breeding ratio (TBR) uncertainty, by varying material and geometric properties. This example was taken from: https://github.com/fusion-energy/neutronics-workshop
+In this example, we will run OpenMC, to compute the tritium breeding ratio (TBR) uncertainty, by varying material and geometric properties. This example was taken from [this link](https://github.com/fusion-energy/neutronics-workshop).
 
 At first we need to create an array of random variables, that will be used when evaluating the points that our desgin produces.
 It will also define the range of the function we want the design to fit.
@@ -10,7 +10,7 @@ This is also a good time to declare the function that we are working with.
 ===#
 
 #===
-Here we will vary the models Li6 enrichment, and radius of the tungsten layer
+Here we will vary the model's Li6 enrichment, and radius of the tungsten layer.
 ===#
 using UncertaintyQuantification, DelimitedFiles
 
