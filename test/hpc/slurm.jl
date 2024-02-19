@@ -52,7 +52,34 @@
 
     df = sample([x, y], 5)
 
-    @testset "No Cleanup" begin
+    # Function to check if (exact) line exits in file
+    function isline(file, string_check)
+
+        for (i, line) in enumerate(eachline(file))
+            if (line == string_check)
+                return true
+            end
+        end
+
+        return false
+    end
+
+    # Checks the pattern doesn't exist anywhere
+    function isnotline(file, string_check)
+
+        for (i, line) in enumerate(eachline(file))
+            if (m = match(Regex(string_check), line); m !== nothing)
+                return false
+            end
+        end
+
+        return true
+    end
+    
+    @testset "Generate job" begin
+
+        workdir = tempname()
+        mkdir(workdir)
 
         slurm = SlurmInterface(
             account = "HPC_account_1", 
@@ -69,55 +96,86 @@
             workdir=tempname(),
             formats=numberformats,
             extras="extra.txt",
-            slurm = slurm
+            scheduler = slurm
         )
-
-        run(`alias sbatch="bash $sourcedir/loopbash.sh 5"`)
-        evaluate!(ext, df)
-
-        @test length(readdir(readdir(ext.workdir; join=true)[1])) == 5
-        @test "extra.txt" in
-            readdir(readdir(readdir(ext.workdir; join=true)[1]; join=true)[1])
-        @test df.r ≈ sqrt.(df.x .^ 2 .+ df.y .^ 2)
-    end
-
-    @testset "Cleanup" begin
-        ext = ExternalModel(
-            sourcedir,
-            sourcefile,
-            radius,
-            solver;
-            formats=numberformats,
-            workdir=tempname(),
-            cleanup=true,
-        )
-
-        run(`alias sbatch="bash $sourcedir/loopbash.sh 5"`)
-        evaluate!(ext, df)
-        @test length(readdir(readdir(ext.workdir; join=true)[1])) == 0
-        @test isapprox(df.r, sqrt.(df.x .^ 2 + df.y .^ 2))
-    end
-
-    @testset "Reuse model output" begin
-        workdir = tempname()
-
-        ext1 = ExternalModel(
-            sourcedir, sourcefile, radius, solver; formats=numberformats, workdir=workdir
-        )
-
-        squared = Extractor(
-            base -> begin
-                return parse(Float64, readline(joinpath(base, "out-squared.txt")))
-            end,
-            :r2,
-        )
-
-        ext2 = ExternalModel(sourcedir, ["squared.jl"], squared, solver2; workdir=workdir, cleanup=true)
         
-        run(`alias sbatch="bash $sourcedir/loopbash.sh 5"`)
-        evaluate!([ext1, ext2], df)
-        @test df.r2 ≈ df.r .^ 2
-        @test length(readdir(readdir(ext1.workdir; join=true)[1])) == 0
-        @test length(readdir(readdir(ext2.workdir; join=true)[1])) == 0
+        # run(`alias sbatch="bash $sourcedir/loopbash.sh 5"`)
+        UncertaintyQuantification.generate_HPC_job(slurm, ext, size(df, 1), workdir)
+
+        generated_file = joinpath(workdir, "slurm_array.sh")
+
+        @test isfile(joinpath(workdir, "slurm_array.sh"))
+        @test isline(generated_file, "#SBATCH -A HPC_account_1")
+        @test isline(generated_file, "#SBATCH -p CPU_partition")
+        @test isline(generated_file, "#SBATCH --nodes=1")
+        @test isline(generated_file, "#SBATCH --ntasks=32")
+        @test isline(generated_file, "#SBATCH --array=[1-5]")
+        @test isnotline(generated_file, "#SBATCH --mem-per-cpu=")
+
+        @test isline(generated_file, "$(solver.path) $(solver.source)")
+
+        slurm = SlurmInterface(
+            jobname = "my_test_job",
+            account = "HPC_account_1", 
+            partition = "CPU_partition",
+            time = "10:00:00",
+            nodes = 1, 
+            ntasks = 32,
+            throttle=10,
+            mempercpu="100",
+            extras = ["load something", "load something else"]
+        )
+
+        UncertaintyQuantification.generate_HPC_job(slurm, ext, 100, workdir)
+
+        @test isline(generated_file, "#SBATCH -J my_test_job")
+        @test isline(generated_file, "#SBATCH --array=[1-100]%10")
+        @test isline(generated_file, "#SBATCH --time=10:00:00")
+        @test isline(generated_file, "#SBATCH --mem-per-cpu=100")
+        @test isline(generated_file, "load something")
+        @test isline(generated_file, "load something else")
+
+
     end
+
+    # @testset "Cleanup" begin
+    #     ext = ExternalModel(
+    #         sourcedir,
+    #         sourcefile,
+    #         radius,
+    #         solver;
+    #         formats=numberformats,
+    #         workdir=tempname(),
+    #         cleanup=true,
+    #         slurm = slurm
+    #     )
+
+    #     # run(`alias sbatch="bash $sourcedir/loopbash.sh 5"`)
+    #     evaluate!(ext, df)
+    #     @test length(readdir(readdir(ext.workdir; join=true)[1])) == 0
+    #     @test isapprox(df.r, sqrt.(df.x .^ 2 + df.y .^ 2))
+    # end
+
+    # @testset "Reuse model output" begin
+    #     workdir = tempname()
+
+    #     ext1 = ExternalModel(
+    #         sourcedir, sourcefile, radius, solver; formats=numberformats, workdir=workdir, slurm = slurm
+    #     )
+
+    #     squared = Extractor(
+    #         base -> begin
+    #             return parse(Float64, readline(joinpath(base, "out-squared.txt")))
+    #         end,
+    #         :r2,
+    #     )
+
+    #     ext2 = ExternalModel(sourcedir, ["squared.jl"], squared, solver2; workdir=workdir, cleanup=true, slurm = slurm)
+        
+    #     # run(`alias sbatch="bash $sourcedir/loopbash.sh 5"`)
+    #     evaluate!([ext1, ext2], df)
+    #     @test df.r2 ≈ df.r .^ 2
+    #     @test length(readdir(readdir(ext1.workdir; join=true)[1])) == 0
+    #     @test length(readdir(readdir(ext2.workdir; join=true)[1])) == 0
+    # end
 end

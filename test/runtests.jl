@@ -10,6 +10,8 @@ using StatsBase: fit, Histogram
 using Test
 using UncertaintyQuantification
 
+# run(`source scripts/set_test_environment.sh`)
+
 include("inputs/empericaldistribution.jl")
 include("inputs/parameter.jl")
 include("inputs/randomvariables/randomvariable.jl")
@@ -37,3 +39,5 @@ include("simulations/montecarlo.jl")
 include("simulations/subset.jl")
 
 include("solvers/solvers.jl")
+
+include("hpc/slurm.jl")
