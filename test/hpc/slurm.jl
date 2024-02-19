@@ -12,13 +12,6 @@ include("slurm_test_utils.jl")
         println(input, "write(\"out.txt\", string(z))")
     end
 
-    # create source file for squared solver
-    open(joinpath(sourcedir, "squared.jl"), "w") do input
-        println(input, "x = parse(Float64, readline(\"out.txt\"))")
-        println(input, "y = x^2")
-        println(input, "write(\"out-squared.txt\", string(y))")
-    end
-
     numberformats = Dict(:x => ".8e", :* => ".8e")
 
     radius = Extractor(
@@ -28,9 +21,7 @@ include("slurm_test_utils.jl")
     )
 
     binary = joinpath(Sys.BINDIR, "julia")
-
     solver = Solver(binary, "radius.jl")
-    solver2 = Solver(binary, "squared.jl")
 
     open(joinpath(sourcedir, "extra.txt"), "w") do input
         println(input, "This is an extra file")
@@ -64,7 +55,6 @@ include("slurm_test_utils.jl")
             scheduler = slurm
         )
         
-        # run(`alias sbatch="bash $sourcedir/loopbash.sh 5"`)
         UncertaintyQuantification.generate_HPC_job(slurm, ext, size(df, 1), workdir)
 
         generated_file = joinpath(workdir, "slurm_array.sh")
