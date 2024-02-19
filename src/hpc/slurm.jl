@@ -163,8 +163,7 @@ function generate_slurm_job(SI, m, n, path)
 end
 
 function run_slurm_job(m, path)
-
-    dirpath = joinpath(m.workdir, path)    
+    dirpath = joinpath(m.workdir, path)
 
     p = pipeline(`sbatch --wait slurm_array.sh`)
     cd(() -> run(p), dirpath)

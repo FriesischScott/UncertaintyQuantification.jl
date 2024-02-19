@@ -36,7 +36,7 @@ function ExternalModel(
     extras::Union{String,Vector{String}}=String[],
     formats::Dict{Symbol,String}=Dict{Symbol,String}(),
     cleanup::Bool=false,
-    slurm::Union{SlurmInterface,Nothing}=nothing,
+    slurm::Union{<:AbstractHPCScheduler,Nothing}=nothing,
 )
     return ExternalModel(
         sourcedir, sources, extractors, solver, workdir, extras, formats, cleanup, slurm
@@ -110,7 +110,7 @@ function evaluate!(
 )
     n = size(df, 1)
     digits = ndigits(n)
-    
+
     for i in 1:n
         path = joinpath(m.workdir, datetime, "sample-$(lpad(i, digits, "0"))")
         makedirectory(m, df[i, :], path)
