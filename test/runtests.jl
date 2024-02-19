@@ -10,7 +10,7 @@ using StatsBase: fit, Histogram
 using Test
 using UncertaintyQuantification
 
-# run(`source scripts/set_test_environment.sh`)
+include("test_utils.jl")
 
 include("inputs/empericaldistribution.jl")
 include("inputs/parameter.jl")

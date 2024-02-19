@@ -17,19 +17,6 @@
         println(input, "write(\"out-squared.txt\", string(y))")
     end
 
-    # create source file for slurm alias
-
-    open(joinpath(sourcedir, "loopbash.jl"), "w") do input
-        println(input, "#!/bin/bash")
-        println(input, "")
-        println(input, "total_loops=\$1")
-        println(input, "")
-        println(input, "for ((i=1; i<=\$total_loops; i++)); do")
-        println(input, "    export SLURM_ARRAY_TASK_ID=\$i")
-        println(input, "    bash slurm_array.sh")
-        println(input, "done")
-    end
-
     numberformats = Dict(:x => ".8e", :* => ".8e")
 
     radius = Extractor(
@@ -141,44 +128,32 @@
 
     end
 
-    # @testset "Cleanup" begin
-    #     ext = ExternalModel(
-    #         sourcedir,
-    #         sourcefile,
-    #         radius,
-    #         solver;
-    #         formats=numberformats,
-    #         workdir=tempname(),
-    #         cleanup=true,
-    #         slurm = slurm
-    #     )
-
-    #     # run(`alias sbatch="bash $sourcedir/loopbash.sh 5"`)
-    #     evaluate!(ext, df)
-    #     @test length(readdir(readdir(ext.workdir; join=true)[1])) == 0
-    #     @test isapprox(df.r, sqrt.(df.x .^ 2 + df.y .^ 2))
-    # end
-
-    # @testset "Reuse model output" begin
-    #     workdir = tempname()
-
-    #     ext1 = ExternalModel(
-    #         sourcedir, sourcefile, radius, solver; formats=numberformats, workdir=workdir, slurm = slurm
-    #     )
-
-    #     squared = Extractor(
-    #         base -> begin
-    #             return parse(Float64, readline(joinpath(base, "out-squared.txt")))
-    #         end,
-    #         :r2,
-    #     )
-
-    #     ext2 = ExternalModel(sourcedir, ["squared.jl"], squared, solver2; workdir=workdir, cleanup=true, slurm = slurm)
+    @testset "run HPC job" begin
         
-    #     # run(`alias sbatch="bash $sourcedir/loopbash.sh 5"`)
-    #     evaluate!([ext1, ext2], df)
-    #     @test df.r2 ≈ df.r .^ 2
-    #     @test length(readdir(readdir(ext1.workdir; join=true)[1])) == 0
-    #     @test length(readdir(readdir(ext2.workdir; join=true)[1])) == 0
-    # end
+        # Note, the run_HPC_job function has been overwritten in tests/test_utils.jl
+        
+        slurm = SlurmInterface(
+            account = "HPC_account_1", 
+            partition = "CPU_partition", 
+            nodes = 1, 
+            ntasks = 32
+        )
+
+        ext = ExternalModel(
+            sourcedir,
+            sourcefile,
+            radius,
+            solver;
+            workdir=tempname(),
+            formats=numberformats,
+            extras="extra.txt",
+            scheduler = slurm
+        )
+
+        evaluate!(ext, df)
+        
+        @test length(readdir(readdir(ext.workdir; join=true)[1])) == 6
+        @test isapprox(df.r, sqrt.(df.x .^ 2 + df.y .^ 2))        
+
+    end
 end
