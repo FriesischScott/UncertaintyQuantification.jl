@@ -110,6 +110,7 @@
         @test isline(generated_file, "#SBATCH --nodes=1")
         @test isline(generated_file, "#SBATCH --ntasks=32")
         @test isline(generated_file, "#SBATCH --array=[1-5]")
+        @test isnotline(generated_file, "#SBATCH --time=")
         @test isnotline(generated_file, "#SBATCH --mem-per-cpu=")
 
         @test isline(generated_file, "$(solver.path) $(solver.source)")
@@ -119,8 +120,8 @@
             account = "HPC_account_1", 
             partition = "CPU_partition",
             time = "10:00:00",
-            nodes = 1, 
-            ntasks = 32,
+            nodes = 2, 
+            ntasks = 50,
             throttle=10,
             mempercpu="100",
             extras = ["load something", "load something else"]
@@ -130,6 +131,8 @@
 
         @test isline(generated_file, "#SBATCH -J my_test_job")
         @test isline(generated_file, "#SBATCH --array=[1-100]%10")
+        @test isline(generated_file, "#SBATCH --nodes=2")
+        @test isline(generated_file, "#SBATCH --ntasks=50")
         @test isline(generated_file, "#SBATCH --time=10:00:00")
         @test isline(generated_file, "#SBATCH --mem-per-cpu=100")
         @test isline(generated_file, "load something")

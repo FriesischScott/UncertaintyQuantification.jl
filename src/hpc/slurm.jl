@@ -103,13 +103,15 @@ function generate_HPC_job(SI::SlurmInterface, m, n, path)
         write(file, "#SBATCH -J $(SI.jobname)\n")
         write(file, "#SBATCH --nodes=$(SI.nodes)\n")
         write(file, "#SBATCH --ntasks=$(SI.ntasks)\n")
-        write(file, "#SBATCH --time=$(SI.time)\n")
         write(
             file, "#SBATCH --output=sample-%$(digits)a/UncertaintyQuantification-%a.out\n"
         )
         write(file, "#SBATCH --error=sample-%$(digits)a/UncertaintyQuantification-%a.err\n")
         if !isempty(SI.mempercpu)
             write(file, "#SBATCH --mem-per-cpu=$(SI.mempercpu)\n")
+        end
+        if !isempty(SI.time)
+            write(file, "#SBATCH --time=$(SI.time)\n")
         end
         write(file, array_command)
         write(file, "\n\n\n")
