@@ -3,14 +3,12 @@
 
 When sampling large simulation models, or complicated workflows, Julia's inbuilt parallelism is sometimes insufficient. Job arrays are a useful feature of the slurm scheduler which allow you to run many similar jobs, which differ by an index (for example a sample number). This allows `UncertaintyQuantification.jl` to run heavier simulations (for example, simulations requiring multiple nodes), by offloading model sampling to an HPC machine using slurm. This way, `UncertaintyQuantification.jl` can be run on a single worker, and the HPC machine handles the rest.
 
-For more information on job arrays, see: [job arrays](https://slurm.schedmd.com/job_array.html)
+For more information on job arrays, see: [job arrays](https://slurm.schedmd.com/job_array.html).
 
 
 ## SlurmInterface
 
 When `SlurmInterface` is passed to an `ExternalModel`, a slurm job array script is automatically generated and executed. Julia waits for this job to finish before extracting results and proceeding.
-
-Your machine information must be passed to `SlurmInterface` for the array script to be correctly generated. For example:
 
 ```@example hpc
 using UncertaintyQuantification
@@ -45,9 +43,7 @@ Here `account` is your account (provided by your HPC admin/PI), and `partition` 
 `throttle` specifies the job array task throttle: the number of samples that will be run at any given time. For example, when running a `MonteCarlo` simulation with 2000 samples, and `throttle = 50`, 2000 model evaluations will be run in total, but only 50 at the same time. If left empty, your scheduler's default throttle will be used.
 
 
-<!-- ## Useage
 
-!!! note
-    See [eamples/HPC](../examples/hpc.md) for a detailed example
+### Useage
 
-Let's make a simple external model, consisting of a python script. -->
+See [examples/HPC](../examples/hpc.md) for a detailed example
