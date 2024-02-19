@@ -33,15 +33,11 @@ include("slurm_test_utils.jl")
     df = sample([x, y], 5)
 
     @testset "Generate job" begin
-
         workdir = tempname()
         mkdir(workdir)
 
-        slurm = SlurmInterface(
-            account = "HPC_account_1", 
-            partition = "CPU_partition", 
-            nodes = 1, 
-            ntasks = 32
+        slurm = SlurmInterface(;
+            account="HPC_account_1", partition="CPU_partition", nodes=1, ntasks=32
         )
 
         ext = ExternalModel(
@@ -52,9 +48,9 @@ include("slurm_test_utils.jl")
             workdir=tempname(),
             formats=numberformats,
             extras="extra.txt",
-            scheduler = slurm
+            scheduler=slurm,
         )
-        
+
         UncertaintyQuantification.generate_HPC_job(slurm, ext, size(df, 1), workdir)
 
         generated_file = joinpath(workdir, "slurm_array.sh")
@@ -70,16 +66,16 @@ include("slurm_test_utils.jl")
 
         @test isline(generated_file, "$(solver.path) $(solver.source)")
 
-        slurm = SlurmInterface(
-            jobname = "my_test_job",
-            account = "HPC_account_1", 
-            partition = "CPU_partition",
-            time = "10:00:00",
-            nodes = 2, 
-            ntasks = 50,
+        slurm = SlurmInterface(;
+            jobname="my_test_job",
+            account="HPC_account_1",
+            partition="CPU_partition",
+            time="10:00:00",
+            nodes=2,
+            ntasks=50,
             throttle=10,
             mempercpu="100",
-            extras = ["load something", "load something else"]
+            extras=["load something", "load something else"],
         )
 
         UncertaintyQuantification.generate_HPC_job(slurm, ext, 100, workdir)
@@ -92,19 +88,14 @@ include("slurm_test_utils.jl")
         @test isline(generated_file, "#SBATCH --mem-per-cpu=100")
         @test isline(generated_file, "load something")
         @test isline(generated_file, "load something else")
-
-
     end
 
     @testset "run HPC job" begin
-        
+
         # Note, the run_HPC_job function has been overwritten in tests/slurm/slurm_test_utils.jl
-        
-        slurm = SlurmInterface(
-            account = "HPC_account_1", 
-            partition = "CPU_partition", 
-            nodes = 1, 
-            ntasks = 32
+
+        slurm = SlurmInterface(;
+            account="HPC_account_1", partition="CPU_partition", nodes=1, ntasks=32
         )
 
         ext = ExternalModel(
@@ -115,13 +106,12 @@ include("slurm_test_utils.jl")
             workdir=tempname(),
             formats=numberformats,
             extras="extra.txt",
-            scheduler = slurm
+            scheduler=slurm,
         )
 
         evaluate!(ext, df)
-        
-        @test length(readdir(readdir(ext.workdir; join=true)[1])) == 6
-        @test isapprox(df.r, sqrt.(df.x .^ 2 + df.y .^ 2))        
 
+        @test length(readdir(readdir(ext.workdir; join=true)[1])) == 6
+        @test isapprox(df.r, sqrt.(df.x .^ 2 + df.y .^ 2))
     end
 end
