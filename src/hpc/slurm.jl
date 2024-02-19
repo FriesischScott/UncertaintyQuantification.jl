@@ -5,10 +5,10 @@ When `SlurmInterface` is passed to an `ExternalModel`, model evaluations are exe
 This allows for heavier simulations or workflows to be sampled, without relying on Julia's native parallelism.
 `SlurmInterface` automatically generates a slurm job array script, and Julia waits for this job to finish before extracting results.
 
-When using `SlurmInterface`, you no longer need to load workers into Julia with `addprocs(N)`, and the requested nodes / tasks those 
+When using `SlurmInterface`, you no longer need to load workers into Julia with `addprocs(N)`, and the requested nodes / tasks those
 required by individual model evaluations. Use `extras` to specify anything that must be preloaded for your models to be executed (for example loading modules).
 
-The `throttle` specifies the number of simulations in the job array which are run concurrently. I.e., if you perform 
+The `throttle` specifies the number of simulations in the job array which are run concurrently. I.e., if you perform
 `MonteCarlo` simulation with `N=1000` samples, with `throttle=200`, it will run 1000 simulations in total, but only 200 at the same time.
 Your HPC scheduler (and admin) may be unhappy if you request too many concurrent jobs.
 If left empty, you scheduler's default throttle will be used.
@@ -28,9 +28,7 @@ If left empty, you scheduler's default throttle will be used.
 # Examples
 ```jldoctest
 julia> slurm = SlurmInterface(account = "HPC_account_1", partition = "CPU_partition", nodes = 1, ntasks = 32, throttle = 200, extras = ["load python3"], time = "00:10:00")
-SlurmInterface("HPC_account_1", "CPU_partition", 1, 32, 200, "UQ_array", ["load python3"], "00:10:00")
-
-
+SlurmInterface("HPC_account_1", "CPU_partition", 1, 32, 200, "UQ_array", "", ["load python3"], "00:10:00")
 ```
 
 """
