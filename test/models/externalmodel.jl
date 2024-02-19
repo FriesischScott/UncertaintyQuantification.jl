@@ -1,3 +1,5 @@
+include("../test_utilities/read_write_utils.jl")
+
 @testset "ExternalModel" begin
     sourcedir = tempdir()
     sourcefile = ["radius.jl"]
@@ -54,8 +56,13 @@
 
         UncertaintyQuantification.makedirectory(ext, df[1,:], dirname)
 
+        formatted_inputs = UncertaintyQuantification.formatinputs(df[1,:], numberformats)
+
+        @test isdir(dirname)
         @test isfile(joinpath(dirname, "radius.jl"))
         @test isfile(joinpath(dirname, "extra.txt"))
+        @test !isnotanywhere(joinpath(dirname, "radius.jl"), formatted_inputs[1])
+        @test !isnotanywhere(joinpath(dirname, "radius.jl"), formatted_inputs[2])
 
         run(ext.solver, dirname)
 
