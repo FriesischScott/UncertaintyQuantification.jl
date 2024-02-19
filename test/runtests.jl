@@ -10,8 +10,6 @@ using StatsBase: fit, Histogram
 using Test
 using UncertaintyQuantification
 
-include("test_utils.jl")
-
 include("inputs/empericaldistribution.jl")
 include("inputs/parameter.jl")
 include("inputs/randomvariables/randomvariable.jl")
@@ -40,4 +38,4 @@ include("simulations/subset.jl")
 
 include("solvers/solvers.jl")
 
-include("hpc/slurm.jl")
+if Sys.islinux(); include("hpc/slurm.jl"); end

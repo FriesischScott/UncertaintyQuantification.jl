@@ -1,3 +1,5 @@
+include("slurm_test_utils.jl")
+
 @testset "SlurmTest" begin
     sourcedir = tempdir()
     sourcefile = ["radius.jl"]
