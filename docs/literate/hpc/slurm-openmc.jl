@@ -81,12 +81,12 @@ println("Probability of failure: $pf")
 
 #jl using StatsBase
 
-#jl TBR = samples.TBR #hide
-#jl TBR_mean = mean(TBR) #hide
-#jl TBR_std  = std(TBR) #hide
-#jl lower_quantile = quantile(TBR, 0.025) #hide
-#jl upper_quantile = quantile(TBR, 0.975) #hide
-#jl println("TBR mean: $TBR_mean, TBR std: $TBR_std, TBR 95%: [$lower_quantile, $upper_quantile]") #hide
+#jl TBR = samples.TBR
+#jl TBR_mean = mean(TBR)
+#jl TBR_std  = std(TBR)
+#jl lower_quantile = quantile(TBR, 0.025)
+#jl upper_quantile = quantile(TBR, 0.975)
+#jl println("TBR mean: $TBR_mean, TBR std: $TBR_std, TBR 95%: [$lower_quantile, $upper_quantile]")
 
 #===
 Gives `pf = 0.0064`, `cov = 0.1762` for `5000` samples. Also `TBR mean = 1.2404114576444423`, `TBR std = 0.10000460056126671`, and `TBR 95%: [1.0379178446904211, 1.4130216792418262]`. 
