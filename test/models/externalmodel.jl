@@ -39,6 +39,32 @@
 
     df = sample([x, y], 5)
 
+    @testset "Directory management" begin
+
+        dirname = tempname()
+        ext = ExternalModel(
+            sourcedir,
+            sourcefile,
+            radius,
+            solver;
+            workdir=tempname(),
+            formats=numberformats,
+            extras="extra.txt",
+        )
+
+        UncertaintyQuantification.makedirectory(ext, df[1,:], dirname)
+
+        @test isfile(joinpath(dirname, "radius.jl"))
+        @test isfile(joinpath(dirname, "extra.txt"))
+
+        run(ext.solver, dirname)
+
+        result = UncertaintyQuantification.getresult(ext, dirname)
+
+        @test isapprox(result[1], sqrt.(df.x[1] .^ 2 + df.y[1] .^ 2))
+
+    end
+
     @testset "No Cleanup" begin
         ext = ExternalModel(
             sourcedir,
