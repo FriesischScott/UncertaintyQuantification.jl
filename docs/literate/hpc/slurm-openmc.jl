@@ -1,5 +1,5 @@
 #===
-# HPC
+# High Performance Computing
 ## OpenMC TBR uncertainty
 
 In this example, we will run OpenMC, to compute the tritium breeding ratio (TBR) uncertainty, by varying material and geometric properties. This example was taken from: https://github.com/fusion-energy/neutronics-workshop

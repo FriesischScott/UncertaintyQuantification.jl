@@ -1,4 +1,4 @@
-# HPC
+# High performance computing
 ## Slurm job arrays
 
 When sampling large simulation models, or complicated workflows, Julia's inbuilt parallelism is sometimes insufficient. Job arrays are a useful feature of the slurm scheduler which allow you to run many similar jobs, which differ by an index (for example a sample number). This allows `UncertaintyQuantification.jl` to run heavier simulations (for example, simulations requiring multiple nodes), by offloading model sampling to an HPC machine using slurm. This way, `UncertaintyQuantification.jl` can be run on a single worker, and the HPC machine handles the rest.
