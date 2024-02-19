@@ -75,8 +75,8 @@ include("slurm_test_utils.jl")
         @test isline(generated_file, "#SBATCH --nodes=1")
         @test isline(generated_file, "#SBATCH --ntasks=32")
         @test isline(generated_file, "#SBATCH --array=[1-5]")
-        @test isnotline(generated_file, "#SBATCH --time=")
-        @test isnotline(generated_file, "#SBATCH --mem-per-cpu=")
+        @test isnotanywhere(generated_file, "#SBATCH --time=")
+        @test isnotanywhere(generated_file, "#SBATCH --mem-per-cpu=")
 
         @test isline(generated_file, "$(solver.path) $(solver.source)")
 
