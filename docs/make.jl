@@ -26,7 +26,7 @@ makedocs(
             "HPC" => "manual/hpc.md",
         ],
         "Examples" => [
-            "Metamodels" => "examples/metamodels.md", 
+            "Metamodels" => "examples/metamodels.md",
             "High Performance Computing" => "examples/hpc.md",
         ],
         "API" => [
