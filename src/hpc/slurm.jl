@@ -78,7 +78,7 @@ function SlurmInterface(;
     )
 end
 
-function generate_slurm_job(SI, m, n, path)
+function generate_HPC_job(SI::SlurmInterface, m, n, path)
     binary = m.solver.path
     source = m.solver.source
     args = m.solver.args
@@ -162,7 +162,8 @@ function generate_slurm_job(SI, m, n, path)
     return nothing
 end
 
-function run_slurm_job(m, path)
+# Slurm interface is passed to dispatch function for slurm. Perhaps there is a more elegant solution using parametric typing.
+function run_HPC_job(slurm::SlurmInterface, m, path)
     dirpath = joinpath(m.workdir, path)
 
     p = pipeline(`sbatch --wait slurm_array.sh`)

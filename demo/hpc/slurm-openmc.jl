@@ -36,7 +36,7 @@ slurm = SlurmInterface(;
 )
 
 ext = ExternalModel(
-    sourcedir, sourcefile, TBR, openmc; workdir=workdir, formats=numberformats, slurm=slurm
+    sourcedir, sourcefile, TBR, openmc; workdir=workdir, formats=numberformats, scheduler=slurm
 )
 
 function limitstate(df)
@@ -49,12 +49,12 @@ println("Probability of failure: $pf")
 
 using StatsBase
 
-TBR = samples.TBR #hide
-TBR_mean = mean(TBR) #hide
-TBR_std  = std(TBR) #hide
-lower_quantile = quantile(TBR, 0.025) #hide
-upper_quantile = quantile(TBR, 0.975) #hide
-println("TBR mean: $TBR_mean, TBR std: $TBR_std, TBR 95%: [$lower_quantile, $upper_quantile]") #hide
+TBR = samples.TBR
+TBR_mean = mean(TBR)
+TBR_std  = std(TBR)
+lower_quantile = quantile(TBR, 0.025)
+upper_quantile = quantile(TBR, 0.975)
+println("TBR mean: $TBR_mean, TBR std: $TBR_std, TBR 95%: [$lower_quantile, $upper_quantile]")
 
 subset = SubSetInfinity(800, 0.1, 10, 0.5)
 

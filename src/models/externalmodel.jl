@@ -7,7 +7,7 @@ struct ExternalModel <: UQModel
     extras::Vector{String}
     formats::Dict{Symbol,String}
     cleanup::Bool
-    slurm::Union{SlurmInterface,Nothing}
+    scheduler::Union{<:AbstractHPCScheduler,Nothing}
 
     function ExternalModel(
         sourcedir::String,
@@ -18,11 +18,11 @@ struct ExternalModel <: UQModel
         extras::Union{String,Vector{String}},
         formats::Dict{Symbol,String},
         cleanup::Bool,
-        slurm::Union{SlurmInterface,Nothing},
+        scheduler::Union{<:AbstractHPCScheduler,Nothing},
     )
         sources, extractors, extras = wrap.([sources, extractors, extras])
         return new(
-            sourcedir, sources, extractors, solver, workdir, extras, formats, cleanup, slurm
+            sourcedir, sources, extractors, solver, workdir, extras, formats, cleanup, scheduler
         )
     end
 end
@@ -36,10 +36,10 @@ function ExternalModel(
     extras::Union{String,Vector{String}}=String[],
     formats::Dict{Symbol,String}=Dict{Symbol,String}(),
     cleanup::Bool=false,
-    slurm::Union{<:AbstractHPCScheduler,Nothing}=nothing,
+    scheduler::Union{<:AbstractHPCScheduler,Nothing}=nothing,
 )
     return ExternalModel(
-        sourcedir, sources, extractors, solver, workdir, extras, formats, cleanup, slurm
+        sourcedir, sources, extractors, solver, workdir, extras, formats, cleanup, scheduler
     )
 end
 
@@ -78,8 +78,8 @@ function evaluate!(
     df::DataFrame;
     datetime::String=Dates.format(now(), "YYYY-mm-dd-HH-MM-SS"),
 )
-    if !isnothing(m.slurm)
-        return evaluate!(m, df, m.slurm; datetime=datetime)
+    if !isnothing(m.scheduler)
+        return evaluate!(m, df, m.scheduler; datetime=datetime)
     end
 
     n = size(df, 1)
@@ -105,7 +105,7 @@ end
 function evaluate!(
     m::ExternalModel,
     df::DataFrame,
-    slurm::SlurmInterface;
+    scheduler::AbstractHPCScheduler;
     datetime::String=Dates.format(now(), "YYYY-mm-dd-HH-MM-SS"),
 )
     n = size(df, 1)
@@ -116,8 +116,8 @@ function evaluate!(
         makedirectory(m, df[i, :], path)
     end
 
-    generate_slurm_job(slurm, m, n, datetime)
-    run_slurm_job(m, datetime)
+    generate_HPC_job(scheduler, m, n, datetime)
+    run_HPC_job(scheduler, m, datetime)
 
     results = map(1:n) do i
         path = joinpath(m.workdir, datetime, "sample-$(lpad(i, digits, "0"))")

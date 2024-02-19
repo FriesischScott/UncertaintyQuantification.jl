@@ -65,7 +65,7 @@ slurm = SlurmInterface(;
 
 # Define external model, passing slurm interface
 ext = ExternalModel(
-    sourcedir, sourcefile, TBR, openmc; workdir=workdir, formats=numberformats, slurm=slurm
+    sourcedir, sourcefile, TBR, openmc; workdir=workdir, formats=numberformats, scheduler=slurm
 )
 
 # Specify a limitstate function, negative value consititutes failure. Here we are interested in P(TBR <= 1).
