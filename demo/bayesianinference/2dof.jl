@@ -43,7 +43,7 @@ burnin = 450
 
 mh = SingleComponentMetropolisHastings(proposal, x0, n, burnin)
 
-mh_samples, α = bayesianupdating(prior, Like, [λ1, λ2], mh)
+mh_samples, α = bayesianupdating(prior, lh, [λ1, λ2], mh)
 
 println("Acceptance rate: $α")
 println("Identified (θ1, θ2): ($(mean(mh_samples.θ1)), $(mean(mh_samples.θ2)))")
