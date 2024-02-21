@@ -42,7 +42,6 @@ include("../test_utilities/read_write_utils.jl")
     df = sample([x, y], 5)
 
     @testset "Directory management" begin
-
         dirname = tempname()
         ext = ExternalModel(
             sourcedir,
@@ -54,9 +53,9 @@ include("../test_utilities/read_write_utils.jl")
             extras="extra.txt",
         )
 
-        UncertaintyQuantification.makedirectory(ext, df[1,:], dirname)
+        UncertaintyQuantification.makedirectory(ext, df[1, :], dirname)
 
-        formatted_inputs = UncertaintyQuantification.formatinputs(df[1,:], numberformats)
+        formatted_inputs = UncertaintyQuantification.formatinputs(df[1, :], numberformats)
 
         @test isdir(dirname)
         @test isfile(joinpath(dirname, "radius.jl"))
@@ -69,7 +68,6 @@ include("../test_utilities/read_write_utils.jl")
         result = UncertaintyQuantification.getresult(ext, dirname)
 
         @test isapprox(result[1], sqrt.(df.x[1] .^ 2 + df.y[1] .^ 2))
-
     end
 
     @testset "No Cleanup" begin
@@ -120,7 +118,9 @@ include("../test_utilities/read_write_utils.jl")
             :r2,
         )
 
-        ext2 = ExternalModel(sourcedir, ["squared.jl"], squared, solver2; workdir=workdir, cleanup=true)
+        ext2 = ExternalModel(
+            sourcedir, ["squared.jl"], squared, solver2; workdir=workdir, cleanup=true
+        )
 
         evaluate!([ext1, ext2], df)
         @test df.r2 ≈ df.r .^ 2
