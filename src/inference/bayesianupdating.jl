@@ -69,9 +69,16 @@ function bayesianupdating(
 end
 
 struct TMCMC <: AbstractBayesianMethod # Transitional Markov Chain Monte Carlo
-    snum::Int64
-    γ::Real
-    TMCMC(snum) = snum > 0 ? new(snum) : error("n must be greater than zero")
+    sample_prior::Function, n::Int, burnin::Int =
+        0, β2::Real =
+            0.2, TMCMC(snum) = snum > 0 ? new(snum) : error("n must be greater than zero")
+end
+
+# TMCMC implementation
+function bayesianupdating(
+    prior::Function, likelihood::Function, models::Vector{<:UQModel}, tmcmc::TMCMC
+)
+    return error("Not implemented!")
 end
 
 struct GibbsSampler <: AbstractBayesianMethod
@@ -128,11 +135,6 @@ function bayesianupdating(
     end
 
     return out
-end
-
-# TMCMC implementation
-function bayesianupdating(loglikelihood::Function, prior::Function, tmcmc::TMCMC)
-    return error("Not implemented!")
 end
 
 # GibbsSampler implementation
