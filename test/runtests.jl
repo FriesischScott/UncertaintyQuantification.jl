@@ -38,4 +38,6 @@ include("simulations/subset.jl")
 
 include("solvers/solvers.jl")
 
-if Sys.islinux(); include("hpc/slurm.jl"); end
+if Sys.islinux()
+    include("hpc/slurm.jl")
+end
