@@ -69,15 +69,50 @@ function bayesianupdating(
 end
 
 struct TMCMC <: AbstractBayesianMethod # Transitional Markov Chain Monte Carlo
-    sample_prior::Function, n::Int, burnin::Int =
-        0, β2::Real =
-            0.2, TMCMC(snum) = snum > 0 ? new(snum) : error("n must be greater than zero")
+    sample_prior::Function
+    n::Int
+    burnin::Int
+    β2::Real
+    TMCMC(n) = n > 0 ? new(n) : error("n must be greater than zero")
 end
 
 # TMCMC implementation
 function bayesianupdating(
     prior::Function, likelihood::Function, models::Vector{<:UQModel}, tmcmc::TMCMC
 )
+    αj = [0]
+    j = 1
+    θj = tmcmc.sample_prior(n)
+    log_likelihood_j = zeros(n, 1)
+    log_ev = 0
+
+    θ_dim = size(θj, 2)
+
+    while αj[j] < 1
+        print("Start iteration $j")
+
+        # Parallel Computation of Likelihood
+        temp_likelihood_j = pmap(likelihood, eachrow(θj))
+        log_likelihood_j = log.(temp_likelihood_j)
+        log_likelihood_j = reduce(vcat, log_likelihood_j)
+
+        # BisectionMethod
+        low_αj = αj[j]
+        up_αj = 2
+
+        log_likelihood_adjust = maximum(log_likelihood_j)
+
+        while (up_αj - low_αj) / ((up_αj + low_αj) / 2) > 1e-6
+            α_new = (up_αj + low_αj) / 2
+            weight_test = exp(α_new - αj[j]) .* (log_likelihood_j .- log_likelihood_adjust)
+            if (std(weight_test) / mean(weight_test)) > 1
+                up_αj = α_new
+            else
+                low_αj = α_new
+            end
+        end
+        push!(αj, minimum(1, α_new))
+    end
     return error("Not implemented!")
 end
 
