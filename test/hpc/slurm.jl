@@ -93,7 +93,7 @@ include("../test_utilities/read_write_utils.jl")
 
     @testset "run HPC job" begin
 
-        # Note, the run_HPC_job function has been overwritten in tests/slurm/slurm_test_utils.jl
+        # Note, the run_HPC_job function has been overwritten in tests/test_utilities/slurm_test_utils.jl
 
         slurm = SlurmInterface(;
             account="HPC_account_1", partition="CPU_partition", nodes=1, ntasks=32
