@@ -23,7 +23,7 @@ makedocs(
             "Getting Started" => "manual/gettingstarted.md",
             "Reliability Analysis" => "manual/reliability.md",
             "Metamodelling" => "manual/metamodels.md",
-            "HPC" => "manual/hpc.md",
+            "High Performance Computing" => "manual/hpc.md",
         ],
         "Examples" => [
             "Metamodels" => "examples/metamodels.md",
