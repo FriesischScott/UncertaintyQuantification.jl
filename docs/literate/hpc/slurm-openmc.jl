@@ -28,7 +28,7 @@ numberformats = Dict(:E => ".8e")
 workdir = joinpath(pwd(), "openmc_TBR")
 
 #md # !!! note
-#md # If Slurm is to run the jobs on multiple nodes, all the above folders must be shared by the computing nodes.
+#md #     If Slurm is to run the jobs on multiple nodes, all the above folders must be shared by the computing nodes.
 
 # Read output file and compute the Tritium breeding ratio. An extractor is based the working directory for the current sample.
 TBR = Extractor(base -> begin
