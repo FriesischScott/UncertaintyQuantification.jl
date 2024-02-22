@@ -1,4 +1,4 @@
-#===
+#=
 # High Performance Computing
 ## OpenMC TBR uncertainty
 
@@ -7,7 +7,7 @@ In this example, we will run OpenMC, to compute the tritium breeding ratio (TBR)
 At first we need to create an array of random variables, that will be used when evaluating the points that our desgin produces.
 It will also define the range of the function we want the design to fit.
 This is also a good time to declare the function that we are working with.
-===#
+=#
 
 #===
 Here we will vary the model's Li6 enrichment, and radius of the tungsten layer.
@@ -65,19 +65,23 @@ slurm = SlurmInterface(;
 
 # Define external model, passing slurm interface
 ext = ExternalModel(
-    sourcedir, sourcefile, TBR, openmc; workdir=workdir, formats=numberformats, scheduler=slurm
+    sourcedir,
+    sourcefile,
+    TBR,
+    openmc;
+    workdir=workdir,
+    formats=numberformats,
+    scheduler=slurm,
 )
 
 # Specify a limitstate function, negative value consititutes failure. Here we are interested in P(TBR <= 1).
 function limitstate(df)
-    return  reduce(vcat, df.TBR) .- 1 
+    return reduce(vcat, df.TBR) .- 1
 end
-
 
 # Run a Monte Carlo simulation
 @time pf, cov, samples = probability_of_failure(ext, limitstate, [E, R1], MonteCarlo(5000))
 println("Probability of failure: $pf")
-
 
 #jl using StatsBase
 
@@ -89,7 +93,7 @@ println("Probability of failure: $pf")
 #jl println("TBR mean: $TBR_mean, TBR std: $TBR_std, TBR 95%: [$lower_quantile, $upper_quantile]")
 
 #===
-Gives `pf = 0.0064`, `cov = 0.1762` for `5000` samples. Also `TBR mean = 1.2404114576444423`, `TBR std = 0.10000460056126671`, and `TBR 95%: [1.0379178446904211, 1.4130216792418262]`. 
+Gives `pf = 0.0064`, `cov = 0.1762` for `5000` samples. Also `TBR mean = 1.2404114576444423`, `TBR std = 0.10000460056126671`, and `TBR 95%: [1.0379178446904211, 1.4130216792418262]`.
 
 We can also try with Subset simulation
 ===#

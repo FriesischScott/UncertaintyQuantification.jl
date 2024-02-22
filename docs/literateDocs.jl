@@ -23,10 +23,12 @@ function fuseConvert(r::String, dir::String; documenter::Bool=true)
     rm(path) # delete the temporary file
 
     #remove @meta block created by literate
-    example_file = joinpath("./docs/src/examples", "$dir.md")
-    lines = readlines(example_file; keep=true)
-    open(example_file, "w") do file
-        write.(file, lines[5:end])
+    if documenter
+        example_file = joinpath("./docs/src/examples", "$dir.md")
+        lines = readlines(example_file; keep=true)
+        open(example_file, "w") do file
+            write.(file, lines[5:end])
+        end
     end
 
     return nothing
