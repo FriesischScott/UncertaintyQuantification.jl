@@ -36,6 +36,7 @@ makedocs(
             "ResponseSurface" => "api/responsesurface.md",
             "PolyharmonicSpline" => "api/polyharmonicspline.md",
             "Simulations" => "api/simulations.md",
+            "SlurmInterface" => "api/slurm.md",
         ],
         "References" => "references.md",
     ],
