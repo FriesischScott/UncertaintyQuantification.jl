@@ -20,13 +20,12 @@ slurm = SlurmInterface(;
     nodes=1,
     ntasks=32,
     throttle=50,
-    mempercpu="100", # default in MB
     extras=["load python3"],
     time="01:00:00",
 )
 ```
 
-Here `account` is your account (provided by your HPC admin/PI), and `partition` specifies the queue that jobs will be submitted to (ask admin if unsure). `nodes` and `ntasks` are the number of nodes and CPUs that your individual simulations requires. Depending on your HPC machine, each node has a specific number of CPUs. If your application requires more CPUs than are available per node, you can use multiple nodes. To set memory requirements for each task, use the option `mempercpu`.
+Here `account` is your account (provided by your HPC admin/PI), and `partition` specifies the queue that jobs will be submitted to (ask admin if unsure). `nodes` and `ntasks` are the number of nodes and CPUs that your individual simulations requires. Depending on your HPC machine, each node has a specific number of CPUs. If your application requires more CPUs than are available per node, you can use multiple nodes.
 
 The parameter `time` specifies the maximum time that each simulation will be run for, before being killed.
 
