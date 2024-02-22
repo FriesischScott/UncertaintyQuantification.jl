@@ -38,11 +38,13 @@ abstract type Copula <: UQType end
 abstract type AbstractMonteCarlo end
 abstract type AbstractQuasiMonteCarlo <: AbstractMonteCarlo end
 
+abstract type AbstractBayesianMethod end
 abstract type AbstractDesignOfExperiments end
 
 abstract type AbstractHPCScheduler end
 
 # Types
+export AbstractBayesianMethod
 export AbstractDesignOfExperiments
 export AbstractMonteCarlo
 export AbstractQuasiMonteCarlo
@@ -54,6 +56,7 @@ export UQModel
 export UQType
 
 # Structs
+export AdaptiveMetropolisHastings
 export EmpiricalDistribution
 export BackwardFiniteDifferences
 export BoxBehnken
@@ -78,6 +81,7 @@ export LatticeRuleSampling
 export LeastSquares
 export LegendreBasis
 export LineSampling
+export SingleComponentMetropolisHastings
 export Model
 export MonteCarlo
 export ParallelModel
@@ -96,6 +100,7 @@ export SubSetSimulation
 export TwoLevelFactorial
 
 # Methods
+export bayesianupdating
 export calc
 export count_rvs
 export dimensions
@@ -119,6 +124,12 @@ export to_copula_space
 export to_physical_space!
 export to_standard_normal_space
 export to_standard_normal_space!
+export mh
+export gibbssample
+export smc
+export tmcmc
+export grconvergence
+export calcequaltails
 
 include("inputs/empiricaldistribution.jl")
 include("inputs/inputs.jl")
@@ -144,6 +155,7 @@ include("models/pce/polynomialchaosexpansion.jl")
 include("sensitivity/finitedifferences.jl")
 include("sensitivity/gradient.jl")
 
+include("simulations/bayesianinference.jl")
 include("simulations/doe.jl")
 include("simulations/linesampling.jl")
 include("simulations/montecarlo.jl")
@@ -155,5 +167,7 @@ include("reliability/probabilityoffailure.jl")
 include("sensitivity/sobolindices.jl")
 
 include("util/wrap.jl")
+
+include("inference/bayesianupdating.jl")
 
 end
