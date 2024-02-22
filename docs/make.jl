@@ -23,8 +23,12 @@ makedocs(
             "Getting Started" => "manual/gettingstarted.md",
             "Reliability Analysis" => "manual/reliability.md",
             "Metamodelling" => "manual/metamodels.md",
+            "High Performance Computing" => "manual/hpc.md",
         ],
-        "Examples" => ["Metamodels" => "examples/metamodels.md"],
+        "Examples" => [
+            "Metamodels" => "examples/metamodels.md",
+            "High Performance Computing" => "examples/hpc.md",
+        ],
         "API" => [
             "Inputs" => "api/inputs.md",
             "Parameter" => "api/parameter.md",
@@ -32,6 +36,7 @@ makedocs(
             "ResponseSurface" => "api/responsesurface.md",
             "PolyharmonicSpline" => "api/polyharmonicspline.md",
             "Simulations" => "api/simulations.md",
+            "SlurmInterface" => "api/slurm.md",
         ],
         "References" => "references.md",
     ],
