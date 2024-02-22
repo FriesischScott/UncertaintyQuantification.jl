@@ -159,6 +159,7 @@ include("simulations/subset.jl")
 include("reliability/form.jl")
 include("simulations/importancesampling.jl")
 include("reliability/probabilityoffailure.jl")
+include("reliability/probabilityoffailure_imprecise.jl")
 include("sensitivity/sobolindices.jl")
 
 include("util/wrap.jl")
