@@ -32,48 +32,16 @@ SlurmInterface("HPC_account_1", "CPU_partition", 1, 32, 200, "UQ_array", "", ["l
 ```
 
 """
-struct SlurmInterface <: AbstractHPCScheduler
+Base.@kwdef struct SlurmInterface <: AbstractHPCScheduler
     account::String
     partition::String
     nodes::Integer
     ntasks::Integer
-    throttle::Integer
-    jobname::String
-    mempercpu::String
-    extras::Vector{String}
-    time::String
-
-    function SlurmInterface(
-        account::String,
-        partition::String,
-        nodes::Integer,
-        ntasks::Integer,
-        throttle::Integer,
-        jobname::String,
-        mempercpu::String,
-        extras::Vector{String},
-        time::String,
-    )
-        return new(
-            account, partition, nodes, ntasks, throttle, jobname, mempercpu, extras, time
-        )
-    end
-end
-
-function SlurmInterface(;
-    account::String,
-    partition::String,
-    nodes::Integer,
-    ntasks::Integer,
-    throttle::Integer=0,
-    jobname::String="UQ_array",
-    mempercpu::String="",
-    extras::Vector{String}=String[],
-    time::String="",
-)
-    return SlurmInterface(
-        account, partition, nodes, ntasks, throttle, jobname, mempercpu, extras, time
-    )
+    throttle::Integer = 0
+    jobname::String = "UQ_array"
+    mempercpu::String = ""
+    extras::Vector{String} = String[]
+    time::String = ""
 end
 
 function generate_HPC_job(SI::SlurmInterface, m, n, path)
