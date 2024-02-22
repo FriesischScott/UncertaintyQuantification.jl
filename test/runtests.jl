@@ -6,7 +6,7 @@ using HypothesisTests
 using InteractiveUtils
 using QuasiMonteCarlo
 using Random
-using StatsBase: fit, Histogram
+using StatsBase: fit, Histogram, corkendall
 using Test
 using UncertaintyQuantification
 
@@ -18,7 +18,6 @@ include("inputs/jointdistribution.jl");
 include("inputs/inputs.jl")
 
 include("inputs/copulas/gaussian.jl")
-
 include("models/externalmodel.jl")
 include("models/model.jl")
 include("models/polyharmonicspline.jl")
