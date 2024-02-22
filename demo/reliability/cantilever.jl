@@ -33,7 +33,7 @@ max_displacement = 0.01
 # Compute probability of failure using standard Monte Carlo
 mc = MonteCarlo(10^6)
 
-mc_pf, mc_cov, mc_samples = probability_of_failure(
+mc_pf, mc_std, mc_samples = probability_of_failure(
     [inertia, displacement], df -> max_displacement .- df.w, inputs, mc
 )
 
@@ -47,7 +47,7 @@ pf, β, dp, α = probability_of_failure(
 )
 is = ImportanceSampling(10^4, β, dp, α)
 
-is_pf, is_cov, is_samples = probability_of_failure(
+is_pf, is_std, is_samples = probability_of_failure(
     [inertia, displacement], df -> max_displacement .- df.w, inputs, is
 )
 
@@ -58,7 +58,7 @@ println(
 # Compute probability of failure using Line Sampling
 ls = LineSampling(200)
 
-ls_pf, ls_cov, ls_samples = probability_of_failure(
+ls_pf, ls_std, ls_samples = probability_of_failure(
     [inertia, displacement], df -> max_displacement .- df.w, inputs, ls
 )
 
@@ -69,7 +69,7 @@ println(
 # Compute probability of failure using Subset Sampling
 subset = UncertaintyQuantification.SubSetSimulation(2000, 0.1, 10, Uniform(-0.5, 0.5))
 
-subset_pf, subset_cov, subset_samples = probability_of_failure(
+subset_pf, subset_std, subset_samples = probability_of_failure(
     [inertia, displacement], df -> max_displacement .- df.w, inputs, subset
 )
 
@@ -80,7 +80,7 @@ println(
 # Compute probability of failure using conditional Subset Sampling
 subset_inf = UncertaintyQuantification.SubSetInfinity(2000, 0.1, 10, 0.5)
 
-subset_pf_inf, subset_cov_inf, subset_samples_inf = probability_of_failure(
+subset_pf_inf, subset_std_inf, subset_samples_inf = probability_of_failure(
     [inertia, displacement], df -> max_displacement .- df.w, inputs, subset_inf
 )
 
@@ -91,7 +91,7 @@ println(
 # Compute probability of failure using adaptive Subset Sampling
 subset_adap = UncertaintyQuantification.SubSetInfinityAdaptive(2000, 0.1, 10, 10, 0.6, 1.0)
 
-subset_pf_adap, subset_cov_adap, subset_samples_adap = probability_of_failure(
+subset_pf_adap, subset_std_adap, subset_samples_adap = probability_of_failure(
     [inertia, displacement], df -> max_displacement .- df.w, inputs, subset_adap
 )
 

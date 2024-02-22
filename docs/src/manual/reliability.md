@@ -48,7 +48,7 @@ Finally, we create the [`SubSetSimulation`](@ref) object and compute the probabi
 
 ```@example subset
 subset = SubSetSimulation(1000, 0.1, 10, Normal())
-pf, cov, samples = probability_of_failure(y, g, inputs, subset)
+pf, std, samples = probability_of_failure(y, g, inputs, subset)
 
 println("Probability of failure: $pf")
 ```
@@ -57,7 +57,7 @@ Alternatively, instead of using the standard Subset simulation algorithm (which 
 
 ```@example subset
 subset = SubSetInfinity(1000, 0.1, 10, 0.5)
-pf, cov, samples = probability_of_failure(y, g, inputs, subset)
+pf, std, samples = probability_of_failure(y, g, inputs, subset)
 
 println("Probability of failure: $pf")
 ```
