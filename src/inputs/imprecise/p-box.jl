@@ -14,22 +14,24 @@ P-Box meaning:
 julia>  ProbabilityBox([1.75, 1.83], [1.77, 1.85], x -> Uniform(x...), :l)
 ProbabilityBox(Real[1.75, 1.83], Real[1.77, 1.85], var"#7#8"(), :l)```
 """
-struct ProbabilityBox <: ImpreciseUQInput
+struct ProbabilityBox{T<:UnivariateDistribution} <: ImpreciseUQInput
     lb::AbstractVector{<:Real}
     ub::AbstractVector{<:Real}
-    dist::Function
     name::Symbol
-    function ProbabilityBox(
-        lb::AbstractVector{<:Real}, ub::AbstractVector{<:Real}, dist::Function, name::Symbol
-    )
+
+    function ProbabilityBox{T}(
+        lb::AbstractVector{<:Real}, ub::AbstractVector{<:Real}, name::Symbol
+    ) where {T<:UnivariateDistribution}
         any(lb .≥ ub) && error(
             "lower bound parameters must be smaller than upper bound parameters for $name",
         )
-        return new(lb, ub, dist, name)
+        return new(lb, ub, name)
     end
 end
 
-function map_to_precise(x::Vector{<:Real}, input::ProbabilityBox)
+function map_to_precise(
+    x::Vector{<:Real}, input::ProbabilityBox{T}
+) where {T<:UnivariateDistribution}
     lb = input.lb
     ub = input.ub
     name = input.name
@@ -40,14 +42,19 @@ function map_to_precise(x::Vector{<:Real}, input::ProbabilityBox)
     any(x .> ub) &&
         error("One or more values in $x are higher than p-box's upper bound $ub")
 
-    return RandomVariable(input.dist(x), input.name)
+    return RandomVariable(T(x...), input.name)
 end
 
-function sample(pbox::ProbabilityBox)
+function sample(pbox::ProbabilityBox{T}) where {T<:UnivariateDistribution}
     x = rand()
 
-    lb = quantile(pbox.dist(pbox.lb), x)
-    ub = quantile(pbox.dist(pbox.ub), x)
+    quantiles = map(
+        par -> quantile(T(par...), x),
+        Iterators.product([[a, b] for (a, b) in zip(pbox.lb, pbox.ub)]...),
+    )
 
-    return sort([lb, ub])
+    lb = minimum(quantiles)
+    ub = maximum(quantiles)
+
+    return [lb, ub]
 end

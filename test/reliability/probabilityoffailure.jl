@@ -87,9 +87,9 @@
         # 95% conf intervals estimated from 1000 runs
         @test 3.14e-11 < pf < 3.4e-10
     end
-    
+
     @testset "Imprecise Probabilities Simulation" begin
-        l = ProbabilityBox([1.75, 1.78], [1.77, 1.85], x -> Uniform(x...), :l) # length
+        l = ProbabilityBox{Uniform}([1.75, 1.78], [1.77, 1.85], :l) # length
         b = Interval(0.10, 0.14, :b) # width
         h = RandomVariable(Normal(0.24, 0.01), :h) # height
         μ = log(10e9^2 / sqrt(1.6e9^2 + 10e9^2))

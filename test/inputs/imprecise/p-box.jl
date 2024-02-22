@@ -6,12 +6,11 @@
 
     @test_throws ErrorException(
         "lower bound parameters must be smaller than upper bound parameters for $name"
-    ) ProbabilityBox(ub, lb, dist, name)
+    ) ProbabilityBox{Uniform}(ub, lb, name)
 
-    p_box = ProbabilityBox(lb, ub, dist, name)
+    p_box = ProbabilityBox{Uniform}(lb, ub, name)
     @test p_box.lb == lb
     @test p_box.ub == ub
-    @test p_box.dist == dist
     @test p_box.name == name
 
     par = [0.13, 0.20, 0, 21]
@@ -33,7 +32,7 @@
     @test UncertaintyQuantification.map_to_precise(par, p_box) ==
         RandomVariable(Uniform(par...), p_box.name)
 
-    p_box = ProbabilityBox(lb, ub, dist, name)
+    p_box = ProbabilityBox{Uniform}(lb, ub, name)
     a, b = UncertaintyQuantification.sample(p_box)
     @test lb[1] ≤ a ≤ lb[2]
     @test ub[1] ≤ b ≤ ub[2]

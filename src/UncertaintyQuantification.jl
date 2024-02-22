@@ -22,9 +22,8 @@ using StatsBase
 @reexport using Distributions
 
 import Base: rand, names, copy, run, length
-import Distributions: cdf, quantile, pdf, logpdf, minimum, maximum, insupport
+import Distributions: cdf, quantile, pdf, logpdf, minimum, maximum, insupport, mean, var
 import Statistics: mean, var
-import Distributions: logpdf, pdf, cdf, quantile, minimum, maximum, insupport, mean, var
 
 abstract type UQType end
 
