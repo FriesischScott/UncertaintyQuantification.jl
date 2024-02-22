@@ -1,4 +1,4 @@
-using UncertaintyQuantification, DelimitedFiles
+using UncertaintyQuantification
 
 E = RandomVariable(Uniform(0.3, 0.7), :E)
 R1 = RandomVariable(Uniform(8, 14), :R1)
@@ -13,9 +13,10 @@ workdir = joinpath(pwd(), "openmc_TBR")
 
 TBR = Extractor(base -> begin
     file = joinpath(base, "openmc.out")
-    data = readdlm(file, ' ')
+    line = readline(file)
+    tbr = parse(Float64, split(line, " ")[1])
 
-    return data[1]
+    return tbr
 end, :TBR)
 
 openmc = Solver(
@@ -27,25 +28,30 @@ openmc = Solver(
 slurm = SlurmInterface(;
     jobname="UQ_slurm",
     account="EXAMPLE-0001-CPU",
-    partition="cpu_parition",
+    partition="cpu_partition",
     nodes=1,
     ntasks=1,
     throttle=50,
-    time="00:01:00",    # Time per simulation
+    time="00:05:00", # Maximum time per simulation
     extras=["module load openmc", "source ~/.virtualenvs/openmc/bin/activate"],
 )
 
 ext = ExternalModel(
-    sourcedir, sourcefile, TBR, openmc; workdir=workdir, formats=numberformats, scheduler=slurm
+    sourcedir,
+    sourcefile,
+    TBR,
+    openmc;
+    workdir=workdir,
+    formats=numberformats,
+    scheduler=slurm,
 )
 
 function limitstate(df)
-    return  reduce(vcat, df.TBR) .- 1
+    return reduce(vcat, df.TBR) .- 1
 end
 
-@time pf, cov, samples = probability_of_failure(ext, limitstate, [E, R1], MonteCarlo(5000))
+@time pf, σ, samples = probability_of_failure(ext, limitstate, [E, R1], MonteCarlo(5000))
 println("Probability of failure: $pf")
-
 
 using StatsBase
 
@@ -58,7 +64,7 @@ println("TBR mean: $TBR_mean, TBR std: $TBR_std, TBR 95%: [$lower_quantile, $upp
 
 subset = SubSetInfinity(800, 0.1, 10, 0.5)
 
-@time pf, cov, samples = probability_of_failure(ext, limitstate, [E, R1], subset)
+@time pf, std, samples = probability_of_failure(ext, limitstate, [E, R1], subset)
 println("Probability of failure: $pf")
 
 # This file was generated using Literate.jl, https://github.com/fredrikekre/Literate.jl
