@@ -15,17 +15,16 @@ struct Interval <: ImpreciseUQInput
     name::Symbol
     function Interval(lb::Real, ub::Real, name::Symbol)
         lb ≥ ub && error(
-            "lower bound parameter must be smaller than upper bound parameter for $name"
+            "Lower bound parameter must be smaller than upper bound parameter for Interval $name.",
         )
         return new(lb, ub, name)
     end
 end
 
 function map_to_precise(x::Real, input::Interval)
-    lb = input.lb
-    ub = input.ub
-    x < lb && error("Choosen value $x is lower than Interval's lower bound $lb")
-    x > ub && error("Choosen value $x is higher than Interval's upper bound $ub")
+    if !in(x, input)
+        error("$x not in [$(input.lb), $(input.ub)] for Interval $(input.name).")
+    end
     return Parameter(x, input.name)
 end
 
@@ -38,3 +37,9 @@ to_standard_normal_space!(i::Interval, x::DataFrame) = nothing
 to_physical_space!(i::Interval, x::DataFrame) = nothing
 
 mean(i::Interval) = i
+
+function bounds(i::Interval)
+    return i.lb, i.ub
+end
+
+Base.in(u, i::Interval) = i.lb <= u <= i.ub

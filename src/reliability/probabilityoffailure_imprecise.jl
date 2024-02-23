@@ -83,8 +83,9 @@ end
 function bounds(inputs::AbstractVector{UQInput})
     imprecise_inputs = filter(x -> isa(x, ImpreciseUQInput), inputs)
 
-    lb = mapreduce(x -> x.lb, vcat, imprecise_inputs)
-    ub = mapreduce(x -> x.ub, vcat, imprecise_inputs)
+    b = bounds.(imprecise_inputs)
+    lb = vcat(getindex.(b, 1)...)
+    ub = vcat(getindex.(b, 2)...)
     return lb, ub
 end
 
@@ -95,7 +96,7 @@ function map_to_precise_inputs(x::AbstractVector, inputs::AbstractVector{<:UQInp
         if isa(i, Interval)
             push!(precise_inputs, map_to_precise(popfirst!(params), i))
         elseif isa(i, ProbabilityBox)
-            d = length(i.lb)
+            d = length(i.parameters)
             p = [popfirst!(params) for _ in 1:d]
             push!(precise_inputs, map_to_precise(p, i))
         end
