@@ -14,7 +14,7 @@ struct Interval <: ImpreciseUQInput
     ub::Real
     name::Symbol
     function Interval(lb::Real, ub::Real, name::Symbol)
-        lb ≥ ub && error(
+        lb >= ub && error(
             "Lower bound parameter must be smaller than upper bound parameter for Interval $name.",
         )
         return new(lb, ub, name)

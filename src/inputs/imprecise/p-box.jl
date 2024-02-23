@@ -16,16 +16,27 @@ ProbabilityBox{Normal}(Interval[Interval(0, 1, :μ), Interval(0.1, 1, :σ)], :x)
 ```
 """
 struct ProbabilityBox{T<:UnivariateDistribution} <: ImpreciseUQInput
-    parameters::AbstractVector{Interval}
+    parameters::AbstractVector{<:UQInput}
     name::Symbol
 
     function ProbabilityBox{T}(
-        p::AbstractVector{Interval}, name::Symbol
+        p::AbstractVector{<:UQInput}, name::Symbol
     ) where {T<:UnivariateDistribution}
+        # Only allow Intervals and Parameters
+        if !isempty(filter(x -> !isa(x, Interval) && !isa(x, Parameter), p))
+            error("A ProbabilityBox can only be constructed from Intervals and Parameters.")
+        end
+
+        # Make sure all required parameters for the distribution are present
         if !(names(p) == [fieldnames(T)...])
             error(
                 "Parameter mismatch for ProbabilityBox $name: $(names(p)) != $([fieldnames(T)...]).",
             )
+        end
+
+        # If someone only passes Parameters, return a RandomVariable instead.
+        if all(isa.(p, Parameter))
+            return RandomVariable(T(getproperty.(p, :value)...), name)
         end
 
         return new(p, name)
@@ -42,11 +53,22 @@ end
 function map_to_precise(
     x::Vector{<:Real}, pbox::ProbabilityBox{T}
 ) where {T<:UnivariateDistribution}
-    if !all(in.(x, pbox.parameters))
+    intervals = filter(x -> isa(x, Interval), pbox.parameters)
+    if !all(in.(x, intervals))
         error("Values outside of parameter intervals for ProbabilityBox $(pbox.name).")
     end
 
-    return RandomVariable(T(x...), pbox.name)
+    _x = copy(x)
+
+    p = [
+        if isa(par, Interval)
+            popfirst!(_x)
+        else
+            par.value
+        end for par in pbox.parameters
+    ]
+
+    return RandomVariable(T(p...), pbox.name)
 end
 
 function quantile(pbox::ProbabilityBox{T}, u::Real) where {T<:UnivariateDistribution}
@@ -54,7 +76,7 @@ function quantile(pbox::ProbabilityBox{T}, u::Real) where {T<:UnivariateDistribu
     ub = getproperty.(pbox.parameters, :ub)
 
     quantiles = map(
-        par -> quantile(T(par...), u),
+        par -> quantile(map_to_precise([par...], pbox), u),
         Iterators.product([[a, b] for (a, b) in zip(lb, ub)]...),
     )
 
@@ -67,8 +89,9 @@ end
 rand(pbox::ProbabilityBox, n::Integer=1) = quantile.(Ref(pbox), rand(n))
 
 function bounds(pbox::ProbabilityBox{T}) where {T<:UnivariateDistribution}
-    lb = getproperty.(pbox.parameters, :lb)
-    ub = getproperty.(pbox.parameters, :ub)
+    intervals = filter(x -> isa(x, Interval), pbox.parameters)
+    lb = getproperty.(intervals, :lb)
+    ub = getproperty.(intervals, :ub)
 
     return lb, ub
 end

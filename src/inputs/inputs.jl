@@ -30,7 +30,7 @@ function names(inputs::Vector{<:UQInput})
         if i isa JointDistribution
             append!(_names, names(i))
         else
-            push!(_names, i.name)
+            push!(_names, getproperty(i, :name))
         end
     end
 
