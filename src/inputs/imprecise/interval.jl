@@ -29,6 +29,12 @@ function map_to_precise(x::Real, input::Interval)
     return Parameter(x, input.name)
 end
 
-function sample(i::Interval)
-    return [i.lb, i.ub]
+
+function sample(i::Interval, n::Integer=1)
+    return DataFrame(i.name => fill(i, n))
 end
+
+to_standard_normal_space!(i::Interval, x::DataFrame) = nothing
+to_physical_space!(i::Interval, x::DataFrame) = nothing
+
+mean(i::Interval) = i

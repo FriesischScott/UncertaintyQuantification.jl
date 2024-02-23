@@ -46,9 +46,12 @@ function probability_of_failure(
     g_intervals = map(1:n) do _
         df = sample(precise_inputs)
 
-        bounds = sample.(imprecise_inputs)
-        lb = getindex.(bounds, 1)
-        ub = getindex.(bounds, 2)
+        bounds = Matrix(sample(imprecise_inputs))
+        lb = vec(getproperty.(bounds, :lb))
+        ub = vec(getproperty.(bounds, :ub))
+
+        # lb = transpose(lb)
+        # ub = transpose(ub)
 
         function g(x)
             inner_sample = hcat(df, DataFrame(imprecise_names .=> x))

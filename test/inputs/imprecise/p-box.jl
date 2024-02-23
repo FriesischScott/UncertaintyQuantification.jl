@@ -33,7 +33,37 @@
         RandomVariable(Uniform(par...), p_box.name)
 
     p_box = ProbabilityBox{Uniform}(lb, ub, name)
-    a, b = UncertaintyQuantification.sample(p_box)
-    @test lb[1] ≤ a ≤ lb[2]
-    @test ub[1] ≤ b ≤ ub[2]
+    a = UncertaintyQuantification.rand(p_box)[1]
+    @test lb[1] ≤ a.lb ≤ lb[2]
+    @test ub[1] ≤ a.ub ≤ ub[2]
+
+    @testset "Quantile, inverse quantile, and transformations" begin
+
+        name = :l
+        lb = [0.14, 0.21]
+        ub = [0.16, 0.23]
+        dist = x -> Uniform(x...)
+        
+        p_box = ProbabilityBox{Uniform}(lb, ub, name)
+
+        Nsamples = 1000
+
+        u = rand(Nsamples)
+        x = quantile.(Ref(p_box), u)
+    
+        u_back = UncertaintyQuantification.reverse_quantile.(Ref(p_box), x)
+
+        @test all( abs.(u_back .- u) .<=10^-10)
+        
+        SNS_distribution = RandomVariable(Normal(0, 1), name)
+        SNS_samples = sample(SNS_distribution, Nsamples)
+
+        SNS_samples_before = deepcopy(SNS_samples)
+
+        to_physical_space!(p_box, SNS_samples)
+        to_standard_normal_space!(p_box, SNS_samples)
+
+        @test all( abs.(SNS_samples[!,:l] .- SNS_samples_before[!,:l]) .<=10^-10)
+
+    end
 end

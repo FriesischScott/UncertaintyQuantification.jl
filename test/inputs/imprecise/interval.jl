@@ -24,5 +24,5 @@
         Parameter(0.15, interval.name)
 
     interval = Interval(lb, ub, name)
-    @test UncertaintyQuantification.sample(interval) == [lb, ub]
+    @test UncertaintyQuantification.sample(interval) == DataFrame(; l=interval)
 end
