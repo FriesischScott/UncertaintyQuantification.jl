@@ -72,8 +72,7 @@ function map_to_precise(
 end
 
 function quantile(pbox::ProbabilityBox{T}, u::Real) where {T<:UnivariateDistribution}
-    lb = getproperty.(pbox.parameters, :lb)
-    ub = getproperty.(pbox.parameters, :ub)
+    lb, ub = bounds(pbox)
 
     quantiles = map(
         par -> quantile(map_to_precise([par...], pbox), u),
@@ -102,8 +101,7 @@ end
 
 # Does the inverse of quantile, not cdf, which would return an interval
 function reverse_quantile(pbox::ProbabilityBox{T}, x::Interval) where {T<:UnivariateDistribution}
-    lb = getproperty.(pbox.parameters, :lb)
-    ub = getproperty.(pbox.parameters, :ub)
+    lb, ub = bounds(pbox)
 
     cdfs_lo = map(
         par -> cdf(T(par...), x.lb),
