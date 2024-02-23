@@ -89,7 +89,9 @@
     end
 
     @testset "Imprecise Probabilities Simulation" begin
-        l = ProbabilityBox{Uniform}([1.75, 1.78], [1.77, 1.85], :l) # length
+        l = ProbabilityBox{Uniform}(
+            [Interval(1.75, 1.77, :a), Interval(1.78, 1.85, :b)], :l
+        ) # length
         b = Interval(0.10, 0.14, :b) # width
         h = RandomVariable(Normal(0.24, 0.01), :h) # height
         μ = log(10e9^2 / sqrt(1.6e9^2 + 10e9^2))
