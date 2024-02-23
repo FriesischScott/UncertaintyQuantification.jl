@@ -104,12 +104,12 @@ function reverse_quantile(pbox::ProbabilityBox{T}, x::Interval) where {T<:Univar
     lb, ub = bounds(pbox)
 
     cdfs_lo = map(
-        par -> cdf(T(par...), x.lb),
+        par -> cdf(map_to_precise([par...], pbox), x.lb),
         Iterators.product([[a, b] for (a, b) in zip(lb, ub)]...),
     )
 
     cdfs_hi = map(
-        par -> cdf(T(par...), x.ub),
+        par -> cdf(map_to_precise([par...], pbox), x.ub),
         Iterators.product([[a, b] for (a, b) in zip(lb, ub)]...),
     )
 

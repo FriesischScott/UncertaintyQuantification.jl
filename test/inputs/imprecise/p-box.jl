@@ -87,6 +87,26 @@
         to_standard_normal_space!(p_box, SNS_samples)
 
         @test all( abs.(SNS_samples[!,:l] .- SNS_samples_before[!,:l]) .<=10^-10)
+
+        p_box = ProbabilityBox{Uniform}([Interval(0, 0.2, :a), Parameter(1, :b)], name)
+
+        u = rand(Nsamples)
+        x = quantile.(Ref(p_box), u)
+    
+        u_back = UncertaintyQuantification.reverse_quantile.(Ref(p_box), x)
+
+        @test all( abs.(u_back .- u) .<=10^-10)
+        
+        SNS_distribution = RandomVariable(Normal(0, 1), name)
+        SNS_samples = sample(SNS_distribution, Nsamples)
+
+        SNS_samples_before = deepcopy(SNS_samples)
+
+        to_physical_space!(p_box, SNS_samples)
+        to_standard_normal_space!(p_box, SNS_samples)
+
+        @test all( abs.(SNS_samples[!,:l] .- SNS_samples_before[!,:l]) .<=10^-10)
+
     end
 
 end
