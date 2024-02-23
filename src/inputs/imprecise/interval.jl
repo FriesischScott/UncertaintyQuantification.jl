@@ -14,7 +14,7 @@ struct Interval <: ImpreciseUQInput
     ub::Real
     name::Symbol
     function Interval(lb::Real, ub::Real, name::Symbol)
-        lb ≥ ub && error(
+        lb >= ub && error(
             "Lower bound parameter must be smaller than upper bound parameter for Interval $name.",
         )
         return new(lb, ub, name)
@@ -34,10 +34,6 @@ end
 
 function bounds(i::Interval)
     return i.lb, i.ub
-end
-
-function names(i::AbstractVector{Interval})
-    return getproperty.(i, :name)
 end
 
 Base.in(u, i::Interval) = i.lb <= u <= i.ub

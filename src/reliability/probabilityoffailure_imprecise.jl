@@ -19,7 +19,7 @@ function probability_of_failure(
     lb, ub = bounds(inputs)
     x0 = (lb .+ ub) ./ 2
 
-    rhobeg = minimum((ub .- lb) ./ 2)
+    rhobeg = minimum(ub .- lb) ./ 4
     _, info_min = prima(montecarlo_pf, x0; xl=lb, xu=ub, rhobeg=rhobeg)
     pf_lb = info_min.fx
     _, info_max = prima(x -> -montecarlo_pf(x), x0; xl=lb, xu=ub, rhobeg=rhobeg)
@@ -41,10 +41,14 @@ function probability_of_failure(
         Vector{PreciseUQInput}, filter(x -> isa(x, PreciseUQInput), inputs)
     )
 
-    imprecise_names = [i.name for i in imprecise_inputs]
+    imprecise_names = names(imprecise_inputs)
 
     g_intervals = map(1:n) do _
-        df = sample(precise_inputs)
+        if !isempty(precise_inputs)
+            df = sample(precise_inputs)
+        else
+            df = DataFrame()
+        end
 
         bounds = sample.(imprecise_inputs)
         lb = getindex.(bounds, 1)
@@ -58,7 +62,7 @@ function probability_of_failure(
         end
 
         x0 = (lb .+ ub) ./ 2
-        rhobeg = minimum((ub .- lb) ./ 2)
+        rhobeg = minimum(ub .- lb) ./ 4
 
         _, info_min = prima(g, x0; xl=lb, xu=ub, rhobeg=rhobeg)
         g_lb = info_min.fx
@@ -77,7 +81,7 @@ function probability_of_failure(
     return Interval(pf_lb, pf_ub, :pf)
 end
 
-function bounds(inputs::AbstractVector{UQInput})
+function bounds(inputs::AbstractVector{<:UQInput})
     imprecise_inputs = filter(x -> isa(x, ImpreciseUQInput), inputs)
 
     b = bounds.(imprecise_inputs)
@@ -88,12 +92,12 @@ end
 
 function map_to_precise_inputs(x::AbstractVector, inputs::AbstractVector{<:UQInput})
     precise_inputs = PreciseUQInput[]
-    params = deepcopy(x)
+    params = copy(x)
     for i in inputs
         if isa(i, Interval)
             push!(precise_inputs, map_to_precise(popfirst!(params), i))
         elseif isa(i, ProbabilityBox)
-            d = length(i.parameters)
+            d = length(filter(x -> isa(x, Interval), i.parameters))
             p = [popfirst!(params) for _ in 1:d]
             push!(precise_inputs, map_to_precise(p, i))
         end

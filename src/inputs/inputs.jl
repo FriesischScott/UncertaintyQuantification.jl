@@ -23,14 +23,14 @@ function to_standard_normal_space!(inputs::Vector{<:PreciseUQInput}, x::DataFram
     return nothing
 end
 
-function names(inputs::Vector{<:PreciseUQInput})
+function names(inputs::Vector{<:UQInput})
     _names = Symbol[]
 
     for i in inputs
-        if i isa Parameter || i isa RandomVariable
-            push!(_names, i.name)
-        elseif i isa JointDistribution
+        if i isa JointDistribution
             append!(_names, names(i))
+        else
+            push!(_names, getproperty(i, :name))
         end
     end
 
