@@ -15,18 +15,18 @@ end
 function probability_of_failure(
     models::Union{Vector{<:UQModel},UQModel},
     performance::Function,
-    inputs::Union{Vector{<:PreciseUQInput},PreciseUQInput},
+    inputs::Union{Vector{<:UQInput},UQInput},
     sim::FORM,
 )
     models, inputs = wrap.([models, inputs])
 
     # create reference point in standard normal space origin
-    random_names = names(filter(i -> isa(i, RandomUQInput), inputs))
+    random_names = names(filter(i -> (isa(i, RandomUQInput) || isa(i, ProbabilityBox)), inputs))
     y::Vector{Float64} = zeros(length(random_names))
 
     G = [models..., Model(performance, :performance)]
 
-    deterministic_inputs = filter(i -> isa(i, DeterministicUQInput), inputs)
+    deterministic_inputs = filter(i -> (isa(i, DeterministicUQInput) || isa(i, Interval)), inputs)
     parameters =
         !isempty(deterministic_inputs) ? sample(deterministic_inputs, 1) : DataFrame()
 

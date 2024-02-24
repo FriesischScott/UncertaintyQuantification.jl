@@ -70,13 +70,13 @@ struct LatticeRuleSampling <: AbstractQuasiMonteCarlo
     end
 end
 
-function sample(inputs::Vector{<:PreciseUQInput}, sim::MonteCarlo)
+function sample(inputs::Vector{<:UQInput}, sim::MonteCarlo)
     return sample(inputs, sim.n)
 end
 
-function sample(inputs::Vector{<:PreciseUQInput}, sim::AbstractQuasiMonteCarlo)
-    random_inputs = filter(i -> isa(i, RandomUQInput), inputs)
-    deterministic_inputs = filter(i -> isa(i, DeterministicUQInput), inputs)
+function sample(inputs::Vector{<:UQInput}, sim::AbstractQuasiMonteCarlo)
+    random_inputs = filter(i -> (isa(i, RandomUQInput) || isa(i, ProbabilityBox)), inputs)
+    deterministic_inputs = filter(i -> (isa(i, DeterministicUQInput) || isa(i, Interval)), inputs)
 
     n_rv = count_rvs(random_inputs)
 
@@ -94,7 +94,7 @@ function sample(inputs::Vector{<:PreciseUQInput}, sim::AbstractQuasiMonteCarlo)
     return samples
 end
 
-sample(input::PreciseUQInput, sim::AbstractMonteCarlo) = sample([input], sim)
+sample(input::UQInput, sim::AbstractMonteCarlo) = sample([input], sim)
 
 function qmc_samples(sim::SobolSampling, rvs::Integer)
     return randomize(sim, QuasiMonteCarlo.sample(sim.n, rvs, SobolSample()))

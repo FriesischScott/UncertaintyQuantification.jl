@@ -1,5 +1,5 @@
 ## 1st Method -  External: Global Opt ; Internal: Sampling
-function probability_of_failure(
+function probability_of_failure_2_loop(
     models::Union{Vector{<:UQModel},UQModel},
     performance::Function,
     inputs::Union{Vector{<:UQInput},UQInput},
@@ -28,58 +28,25 @@ function probability_of_failure(
     return Interval(pf_lb, pf_ub, :pf)
 end
 
+hi(x::Interval) = x.ub
+lo(x::Interval) = x.lb
+hi(x::Float64) = x
+lo(x::Float64) = x
+
 ## 2nd Method -  External: Sampling ; Internal: Global Opt
-function probability_of_failure(
+function probability_of_failure_slicing(
     models::Union{Vector{<:UQModel},UQModel},
     performance::Function,
     inputs::Union{Vector{<:UQInput},UQInput},
-    n::Integer,
+    sim::AbstractSimulation,
 )
-    inputs = wrap(inputs)
-    imprecise_inputs = filter(x -> isa(x, ImpreciseUQInput), inputs)
-    precise_inputs = convert(
-        Vector{PreciseUQInput}, filter(x -> isa(x, PreciseUQInput), inputs)
-    )
 
-    imprecise_names = names(imprecise_inputs)
+    model_imprecise = Model(x -> performance(hcat(DataFrame(models.name => models.func(x)), x)), :performance)
+    performance_hi(df) = hi.(df[!, :performance])
+    performance_lo(df) = lo.(df[!, :performance])
 
-    g_intervals = map(1:n) do _
-        if !isempty(precise_inputs)
-            df = sample(precise_inputs)
-        else
-            df = DataFrame()
-        end
-
-        bounds = Matrix(sample(imprecise_inputs))
-        lb = vec(getproperty.(bounds, :lb))
-        ub = vec(getproperty.(bounds, :ub))
-
-        # lb = transpose(lb)
-        # ub = transpose(ub)
-
-        function g(x)
-            inner_sample = hcat(df, DataFrame(imprecise_names .=> x))
-            evaluate!(models, inner_sample)
-
-            return performance(inner_sample)[1]
-        end
-
-        x0 = (lb .+ ub) ./ 2
-        rhobeg = minimum(ub .- lb) ./ 4
-
-        _, info_min = prima(g, x0; xl=lb, xu=ub, rhobeg=rhobeg)
-        g_lb = info_min.fx
-        _, info_max = prima(x -> -g(x), x0; xl=lb, xu=ub, rhobeg=rhobeg)
-        g_ub = -info_max.fx
-
-        return [g_lb, g_ub]
-    end
-
-    left_bound_failures = getindex.(g_intervals, 1) .< 0
-    pf_ub = sum(left_bound_failures) / n
-
-    both_bound_failures = getindex.(g_intervals[left_bound_failures], 2) .< 0
-    pf_lb = sum(both_bound_failures) / n
+    pf_ub, sig_ub, samples_hi = probability_of_failure(model_imprecise, performance_lo, inputs, sim)
+    pf_lb, sig_lb, samples_lo = probability_of_failure(model_imprecise, performance_hi, inputs, sim)
 
     return Interval(pf_lb, pf_ub, :pf)
 end
