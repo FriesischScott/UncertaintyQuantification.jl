@@ -28,6 +28,8 @@ include("models/pce/pcebases.jl")
 include("models/pce/polynomialchaosexpansion.jl")
 include("models/responsesurface.jl")
 
+include("imprecise_probability/interval_propagation.jl")
+
 include("reliability/form.jl")
 include("reliability/probabilityoffailure.jl")
 
