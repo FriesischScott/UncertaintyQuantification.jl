@@ -20,8 +20,8 @@ mutable struct GaussianProcessRegressor <: UQModel
 end
 
 function normalize!(
-    input::Union{Vector{Real}, Matrix{<:Real}},
-    output::Vector{Real},
+    input::Union{Vector{<:Real}, Matrix{<:Real}},
+    output::Vector{<:Real},
     normalize_input::Bool,
     normalize_output::Bool,
     log_noise::Real
@@ -45,10 +45,15 @@ function normalize!(
 end
 
 struct Optimizer
-    optimizer
-    opt_kwargs::Dict
+    # maybe give one default and allow JuMP structs
+    method::Union{Optim.LBFGS, Optim.ConjugateGradient} # not sure how or even if to support multiple solvers
+    optim_options::Dict # maybe there is a better option than using dicts for this
     hyperparams::Dict
     bounds::Dict
+end
+
+struct ExperimentalDesign # not sure about the name
+    sim::AbstractMonteCarlo # could also allow doe
 end
 
 Optimizer() = Optimizer(
@@ -65,37 +70,125 @@ function gaussianprocess(
     kernel::Kernel,
     mean::GaussianProcesses.Mean=MeanZero(),
     log_noise::Real=-2.0,
+    optimizer::Union{Optimizer, Nothing}=Optimizer(),
     normalize_input::Bool=false,
     normalize_output::Bool=false
 )
-    x = Matrix(df[:, input])'
+    x = copy(Matrix(df[:, input])')
     y = df[:, output]
-
     input_normalizer, output_normalizer, log_noise = normalize!(x, y, normalize_input, normalize_output, log_noise)
     
-    gp = GP(X, y, mean, kernel, log_noise)
+    gp = GP(x, y, mean, kernel, log_noise)
+    if !isnothing(optimizer)
+        optimize!(gp; 
+            method=optimizer.method, 
+            optimizer.hyperparams...,
+            optimizer.bounds...,
+            optimizer.optim_options...
+        )
+    end
 
     gp = GaussianProcessRegressor(
-        gp, inputs, output, 
+        gp, input, output, 
         input_normalizer, output_normalizer
         )
 
     return gp, df
 end
 
-# Wrapper for optimize! method from GaussianProcesses.jl
-function optimize_hyperparams!(gpr::GaussianProcessRegressor, args...; method = LBFGS(), 
-    domean::Bool = true, kern::Bool = true, noise::Bool = true, 
-    lik::Bool = true, meanbounds = nothing, kernbounds = nothing,
-    noisebounds = nothing, likbounds = nothing, kwargs...
+function polynomialchaos(
+    inputs::Vector{<:UQInput},
+    model::Vector{<:UQModel},
+    Ψ::PolynomialChaosBasis,
+    output::Symbol,
+    _::GaussQuadrature,
 )
+    random_inputs = filter(i -> isa(i, RandomUQInput), inputs)
+    deterministic_inputs = filter(i -> isa(i, DeterministicUQInput), inputs)
+    random_names = names(random_inputs)
 
-    optimize!(gpr.gp, args...; method = method, 
-    domean=domean, kern=kern, noise=noise, lik=lik,
-    meanbounds=meanbounds, kernbounds=kernbounds,
-    noisebounds=noisebounds, likbounds=likbounds, 
-    kwargs...)
+    nodes = mapreduce(
+        n -> [n...]', vcat, Iterators.product(quadrature_nodes.(Ψ.p + 1, Ψ.bases)...)
+    )
+    weights = map(prod, Iterators.product(quadrature_weights.(Ψ.p + 1, Ψ.bases)...))
+
+    samples = DataFrame(map_from_bases(Ψ, nodes), random_names)
+    to_physical_space!(random_inputs, samples)
+
+    if !isempty(deterministic_inputs)
+        samples = hcat(samples, sample(deterministic_inputs, size(nodes, 1)))
+    end
+
+    evaluate!(model, samples)
+
+    y = mapreduce(
+        (x, w, f) -> f * w * evaluate(Ψ, collect(x)),
+        +,
+        eachrow(nodes),
+        weights,
+        samples[:, output],
+    )
+
+    return PolynomialChaosExpansion(y, Ψ, output, random_inputs), samples
 end
 
+function polynomialchaos(
+    inputs::UQInput,
+    model::Vector{<:UQModel},
+    Ψ::PolynomialChaosBasis,
+    output::Symbol,
+    gq::GaussQuadrature,
+)
+    return polynomialchaos([inputs], model, Ψ, output, gq)
+end
 
+function polynomialchaos(
+    inputs::Vector{<:UQInput},
+    model::UQModel,
+    Ψ::PolynomialChaosBasis,
+    output::Symbol,
+    gq::GaussQuadrature,
+)
+    return polynomialchaos(inputs, [model], Ψ, output, gq)
+end
+
+function polynomialchaos(
+    inputs::UQInput,
+    model::UQModel,
+    Ψ::PolynomialChaosBasis,
+    output::Symbol,
+    gq::GaussQuadrature,
+)
+    return polynomialchaos([inputs], [model], Ψ, output, gq)
+end
+
+# what should this return?
+function evaluate!(gpr::GaussianProcessRegressor, df::DataFrame) # this now gives mean and variance at inputs
+    data = Matrix(df[:, names(gpr.inputs)])'
+    if !isnothing(gpr.input_normalizer)
+        μ, Σ = predict_y(gpr.gp, StatsBase.transform!(grp.input_normalizer, data))
+    else
+        μ, Σ = predict_y(gpr.gp, data)
+    end
+
+    if !isnothing(grp.output_normalizer)
+        μ[:] = μ .* gpr.output_normalizer.scale[1] .+ gpr.output_normalizer.mean[1] 
+        Σ[:] = Σ .* gpr.output_normalizer.scale[1]^2
+    end
+
+    df[!, Symbol(gpr.output, "_mean")] = μ
+    df[!, Symbol(gpr.output, "_var")] = Σ
+    return nothing
+end
+
+function sample(pce::PolynomialChaosExpansion, n::Integer)
+    samps = hcat(sample.(n, pce.Ψ.bases)...)
+    out = map(row -> dot(pce.y, evaluate(pce.Ψ, collect(row))), eachrow(samps))
+
+    samps = DataFrame(map_from_bases(pce.Ψ, samps), names(pce.inputs))
+    to_physical_space!(pce.inputs, samps)
+
+    samps[!, pce.output] = out
+    return samps
+end
 
