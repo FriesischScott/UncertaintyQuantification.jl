@@ -13,7 +13,7 @@ ResponseSurface([0.483333, -0.238636, 1.01894], :y, [:x], 2, Monomial{Commutativ
 """
 mutable struct GaussianProcessRegressor <: UQModel
     gp::GPBase
-    inputs::Union{Vector{<:UQInput}, Vector{Symbol}}
+    input::Union{Vector{<:UQInput}, Vector{Symbol}}
     output::Symbol
     input_normalizer::Union{ZScoreTransform, Nothing}
     output_normalizer::Union{ZScoreTransform, Nothing}
@@ -46,7 +46,7 @@ end
 
 struct Optimizer
     # maybe give one default and allow JuMP structs
-    method::Union{Optim.LBFGS, Optim.ConjugateGradient} # not sure how or even if to support multiple solvers
+    method::Union{Optim.LBFGS, Optim.ConjugateGradient} # not sure how or even if to support multiple solvers (Matlab uses QuasiNewton default)
     optim_options::Dict # maybe there is a better option than using dicts for this
     hyperparams::Dict
     bounds::Dict
@@ -96,75 +96,108 @@ function gaussianprocess(
     return gp, df
 end
 
-function polynomialchaos(
-    inputs::Vector{<:UQInput},
+function gaussianprocess(
+    input::Vector{<:UQInput},
     model::Vector{<:UQModel},
-    Ψ::PolynomialChaosBasis,
     output::Symbol,
-    _::GaussQuadrature,
+    ed::ExperimentalDesign,
+    kernel::Kernel,
+    mean::GaussianProcesses.Mean=MeanZero(),
+    log_noise::Real=-2.0,
+    optimizer::Union{Optimizer, Nothing}=Optimizer(),
+    normalize_input::Bool=false,
+    normalize_output::Bool=false
 )
-    random_inputs = filter(i -> isa(i, RandomUQInput), inputs)
-    deterministic_inputs = filter(i -> isa(i, DeterministicUQInput), inputs)
-    random_names = names(random_inputs)
-
-    nodes = mapreduce(
-        n -> [n...]', vcat, Iterators.product(quadrature_nodes.(Ψ.p + 1, Ψ.bases)...)
-    )
-    weights = map(prod, Iterators.product(quadrature_weights.(Ψ.p + 1, Ψ.bases)...))
-
-    samples = DataFrame(map_from_bases(Ψ, nodes), random_names)
-    to_physical_space!(random_inputs, samples)
-
-    if !isempty(deterministic_inputs)
-        samples = hcat(samples, sample(deterministic_inputs, size(nodes, 1)))
-    end
-
+    samples = sample(input, ed.sim)
     evaluate!(model, samples)
 
-    y = mapreduce(
-        (x, w, f) -> f * w * evaluate(Ψ, collect(x)),
-        +,
-        eachrow(nodes),
-        weights,
-        samples[:, output],
-    )
+    random_input = filter(i -> isa(i, RandomUQInput), input)
+    random_names = names(random_input)
 
-    return PolynomialChaosExpansion(y, Ψ, output, random_inputs), samples
+    to_standard_normal_space!(random_input, samples) # not sure if this is save to do in every case
+    x = copy(Matrix(samples[:, random_names])')
+    y = df[:, output]
+    _, output_normalizer, log_noise = normalize!(x, y, normalize_input, normalize_output, log_noise) # do not need input normalizer here
+    
+    gp = GP(x, y, mean, kernel, log_noise)
+    if !isnothing(optimizer)
+        optimize!(gp; 
+            method=optimizer.method, 
+            optimizer.hyperparams...,
+            optimizer.bounds...,
+            optimizer.optim_options...
+        )
+    end
+
+    gp = GaussianProcessRegressor(
+        gp, input, output, 
+        _, output_normalizer
+        )
+    to_physical_space!(random_input, samples)
+
+    return gp, samples
 end
 
-function polynomialchaos(
-    inputs::UQInput,
+function gaussianprocess(
+    input::UQInput,
     model::Vector{<:UQModel},
-    Ψ::PolynomialChaosBasis,
     output::Symbol,
-    gq::GaussQuadrature,
+    ed::ExperimentalDesign,
+    kernel::Kernel,
+    mean::GaussianProcesses.Mean=MeanZero(),
+    log_noise::Real=-2.0,
+    optimizer::Union{Optimizer, Nothing}=Optimizer(),
+    normalize_input::Bool=false,
+    normalize_output::Bool=false
 )
-    return polynomialchaos([inputs], model, Ψ, output, gq)
+    return gaussianprocess(
+        [input], model, output, 
+        ed, kernel, mean, log_noise, 
+        optimizer, normalize_input, normalize_output
+    )
 end
 
-function polynomialchaos(
-    inputs::Vector{<:UQInput},
+function gaussianprocess(
+    input::Vector{<:UQInput},
     model::UQModel,
-    Ψ::PolynomialChaosBasis,
     output::Symbol,
-    gq::GaussQuadrature,
+    ed::ExperimentalDesign,
+    kernel::Kernel,
+    mean::GaussianProcesses.Mean=MeanZero(),
+    log_noise::Real=-2.0,
+    optimizer::Union{Optimizer, Nothing}=Optimizer(),
+    normalize_input::Bool=false,
+    normalize_output::Bool=false
 )
-    return polynomialchaos(inputs, [model], Ψ, output, gq)
+    return gaussianprocess(
+        input, [model], output, 
+        ed, kernel, mean, log_noise, 
+        optimizer, normalize_input, normalize_output
+    )
 end
 
-function polynomialchaos(
-    inputs::UQInput,
+function gaussianprocess(
+    input::UQInput,
     model::UQModel,
-    Ψ::PolynomialChaosBasis,
     output::Symbol,
-    gq::GaussQuadrature,
+    ed::ExperimentalDesign,
+    kernel::Kernel,
+    mean::GaussianProcesses.Mean=MeanZero(),
+    log_noise::Real=-2.0,
+    optimizer::Union{Optimizer, Nothing}=Optimizer(),
+    normalize_input::Bool=false,
+    normalize_output::Bool=false
 )
-    return polynomialchaos([inputs], [model], Ψ, output, gq)
+    return gaussianprocess(
+        [input], [model], output, 
+        ed, kernel, mean, log_noise, 
+        optimizer, normalize_input, normalize_output
+    )
 end
 
 # what should this return?
-function evaluate!(gpr::GaussianProcessRegressor, df::DataFrame) # this now gives mean and variance at inputs
-    data = Matrix(df[:, names(gpr.inputs)])'
+function evaluate!(gpr::GaussianProcessRegressor, df::DataFrame) # this now gives mean and variance at input
+    data = Matrix(df[:, names(gpr.input)])'
     if !isnothing(gpr.input_normalizer)
         μ, Σ = predict_y(gpr.gp, StatsBase.transform!(grp.input_normalizer, data))
     else
@@ -185,8 +218,8 @@ function sample(pce::PolynomialChaosExpansion, n::Integer)
     samps = hcat(sample.(n, pce.Ψ.bases)...)
     out = map(row -> dot(pce.y, evaluate(pce.Ψ, collect(row))), eachrow(samps))
 
-    samps = DataFrame(map_from_bases(pce.Ψ, samps), names(pce.inputs))
-    to_physical_space!(pce.inputs, samps)
+    samps = DataFrame(map_from_bases(pce.Ψ, samps), names(pce.input))
+    to_physical_space!(pce.input, samps)
 
     samps[!, pce.output] = out
     return samps
