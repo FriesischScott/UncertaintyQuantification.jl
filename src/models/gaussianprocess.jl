@@ -105,7 +105,6 @@ function gaussianprocess(
     mean::GaussianProcesses.Mean=MeanZero(),
     log_noise::Real=-2.0,
     optimizer::Union{Optimizer, Nothing}=Optimizer(),
-    normalize_input::Bool=false,
     normalize_output::Bool=false
 )
     samples = sample(input, ed.sim)
@@ -117,7 +116,7 @@ function gaussianprocess(
     to_standard_normal_space!(random_input, samples) # not sure if this is save to do in every case
     x = copy(Matrix(samples[:, random_names])')
     y = df[:, output]
-    _, output_normalizer, log_noise = normalize!(x, y, normalize_input, normalize_output, log_noise) # do not need input normalizer here
+    _, output_normalizer, log_noise = normalize!(x, y, false, normalize_output, log_noise) # do not need input normalizer here
     
     gp = GP(x, y, mean, kernel, log_noise)
     if !isnothing(optimizer)
@@ -147,13 +146,12 @@ function gaussianprocess(
     mean::GaussianProcesses.Mean=MeanZero(),
     log_noise::Real=-2.0,
     optimizer::Union{Optimizer, Nothing}=Optimizer(),
-    normalize_input::Bool=false,
     normalize_output::Bool=false
 )
     return gaussianprocess(
         [input], model, output, 
         ed, kernel, mean, log_noise, 
-        optimizer, normalize_input, normalize_output
+        optimizer, normalize_output
     )
 end
 
@@ -166,13 +164,12 @@ function gaussianprocess(
     mean::GaussianProcesses.Mean=MeanZero(),
     log_noise::Real=-2.0,
     optimizer::Union{Optimizer, Nothing}=Optimizer(),
-    normalize_input::Bool=false,
     normalize_output::Bool=false
 )
     return gaussianprocess(
         input, [model], output, 
         ed, kernel, mean, log_noise, 
-        optimizer, normalize_input, normalize_output
+        optimizer, normalize_output
     )
 end
 
@@ -185,13 +182,12 @@ function gaussianprocess(
     mean::GaussianProcesses.Mean=MeanZero(),
     log_noise::Real=-2.0,
     optimizer::Union{Optimizer, Nothing}=Optimizer(),
-    normalize_input::Bool=false,
     normalize_output::Bool=false
 )
     return gaussianprocess(
         [input], [model], output, 
         ed, kernel, mean, log_noise, 
-        optimizer, normalize_input, normalize_output
+        optimizer, normalize_output
     )
 end
 
