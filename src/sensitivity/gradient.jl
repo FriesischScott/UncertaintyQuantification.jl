@@ -53,6 +53,55 @@ function gradient_in_standard_normal_space(
     return (; zip(random_names, g)...)
 end
 
+function gradient_in_metric_space(
+    models::Vector{<:UQModel},
+    inputs::Vector{<:PreciseUQInput},
+    reference::DataFrame,
+    output::Symbol,
+    metric::Function;
+    fdm::FiniteDifferencesMethod=CentralFiniteDifferences(3),
+)
+    samples = copy(reference)
+
+    random_names = names(filter(i -> isa(i, RandomUQInput), inputs))
+    to_standard_normal_space!(inputs, samples)
+
+
+
+    function f(x)
+        x_transformed = metric_transformation(x, metric, LinearAlgebra.norm)
+        samples[:, random_names] .= x_transformed
+        to_physical_space!(inputs, samples)
+
+        evaluate!(models, samples)
+
+        return samples[:, output][1]
+    end
+
+    reference = Matrix{Float64}(samples[:, random_names])
+
+    reference_metric = metric_transformation(reference, LinearAlgebra.norm, metric)
+
+    g = _grad(f, fdm, reference_metric)
+
+    return (; zip(random_names, g)...)    
+
+end
+
+function metric_transformation(samples, norm1, norm2)
+    if iszero(samples) return samples end
+
+    Ns = size(samples, 1)
+    norm_p1 = [norm1(samples[i,:])  for i in 1:Ns] 
+    norm_p1 = reduce(vcat, norm_p1)
+
+    samples_normlised = samples ./ norm_p1
+
+    norm_p2 = [norm2(samples[i,:])  for i in 1:Ns] 
+
+    return samples_normlised .* norm_p2
+end
+
 function _grad(f::Function, fdm::CentralFiniteDifferences, x)
     return grad(central_fdm(fdm.order, fdm.derivative), f, x)[1]
 end
