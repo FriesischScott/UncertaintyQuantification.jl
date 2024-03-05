@@ -210,14 +210,15 @@ function evaluate!(gpr::GaussianProcessRegressor, df::DataFrame) # this now give
     return nothing
 end
 
-function sample(pce::PolynomialChaosExpansion, n::Integer)
-    samps = hcat(sample.(n, pce.Ψ.bases)...)
-    out = map(row -> dot(pce.y, evaluate(pce.Ψ, collect(row))), eachrow(samps))
+# Not sure how to design a similar function for gps, or if this is even desirable
+# function sample(pce::PolynomialChaosExpansion, n::Integer)
+#     samps = hcat(sample.(n, pce.Ψ.bases)...)
+#     out = map(row -> dot(pce.y, evaluate(pce.Ψ, collect(row))), eachrow(samps))
 
-    samps = DataFrame(map_from_bases(pce.Ψ, samps), names(pce.input))
-    to_physical_space!(pce.input, samps)
+#     samps = DataFrame(map_from_bases(pce.Ψ, samps), names(pce.input))
+#     to_physical_space!(pce.input, samps)
 
-    samps[!, pce.output] = out
-    return samps
-end
+#     samps[!, pce.output] = out
+#     return samps
+# end
 
