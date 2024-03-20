@@ -34,6 +34,8 @@ slurm = SlurmInterface(;
     throttle=50,
     time="00:05:00", # Maximum time per simulation
     extras=["module load openmc", "source ~/.virtualenvs/openmc/bin/activate"],
+    # additional options for the slurm script
+    # slurm_extras=["#SBATCH --cpus-per-task=1", "#SBATCH --mem=1G", "#SBATCH --qos=standard"],
 )
 
 ext = ExternalModel(

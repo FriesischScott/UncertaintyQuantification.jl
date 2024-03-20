@@ -37,6 +37,7 @@ Base.@kwdef struct SlurmInterface <: AbstractHPCScheduler
     mempercpu::String = ""
     extras::Vector{String} = String[]
     time::String = ""
+    slurm_extras::Vector{String} = String[]
 end
 
 function generate_HPC_job(SI::SlurmInterface, m, n, path)
@@ -45,6 +46,7 @@ function generate_HPC_job(SI::SlurmInterface, m, n, path)
     args = m.solver.args
 
     extras = SI.extras
+    slurm_extras = SI.slurm_extras
 
     run_command = !isempty(args) ? "$binary $args $source" : "$binary $source"
     array_command = if iszero(SI.throttle)
@@ -76,6 +78,13 @@ function generate_HPC_job(SI::SlurmInterface, m, n, path)
         if !isempty(SI.time)
             write(file, "#SBATCH --time=$(SI.time)\n")
         end
+        
+        if !isempty(SI.slurm_extras)
+            for sl_extra in slurm_extras
+                write(file, "$sl_extra\n")
+            end
+        end
+
         write(file, array_command)
         write(file, "\n\n\n")
         write(file, "#### EXTRAS ####\n")
