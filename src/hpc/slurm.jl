@@ -81,7 +81,7 @@ function generate_HPC_job(SI::SlurmInterface, m, n, path)
         
         if !isempty(SI.slurm_extras)
             for sl_extra in slurm_extras
-                write(file, "$sl_extra\n")
+                write(file, "$(sl_extra)\n")
             end
         end
 
