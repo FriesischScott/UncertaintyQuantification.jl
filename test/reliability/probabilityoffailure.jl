@@ -128,5 +128,10 @@
             @test interval_pf.lb ≈ 0.0078 atol = 0.002
             @test interval_pf.ub ≈ 0.261 atol = 0.04
         end
+        @testset "pf equals to 0 or 1" begin
+            performance = df -> max_displacement .+ df.w
+            interval_pf = probability_of_failure(models, performance, inputs, 10)
+            @test interval_pf == 0
+        end
     end
 end

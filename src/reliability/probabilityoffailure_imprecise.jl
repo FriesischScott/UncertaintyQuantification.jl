@@ -25,7 +25,11 @@ function probability_of_failure(
     _, info_max = prima(x -> -montecarlo_pf(x), x0; xl=lb, xu=ub, rhobeg=rhobeg)
     pf_ub = -info_max.fx
 
-    return Interval(pf_lb, pf_ub, :pf)
+    if pf_lb == pf_ub
+        return pf_ub
+    else
+        return Interval(pf_lb, pf_ub, :pf)
+    end
 end
 
 ## 2nd Method -  External: Sampling ; Internal: Global Opt
@@ -78,7 +82,11 @@ function probability_of_failure(
     both_bound_failures = getindex.(g_intervals[left_bound_failures], 2) .< 0
     pf_lb = sum(both_bound_failures) / n
 
-    return Interval(pf_lb, pf_ub, :pf)
+    if pf_lb == pf_ub
+        return pf_ub
+    else
+        return Interval(pf_lb, pf_ub, :pf)
+    end
 end
 
 function bounds(inputs::AbstractVector{<:UQInput})
