@@ -12,6 +12,7 @@ using Formatting
 using KernelDensity
 using LinearAlgebra
 using Mustache
+using PRIMA
 using Primes
 using QuasiMonteCarlo
 using Random
@@ -21,21 +22,23 @@ using StatsBase
 @reexport using Distributions
 
 import Base: rand, names, copy, run, length
-import Distributions: cdf, quantile, pdf, logpdf, minimum, maximum, insupport
+import Distributions: cdf, quantile, pdf, logpdf, minimum, maximum, insupport, mean, var
 import Statistics: mean, var
-import Distributions: logpdf, pdf, cdf, quantile, minimum, maximum, insupport, mean, var
 
 abstract type UQType end
 
 abstract type UQInput <: UQType end
+abstract type PreciseUQInput <: UQInput end
+abstract type ImpreciseUQInput <: UQInput end
 abstract type UQModel <: UQType end
 
-abstract type DeterministicUQInput <: UQInput end
-abstract type RandomUQInput <: UQInput end
+abstract type DeterministicUQInput <: PreciseUQInput end
+abstract type RandomUQInput <: PreciseUQInput end
 
 abstract type Copula <: UQType end
 
-abstract type AbstractMonteCarlo end
+abstract type AbstractSimulation end
+abstract type AbstractMonteCarlo <: AbstractSimulation end
 abstract type AbstractQuasiMonteCarlo <: AbstractMonteCarlo end
 
 abstract type AbstractDesignOfExperiments end
@@ -46,9 +49,12 @@ abstract type AbstractHPCScheduler end
 export AbstractDesignOfExperiments
 export AbstractMonteCarlo
 export AbstractQuasiMonteCarlo
+export AbstractSimulation
 export Copula
 export DeterministicUQInput
 export RandomUQInput
+export PreciseUQInput
+export ImpreciseUQInput
 export UQInput
 export UQModel
 export UQType
@@ -72,6 +78,7 @@ export GaussQuadrature
 export HaltonSampling
 export HermiteBasis
 export ImportanceSampling
+export Interval
 export JointDistribution
 export LatinHypercubeSampling
 export LatticeRuleSampling
@@ -86,6 +93,7 @@ export PlackettBurman
 export PolynomialChaosBasis
 export PolynomialChaosExpansion
 export PolyharmonicSpline
+export ProbabilityBox
 export RandomVariable
 export ResponseSurface
 export SobolSampling
@@ -123,6 +131,10 @@ export to_standard_normal_space!
 include("inputs/empiricaldistribution.jl")
 include("inputs/inputs.jl")
 include("inputs/parameter.jl")
+
+include("inputs/imprecise/interval.jl")
+include("inputs/imprecise/p-box.jl")
+
 include("inputs/randomvariables/randomvariable.jl")
 include("inputs/randomvariables/distributionparameters.jl")
 include("inputs/copulas/gaussian.jl")
@@ -152,6 +164,7 @@ include("simulations/subset.jl")
 include("reliability/form.jl")
 include("simulations/importancesampling.jl")
 include("reliability/probabilityoffailure.jl")
+include("reliability/probabilityoffailure_imprecise.jl")
 include("sensitivity/sobolindices.jl")
 
 include("util/wrap.jl")

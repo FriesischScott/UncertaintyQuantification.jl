@@ -1,7 +1,7 @@
 function probability_of_failure(
     models::Union{Vector{<:UQModel},UQModel},
     performance::Function,
-    inputs::Union{Vector{<:UQInput},UQInput},
+    inputs::Union{Vector{<:PreciseUQInput},PreciseUQInput},
     sim::AbstractMonteCarlo,
 )
     samples = sample(inputs, sim)
@@ -18,7 +18,7 @@ end
 function probability_of_failure(
     models::Union{Vector{<:UQModel},UQModel},
     performance::Function,
-    inputs::Union{Vector{<:UQInput},UQInput},
+    inputs::Union{Vector{<:PreciseUQInput},PreciseUQInput},
     sim::LineSampling,
 )
     if isempty(sim.direction)
@@ -66,7 +66,7 @@ end
 function probability_of_failure(
     models::Union{Vector{<:UQModel},UQModel},
     performance::Function,
-    inputs::Union{Vector{<:UQInput},UQInput},
+    inputs::Union{Vector{<:PreciseUQInput},PreciseUQInput},
     sim::ImportanceSampling,
 )
     samples, weights = sample(inputs, sim)
@@ -83,7 +83,7 @@ end
 
 # Allow to calculate the pf using only a performance function but no model
 function probability_of_failure(
-    performance::Function, inputs::Union{Vector{<:UQInput},UQInput}, sim::Any
+    performance::Function, inputs::Union{Vector{<:PreciseUQInput},PreciseUQInput}, sim::Any
 )
     return probability_of_failure(UQModel[], performance, wrap(inputs), sim)
 end

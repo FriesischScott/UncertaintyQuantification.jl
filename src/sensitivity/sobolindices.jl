@@ -5,7 +5,7 @@ const _sobol_table_header = [
 
 function sobolindices(
     models::Vector{<:UQModel},
-    inputs::Vector{<:UQInput},
+    inputs::Vector{<:PreciseUQInput},
     outputs::Vector{Symbol},
     sim::AbstractMonteCarlo,
 )
@@ -78,7 +78,7 @@ end
 
 function sobolindices(
     models::Vector{<:UQModel},
-    inputs::UQInput,
+    inputs::PreciseUQInput,
     outputs::Vector{Symbol},
     sim::AbstractMonteCarlo,
 )
@@ -87,7 +87,7 @@ end
 
 function sobolindices(
     models::Vector{<:UQModel},
-    inputs::Vector{<:UQInput},
+    inputs::Vector{<:PreciseUQInput},
     outputs::Symbol,
     sim::AbstractMonteCarlo,
 )
@@ -95,19 +95,25 @@ function sobolindices(
 end
 
 function sobolindices(
-    models::UQModel, inputs::Vector{<:UQInput}, outputs::Symbol, sim::AbstractMonteCarlo
+    models::UQModel,
+    inputs::Vector{<:PreciseUQInput},
+    outputs::Symbol,
+    sim::AbstractMonteCarlo,
 )
     return sobolindices([models], inputs, [outputs], sim)
 end
 
 function sobolindices(
-    models::Vector{<:UQModel}, inputs::UQInput, outputs::Symbol, sim::AbstractMonteCarlo
+    models::Vector{<:UQModel},
+    inputs::PreciseUQInput,
+    outputs::Symbol,
+    sim::AbstractMonteCarlo,
 )
     return sobolindices(models, [inputs], [outputs], sim)
 end
 
 function sobolindices(
-    models::UQModel, inputs::UQInput, outputs::Symbol, sim::AbstractMonteCarlo
+    models::UQModel, inputs::PreciseUQInput, outputs::Symbol, sim::AbstractMonteCarlo
 )
     return sobolindices([models], [inputs], [outputs], sim)
 end

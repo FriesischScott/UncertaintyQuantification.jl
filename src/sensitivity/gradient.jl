@@ -1,6 +1,6 @@
 function gradient(
     models::Vector{<:UQModel},
-    inputs::Vector{<:UQInput},
+    inputs::Vector{<:PreciseUQInput},
     x::DataFrame,
     output::Symbol;
     fdm::FiniteDifferencesMethod=CentralFiniteDifferences(3),
@@ -27,7 +27,7 @@ end
 
 function gradient_in_standard_normal_space(
     models::Vector{<:UQModel},
-    inputs::Vector{<:UQInput},
+    inputs::Vector{<:PreciseUQInput},
     reference::DataFrame,
     output::Symbol;
     fdm::FiniteDifferencesMethod=CentralFiniteDifferences(3),

@@ -1,4 +1,4 @@
-mutable struct LineSampling
+mutable struct LineSampling <: AbstractSimulation
     lines::Integer
     points::Vector{<:Real}
     direction::NamedTuple
@@ -12,7 +12,7 @@ mutable struct LineSampling
     end
 end
 
-function sample(inputs::Vector{<:UQInput}, sim::LineSampling)
+function sample(inputs::Vector{<:PreciseUQInput}, sim::LineSampling)
     random_inputs = filter(i -> isa(i, RandomUQInput), inputs)
     deterministic_inputs = filter(i -> isa(i, DeterministicUQInput), inputs)
 
