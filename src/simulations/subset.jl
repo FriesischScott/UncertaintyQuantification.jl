@@ -276,8 +276,8 @@ function nextlevelsamples(
 
         α_accept_per_dim = α .>= rand(size(α)...)
 
-        for d = 1:length(rvs)
-            chainsamples[α_accept_per_dim[:, d], rvs[d]] = ξ[α_accept_per_dim[:, d], d]
+        for (d, col) in enumerate(eachcol(α_accept_per_dim))
+            chainsamples[col, rvs[d]] = ξ[col, d]
         end
 
         α_MCMC[i] = mean(α_accept_per_dim)
