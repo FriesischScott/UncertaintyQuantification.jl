@@ -272,7 +272,7 @@ function nextlevelsamples(
         θ = Matrix{Float64}(chainsamples[:, rvs])
 
         ξ = θ + rand(sim.proposal, size(θ)...)
-        α = pdf(Φ, ξ) ./ pdf(Φ, θ)
+        α = pdf.(Φ, ξ) ./ pdf.(Φ, θ)
 
         α_accept_per_dim = α .>= rand(size(α)...)
 
