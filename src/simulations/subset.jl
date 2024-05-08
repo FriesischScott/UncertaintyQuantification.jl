@@ -257,7 +257,7 @@ function nextlevelsamples(
     number_of_chains = length(performance)
     samples_per_chain = Int64(floor(sim.n / number_of_chains))
 
-    Φ = Normal(0, 1)
+    Φ = Normal()
 
     α_MCMC = zeros(samples_per_chain)
     α_ss = zeros(samples_per_chain)
