@@ -20,7 +20,7 @@ jobs:
         os:
           - 'ubuntu-latest'
           - 'windows-latest'
-          - 'macOS-latest'
+          - 'macos-13'
     steps:
       - uses: actions/checkout@v3
       - uses: julia-actions/setup-julia@v2
