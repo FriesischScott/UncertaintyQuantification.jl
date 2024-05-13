@@ -19,9 +19,9 @@ mutable struct GaussianProcessRegressor <: UQModel
     output_normalizer::Union{ZScoreTransform, Nothing}
 end
 
-function normalize!(
-    input::Union{Vector{Real}, Matrix{<:Real}},
-    output::Vector{Real},
+function normalize!( # maybe different name as this is only supposed to be used in the GP context
+    input::Union{Vector{<:Real}, AbstractMatrix{<:Real}},
+    output::Vector{<:Real},
     normalize_input::Bool,
     normalize_output::Bool,
     log_noise::Real
@@ -44,11 +44,12 @@ function normalize!(
     return input_normalizer, output_normalizer, log_noise
 end
 
-struct Optimizer
+struct Optimizer # there is probably a better way to design this
     optimizer
     opt_kwargs::Dict
     hyperparams::Dict
     bounds::Dict
+    # should I add number of optimizer runs?
 end
 
 Optimizer() = Optimizer(
@@ -65,6 +66,7 @@ function gaussianprocess(
     kernel::Kernel,
     mean::GaussianProcesses.Mean=MeanZero(),
     log_noise::Real=-2.0,
+    optimizer::Union{Optimizer, Nothing}=Optimizer(), # there is probably a better way to design this
     normalize_input::Bool=false,
     normalize_output::Bool=false
 )
@@ -73,29 +75,38 @@ function gaussianprocess(
 
     input_normalizer, output_normalizer, log_noise = normalize!(x, y, normalize_input, normalize_output, log_noise)
     
-    gp = GP(X, y, mean, kernel, log_noise)
+    gp = GP(x, y, mean, kernel, log_noise)
+
+    if !isnothing(optimizer)
+        optimize!(gp; 
+        method=optimizer.optimizer,
+        optimizer.hyperparams...,
+        optimizer.bounds...,
+        optimizer.opt_kwargs... 
+        )
+    end
 
     gp = GaussianProcessRegressor(
-        gp, inputs, output, 
+        gp, input, output, 
         input_normalizer, output_normalizer
         )
 
-    return gp, df
+    return gp, df # this method does not really need to return df
 end
 
 # Wrapper for optimize! method from GaussianProcesses.jl
-function optimize_hyperparams!(gpr::GaussianProcessRegressor, args...; method = LBFGS(), 
-    domean::Bool = true, kern::Bool = true, noise::Bool = true, 
-    lik::Bool = true, meanbounds = nothing, kernbounds = nothing,
-    noisebounds = nothing, likbounds = nothing, kwargs...
-)
+# function optimize_hyperparams!(gpr::GaussianProcessRegressor, args...; method = LBFGS(), 
+#     domean::Bool = true, kern::Bool = true, noise::Bool = true, 
+#     lik::Bool = true, meanbounds = nothing, kernbounds = nothing,
+#     noisebounds = nothing, likbounds = nothing, kwargs...
+# )
 
-    optimize!(gpr.gp, args...; method = method, 
-    domean=domean, kern=kern, noise=noise, lik=lik,
-    meanbounds=meanbounds, kernbounds=kernbounds,
-    noisebounds=noisebounds, likbounds=likbounds, 
-    kwargs...)
-end
+#     optimize!(gpr.gp, args...; method = method, 
+#     domean=domean, kern=kern, noise=noise, lik=lik,
+#     meanbounds=meanbounds, kernbounds=kernbounds,
+#     noisebounds=noisebounds, likbounds=likbounds, 
+#     kwargs...)
+# end
 
 
 
