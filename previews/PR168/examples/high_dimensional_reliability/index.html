@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>High dimensional example · UncertaintyQuantification.jl</title><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.045/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.24/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">UncertaintyQuantification.jl</a></span></div><form class="docs-search" action="../../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><span class="tocitem">Manual</span><ul><li><a class="tocitem" href="../../manual/gettingstarted/">Getting Started</a></li><li><a class="tocitem" href="../../manual/reliability/">Reliability Analysis</a></li><li><a class="tocitem" href="../../manual/metamodels/">Metamodelling</a></li><li><a class="tocitem" href="../../manual/hpc/">High Performance Computing</a></li></ul></li><li><span class="tocitem">Examples</span><ul><li class="is-active"><a class="tocitem" href>High dimensional example</a><ul class="internal"><li><a class="tocitem" href="#Subset-simulation"><span>Subset simulation</span></a></li><li><a class="tocitem" href="#Example-function"><span>Example function</span></a></li></ul></li><li><a class="tocitem" href="../metamodels/">Metamodels</a></li><li><a class="tocitem" href="../hpc/">High Performance Computing</a></li></ul></li><li><span class="tocitem">API</span><ul><li><a class="tocitem" href="../../api/inputs/">Inputs</a></li><li><a class="tocitem" href="../../api/parameter/">Parameter</a></li><li><a class="tocitem" href="../../api/randomvariable/">RandomVariable</a></li><li><a class="tocitem" href="../../api/responsesurface/">ResponseSurface</a></li><li><a class="tocitem" href="../../api/polyharmonicspline/">PolyharmonicSpline</a></li><li><a class="tocitem" href="../../api/simulations/">Simulations</a></li><li><a class="tocitem" href="../../api/slurm/">SlurmInterface</a></li></ul></li><li><a class="tocitem" href="../../references/">References</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Examples</a></li><li class="is-active"><a href>High dimensional example</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>High dimensional example</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/FriesischScott/UncertaintyQuantification.jl/blob/master/docs/src/examples/high_dimensional_reliability.md" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="High-dimensional-Subset-simulation"><a class="docs-heading-anchor" href="#High-dimensional-Subset-simulation">High dimensional Subset simulation</a><a id="High-dimensional-Subset-simulation-1"></a><a class="docs-heading-anchor-permalink" href="#High-dimensional-Subset-simulation" title="Permalink"></a></h1><h2 id="Subset-simulation"><a class="docs-heading-anchor" href="#Subset-simulation">Subset simulation</a><a id="Subset-simulation-1"></a><a class="docs-heading-anchor-permalink" href="#Subset-simulation" title="Permalink"></a></h2><p>The implemented subset simulation algorithms <code>SubSetSimulation</code>(using component-wise MCMC), <code>SubSetInfinity</code> (conditional sampling MCMC) <code>SubSetInfinityAdaptive</code> (adaptive conditional sampling MCMC), work efficiently in high dimensions. This tutorial shows how these algorithms scale in dimension <code>Num_dim</code> and target probability of failure <code>pf_target</code>.</p><h2 id="Example-function"><a class="docs-heading-anchor" href="#Example-function">Example function</a><a id="Example-function-1"></a><a class="docs-heading-anchor-permalink" href="#Example-function" title="Permalink"></a></h2><p>In this example, the test model will be sum of independent standard normal distributions</p><p class="math-container">\[f_N(X) = \sum^N_i X_i\]</p><p class="math-container">\[\newline\]</p><p>where <span>$X_i \sim \Phi(0, 1)$</span> are standard normal random variables. We will define a linear limitstate: <span>$\newline$</span></p><p class="math-container">\[g_N(X) = C_N - f_N(X)\]</p><p>where <span>$C_N$</span> will be defined such that the failure probability <span>$\mathbb{P}(g(X) \leq 0)$</span> matches a pre-defined value <code>pf_target</code>. We can find <span>$C_N$</span> analytically, depending on the <code>Num_dim</code> and <code>pf_target</code>:</p><p class="math-container">\[C_N = F_{\Phi_{\sqrt{N}}}^{-1}(1 - p_{\text{target}})\]</p><p>where <span>$F_{\Phi_{\sqrt{N}}}^{-1}$</span> is the quantile function of a Gaussian distribution, with zero mean and variance <code>sqrt(Num_dim)</code>.</p><p>Since the dimension and failure probability are two parameters of this numerical experiement, we need a compact way to generate an aribitrary number of distributions. This can be done using Julia&#39;s metaprogramming.</p><pre><code class="language-julia hljs">using UncertaintyQuantification
+
+Num_dim = 2000
+
+for j = 1:Num_dim
+    eval(:($(Symbol(:X,j)) = RandomVariable(Normal(0, 1), (Symbol(:X,$j))) ))
+end
+
+inputs = [eval(:($(Symbol(:X,i)))) for i = 1:Num_dim]</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">2000-element Vector{RandomVariable}:
+ RandomVariable(Normal{Float64}(μ=0.0, σ=1.0), :X1)
+ RandomVariable(Normal{Float64}(μ=0.0, σ=1.0), :X2)
+ RandomVariable(Normal{Float64}(μ=0.0, σ=1.0), :X3)
+ RandomVariable(Normal{Float64}(μ=0.0, σ=1.0), :X4)
+ RandomVariable(Normal{Float64}(μ=0.0, σ=1.0), :X5)
+ RandomVariable(Normal{Float64}(μ=0.0, σ=1.0), :X6)
+ RandomVariable(Normal{Float64}(μ=0.0, σ=1.0), :X7)
+ RandomVariable(Normal{Float64}(μ=0.0, σ=1.0), :X8)
+ RandomVariable(Normal{Float64}(μ=0.0, σ=1.0), :X9)
+ RandomVariable(Normal{Float64}(μ=0.0, σ=1.0), :X10)
+ ⋮
+ RandomVariable(Normal{Float64}(μ=0.0, σ=1.0), :X1992)
+ RandomVariable(Normal{Float64}(μ=0.0, σ=1.0), :X1993)
+ RandomVariable(Normal{Float64}(μ=0.0, σ=1.0), :X1994)
+ RandomVariable(Normal{Float64}(μ=0.0, σ=1.0), :X1995)
+ RandomVariable(Normal{Float64}(μ=0.0, σ=1.0), :X1996)
+ RandomVariable(Normal{Float64}(μ=0.0, σ=1.0), :X1997)
+ RandomVariable(Normal{Float64}(μ=0.0, σ=1.0), :X1998)
+ RandomVariable(Normal{Float64}(μ=0.0, σ=1.0), :X1999)
+ RandomVariable(Normal{Float64}(μ=0.0, σ=1.0), :X2000)</code></pre><p>A model of arbitrary dimensions can be produced using DataFrames, summing the rows corresponding to samples of random variables.</p><pre><code class="language-julia hljs">f = Model(
+    df -&gt; sum.(eachrow(df[:, names(inputs)])),
+    :f,
+);</code></pre><p>Define the <code>pf_traget</code>, C, and the limitstate function</p><pre><code class="language-julia hljs">pf_target = 1e-9
+
+fail_limit = quantile(Normal(0, sqrt(Num_dim)), 1 - pf_target)
+
+function g(df)
+    return fail_limit .- reduce(vcat, df.f)
+end;</code></pre><p>Define three simulation methods, and simulate:</p><pre><code class="language-julia hljs">simulation_method_1 = SubSetSimulation(2000, 0.1, 20, Uniform(-0.5, 0.5))
+simulation_method_2 = SubSetInfinity(2000, 0.1, 20, 0.5)
+simulation_method_3 = SubSetInfinityAdaptive(2000, 0.1, 20, 200)
+
+@time pf_1, std_1, samples_1 = probability_of_failure(f, g, inputs, simulation_method_1)
+@time pf_2, std_2, samples_2 = probability_of_failure(f, g, inputs, simulation_method_2)
+@time pf_3, std_3, samples_3 = probability_of_failure(f, g, inputs, simulation_method_3);
+
+println(&quot;True pf: $pf_target | SS: $pf_1 ± $(1.96 * std_1) | SS_inf: $pf_2 ± $(1.96 * std_2) | SS_inf_a: $pf_3 ± $(1.96 * std_3)&quot;)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi"> 15.787542 seconds (214.17 M allocations: 7.911 GiB, 7.60% gc time, 39.37% compilation time: &lt;1% of which was recompilation)
+  9.723146 seconds (190.89 M allocations: 6.362 GiB, 10.73% gc time, 11.74% compilation time)
+ 10.541163 seconds (211.36 M allocations: 7.408 GiB, 8.11% gc time, 9.62% compilation time: 1% of which was recompilation)
+True pf: 1.0e-9 | SS: 1.1004750000000008e-9 ± 7.651083410714525e-10 | SS_inf: 1.1498392507875006e-9 ± 8.162468087717416e-10 | SS_inf_a: 8.827194794512502e-10 ± 6.293171319958875e-10</code></pre><p>We note that although basic Monte Carlo simulation works independently of dimension, for a target failure probability of <span>$10^{-9}$</span>, even with a billion <span>$10^9$</span> samples can give <span>$p_{\text{f}}=0$</span>.</p><pre><code class="language- hljs">function run_sim(Num_dim, pf_target, N_runs, N_batches = 50) #hide
+
+    for j = 1:Num_dim                                                           #hide
+        eval(:($(Symbol(:X,j)) = RandomVariable(Normal(0, 1), (Symbol(:X,$j))) ))#hide
+    end#hide
+
+    inputs = [eval(:($(Symbol(:X,i)))) for i = 1:Num_dim]                       #hide
+
+    y = Model(                                                                  #hide
+        df -&gt; sum.(eachrow(df[:, names(inputs)])),#hide
+        :y,#hide
+    )#hide
+
+    fail_limit = quantile(Normal(0, sqrt(Num_dim)), 1 - pf_target)#hide
+
+    function limitstate(df)#hide
+        return fail_limit .- reduce(vcat, df.y)#hide
+    end#hide
+
+    simulation_method_1 = SubSetSimulation(N_runs, 0.1, 20, Uniform(-0.5, 0.5))#hide
+    simulation_method_2 = SubSetInfinity(N_runs, 0.1, 20, 0.5)#hide
+    simulation_method_3 = SubSetInfinityAdaptive(N_runs, 0.1, 20, Integer(floor(N_runs * 0.1)))#hide
+
+    pf_1 = zeros(N_batches)#hide
+    pf_2 = zeros(N_batches)#hide
+    pf_3 = zeros(N_batches)#hide
+
+    std_1 = zeros(N_batches)#hide
+    std_2 = zeros(N_batches)#hide
+    std_3 = zeros(N_batches)#hide
+
+    for i = 1:N_batches#hide
+        pf_1[i], std_1[i], _ = probability_of_failure(y, limitstate, inputs, simulation_method_1)#hide
+        pf_2[i], std_2[i], _ = probability_of_failure(y, limitstate, inputs, simulation_method_2)#hide
+        pf_3[i], std_3[i], _ = probability_of_failure(y, limitstate, inputs, simulation_method_3)#hide
+    end#hide
+
+    return pf_1, pf_2, pf_3, std_1, std_2, std_3#hide
+end;#hide
+
+using Plots#hide
+
+pfs = 10.0 .^collect(-1:-1:-13)#hide
+N_dimension = 200#hide
+N_samples = 2000#hide
+N_batchs = 1#hide
+
+pf_1 = zeros(length(pfs), N_batchs)#hide
+pf_2 = zeros(length(pfs), N_batchs)#hide
+pf_3 = zeros(length(pfs), N_batchs)#hide
+#hide
+for (i, pf) in enumerate(pfs)#hide
+    (pf_1[i,:], pf_2[i,:], pf_3[i,:], _, _, _) = run_sim(N_dimension, pf, N_samples, N_batchs)#hide
+end#hide
+#hide
+pf_1_mean = mean(pf_1, dims = 2)#hide
+pf_2_mean = mean(pf_2, dims = 2)#hide
+pf_3_mean = mean(pf_3, dims = 2)#hide
+#hide
+scaleit(x) = -log10.(x)#hide
+
+
+plot(scaleit(pfs), scaleit(pf_1_mean),  seriestype=:scatter, label=&quot;SubSet&quot;)#hide
+plot!(scaleit(pfs), scaleit(pf_2_mean), seriestype=:scatter, label=&quot;SubSetInfinity&quot;)#hide
+plot!(scaleit(pfs), scaleit(pf_3_mean), seriestype=:scatter, label=&quot;SubSetAdaptive&quot;, legend=:topleft, xlabel =&quot;-log10(pf) target&quot;,  ylabel =&quot;-log10(pf) simulated&quot;)#hide
+plot!(scaleit(pfs), scaleit(pfs),  minorgrid=true, label = false, lw = 2)#hide
+title!(&quot;Num_dims = $N_dimension, N_samples = $N_samples&quot;)#hide
+
+pf = 10^-4#hide
+N_dimension = 200#hide
+N_samples = Integer.(floor.(2 .^(range(1,stop=10,length=10))*10))#hide
+N_batchs = 20#hide
+
+pf_1_samples = zeros(length(N_samples), N_batchs)#hide
+pf_2_samples = zeros(length(N_samples), N_batchs)#hide
+pf_3_samples = zeros(length(N_samples), N_batchs)#hide
+
+for (i, N_s) in enumerate(N_samples)#hide
+    (pf_1_samples[i,:], pf_2_samples[i,:], pf_3_samples[i,:], _, _, _) = run_sim(N_dimension, pf, N_s, N_batchs)#hide
+end#hide
+
+pf_1_samples_mean = mean(pf_1_samples, dims = 2)#hide
+pf_2_samples_mean = mean(pf_2_samples, dims = 2)#hide
+pf_3_samples_mean = mean(pf_3_samples, dims = 2)#hide
+
+pf_1_samples_lo = [quantile(pf_1_samples[i, :], 0.025) for i = 1:size(pf_1_samples, 1)]#hide
+pf_1_samples_hi = [quantile(pf_1_samples[i, :], 0.975) for i = 1:size(pf_1_samples, 1)]#hide
+
+pf_2_samples_lo = [quantile(pf_2_samples[i, :], 0.025) for i = 1:size(pf_2_samples, 1)]#hide
+pf_2_samples_hi = [quantile(pf_2_samples[i, :], 0.975) for i = 1:size(pf_2_samples, 1)]#hide
+
+pf_3_samples_lo = [quantile(pf_3_samples[i, :], 0.025) for i = 1:size(pf_3_samples, 1)]#hide
+pf_3_samples_hi = [quantile(pf_3_samples[i, :], 0.975) for i = 1:size(pf_3_samples, 1)]#hide
+
+
+plot(N_samples, pf_1_samples_hi, fillrange = pf_1_samples_lo, label=&quot;SubSet&quot;, alpha = 0.2, color = theme_palette(:auto)[1])#hide
+plot!(N_samples, pf_2_samples_hi, fillrange = pf_2_samples_lo, label=&quot;SubSetInfinity&quot;, alpha = 0.2, color = theme_palette(:auto)[2])#hide
+plot!(N_samples, pf_3_samples_hi, fillrange = pf_3_samples_lo, label=&quot;SubSetAdaptive&quot;, alpha = 0.2, color = theme_palette(:auto)[3])#hide
+
+plot!(N_samples, pf_1_samples_mean, color = theme_palette(:auto)[1], label = false, lw = 2, seriestype=:scatter)#hide
+plot!(N_samples, pf_2_samples_mean, color = theme_palette(:auto)[2], label = false, lw = 2, seriestype=:scatter)#hide
+plot!(N_samples, pf_3_samples_mean, color = theme_palette(:auto)[3], label = false, lw = 2, seriestype=:scatter)#hide
+
+plot!(N_samples, fill(pf, length(N_samples)),  minorgrid=true, xscale=:log10, yscale=:log10, label=&quot;target pf&quot;, legend=:bottomright, xlabel =&quot;samples per level&quot;, ylabel=&quot;pf&quot;, lw = 2, color = theme_palette(:auto)[4])#hide
+title!(&quot;Num_dims = $N_dimension, targe pf = $pf&quot;)#hide
+
+
+pf = 10^-4#hide
+N_dimension = Integer.(floor.(2 .^(range(1,stop=10,length=10))*10))#hide
+N_samples = 2000#hide
+N_batchs = 1#hide
+
+pf_1_dims = zeros(length(N_dimension), N_batchs)#hide
+pf_2_dims = zeros(length(N_dimension), N_batchs)#hide
+pf_3_dims = zeros(length(N_dimension), N_batchs)#hide
+
+std_1_dims = zeros(length(N_dimension), N_batchs)#hide
+std_2_dims = zeros(length(N_dimension), N_batchs)#hide
+std_3_dims = zeros(length(N_dimension), N_batchs)#hide
+
+for (i, Ndim) in enumerate(N_dimension)#hide
+    (pf_1_dims[i,:], pf_2_dims[i,:], pf_3_dims[i,:], std_1_dims[i,:], std_2_dims[i,:], std_3_dims[i,:]) = run_sim(Ndim, pf, N_samples, N_batchs)#hide
+end#hide
+
+
+pf_1_dims_mean = mean(pf_1_dims, dims = 2)#hide
+pf_2_dims_mean = mean(pf_2_dims, dims = 2)#hide
+pf_3_dims_mean = mean(pf_3_dims, dims = 2)#hide
+
+std_1_dims_mean = mean(std_1_dims, dims = 2)#hide
+std_2_dims_mean = mean(std_2_dims, dims = 2)#hide
+std_3_dims_mean = mean(std_3_dims, dims = 2)#hide
+
+
+plot(N_dimension, pf_1_dims_mean - 1.96 * std_1_dims_mean, fillrange = pf_1_dims_mean + 1.96 * std_1_dims_mean, label=&quot;SubSet&quot;, alpha = 0.2, color = theme_palette(:auto)[1])#hide
+plot!(N_dimension, pf_2_dims_mean - 1.96 * std_2_dims_mean, fillrange = pf_2_dims_mean + 1.96 * std_2_dims_mean, label=&quot;SubSetInfinity&quot;, alpha = 0.2, color = theme_palette(:auto)[2])#hide
+plot!(N_dimension, pf_3_dims_mean - 1.96 * std_3_dims_mean, fillrange = pf_3_dims_mean + 1.96 * std_3_dims_mean, label=&quot;SubSetAdaptive&quot;, alpha = 0.2, color = theme_palette(:auto)[3])#hide
+
+plot!(N_dimension, pf_1_dims_mean,  seriestype=:scatter, color = theme_palette(:auto)[1], label = false)#hide
+plot!(N_dimension, pf_2_dims_mean, seriestype=:scatter, color = theme_palette(:auto)[2], label = false)#hide
+plot!(N_dimension, pf_3_dims_mean, seriestype=:scatter, color = theme_palette(:auto)[3], label = false)#hide
+plot!(N_dimension, fill(pf, 10),  minorgrid=true, label = false, xscale=:log10, legend=:topleft, xlabel =&quot;N dimensions&quot;,  ylabel =&quot;pf&quot;)#hide
+title!(&quot;N_samples = $N_samples, pf target = $pf&quot;)#hide</code></pre><hr/><p><em>This page was generated using <a href="https://github.com/fredrikekre/Literate.jl">Literate.jl</a>.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../manual/hpc/">« High Performance Computing</a><a class="docs-footer-nextpage" href="../metamodels/">Metamodels »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.25 on <span class="colophon-date" title="Monday 13 May 2024 19:08">Monday 13 May 2024</span>. Using Julia version 1.10.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
