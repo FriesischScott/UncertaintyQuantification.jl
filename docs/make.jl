@@ -26,6 +26,7 @@ makedocs(
             "High Performance Computing" => "manual/hpc.md",
         ],
         "Examples" => [
+            "High dimensional example" => "examples/high_dimensional_reliability.md",
             "Metamodels" => "examples/metamodels.md",
             "High Performance Computing" => "examples/hpc.md",
         ],
