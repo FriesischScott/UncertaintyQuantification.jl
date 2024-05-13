@@ -229,7 +229,7 @@ function probability_of_failure(
     pf = prod(pf)
     cov = sqrt(sum((cov .^ 2)))
 
-    return pf, cov, samples
+    return pf, cov * pf, samples
 end
 
 function nextlevelsamples(
