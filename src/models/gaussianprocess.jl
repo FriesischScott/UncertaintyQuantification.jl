@@ -19,13 +19,8 @@ mutable struct GaussianProcessRegressor <: UQModel
     output_normalizer::Union{ZScoreTransform, Nothing}
 end
 
-<<<<<<< HEAD
-function normalize!( # maybe different name as this is only supposed to be used in the GP context
-    input::Union{Vector{<:Real}, AbstractMatrix{<:Real}},
-=======
 function normalize!(
     input::Union{Vector{<:Real}, Matrix{<:Real}},
->>>>>>> 5eadb181cb7f47a276f386ee0e17529bd049964f
     output::Vector{<:Real},
     normalize_input::Bool,
     normalize_output::Bool,
@@ -49,16 +44,10 @@ function normalize!(
     return input_normalizer, output_normalizer, log_noise
 end
 
-<<<<<<< HEAD
-struct Optimizer # there is probably a better way to design this
-    optimizer
-    opt_kwargs::Dict
-=======
 struct Optimizer
     # maybe give one default and allow JuMP structs
     method::Union{Optim.LBFGS, Optim.ConjugateGradient} # not sure how or even if to support multiple solvers (Matlab uses QuasiNewton default)
     optim_options::Dict # maybe there is a better option than using dicts for this
->>>>>>> 5eadb181cb7f47a276f386ee0e17529bd049964f
     hyperparams::Dict
     bounds::Dict
     # should I add number of optimizer runs?
@@ -82,11 +71,7 @@ function gaussianprocess(
     kernel::Kernel,
     mean::GaussianProcesses.Mean=MeanZero(),
     log_noise::Real=-2.0,
-<<<<<<< HEAD
-    optimizer::Union{Optimizer, Nothing}=Optimizer(), # there is probably a better way to design this
-=======
     optimizer::Union{Optimizer, Nothing}=Optimizer(),
->>>>>>> 5eadb181cb7f47a276f386ee0e17529bd049964f
     normalize_input::Bool=false,
     normalize_output::Bool=false
 )
@@ -95,22 +80,12 @@ function gaussianprocess(
     input_normalizer, output_normalizer, log_noise = normalize!(x, y, normalize_input, normalize_output, log_noise)
     
     gp = GP(x, y, mean, kernel, log_noise)
-<<<<<<< HEAD
-
-    if !isnothing(optimizer)
-        optimize!(gp; 
-        method=optimizer.optimizer,
-        optimizer.hyperparams...,
-        optimizer.bounds...,
-        optimizer.opt_kwargs... 
-=======
     if !isnothing(optimizer)
         optimize!(gp; 
             method=optimizer.method, 
             optimizer.hyperparams...,
             optimizer.bounds...,
             optimizer.optim_options...
->>>>>>> 5eadb181cb7f47a276f386ee0e17529bd049964f
         )
     end
 
@@ -122,21 +97,6 @@ function gaussianprocess(
     return gp, df # this method does not really need to return df
 end
 
-<<<<<<< HEAD
-# Wrapper for optimize! method from GaussianProcesses.jl
-# function optimize_hyperparams!(gpr::GaussianProcessRegressor, args...; method = LBFGS(), 
-#     domean::Bool = true, kern::Bool = true, noise::Bool = true, 
-#     lik::Bool = true, meanbounds = nothing, kernbounds = nothing,
-#     noisebounds = nothing, likbounds = nothing, kwargs...
-# )
-
-#     optimize!(gpr.gp, args...; method = method, 
-#     domean=domean, kern=kern, noise=noise, lik=lik,
-#     meanbounds=meanbounds, kernbounds=kernbounds,
-#     noisebounds=noisebounds, likbounds=likbounds, 
-#     kwargs...)
-# end
-=======
 function gaussianprocess(
     input::Vector{<:UQInput},
     model::Vector{<:UQModel},
@@ -177,7 +137,6 @@ function gaussianprocess(
 
     return gp, samples
 end
->>>>>>> 5eadb181cb7f47a276f386ee0e17529bd049964f
 
 function gaussianprocess(
     input::UQInput,
