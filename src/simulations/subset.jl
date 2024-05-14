@@ -102,7 +102,7 @@ is updated. Note that Na must be a multiple of n * target: `mod(ceil(n * target)
 
 Idea behind this algorithm is to adaptively select the correlation parameter of `s`
 at each intermediate level, by simulating a subset Na of the chains
-(which must be choosen without replacement at random) and modifying the acceptance rate towards the optiming
+(which must be choosen without replacement at random) and modifying the acceptance rate towards the optimal
 αstar = 0.44
 
 # Constructors
