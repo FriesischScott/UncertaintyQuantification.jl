@@ -257,8 +257,7 @@ function nextlevelsamples(
     number_of_chains = length(performance)
     samples_per_chain = Int64(floor(sim.n / number_of_chains))
 
-    d = length(rvs)
-    Φ = MvNormal(Diagonal(Matrix{Float64}(I, d, d)))
+    Φ = Normal()
 
     α_MCMC = zeros(samples_per_chain)
     α_ss = zeros(samples_per_chain)
@@ -273,12 +272,17 @@ function nextlevelsamples(
         θ = Matrix{Float64}(chainsamples[:, rvs])
 
         ξ = θ + rand(sim.proposal, size(θ)...)
-        α = pdf(Φ, transpose(ξ)) ./ pdf(Φ, transpose(θ))
+        α = pdf.(Φ, ξ) ./ pdf.(Φ, θ)
 
-        α_accept = α .>= rand(size(α)...)
-        chainsamples[α_accept, rvs] = ξ[α_accept, :]
+        α_accept_per_dim = α .>= rand(size(α)...)
 
-        α_MCMC[i] = mean(α_accept)
+        for (d, col) in enumerate(eachcol(α_accept_per_dim))
+            chainsamples[col, rvs[d]] = ξ[col, d]
+        end
+
+        α_MCMC[i] = mean(α_accept_per_dim)
+
+        α_accept = any(α_accept_per_dim, dims = 2)[:]
 
         to_physical_space!(inputs, chainsamples)
 
