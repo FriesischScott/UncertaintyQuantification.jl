@@ -30,6 +30,7 @@ include("models/responsesurface.jl")
 
 include("reliability/form.jl")
 include("reliability/probabilityoffailure.jl")
+include("reliability/probabilityoffailure_imprecise.jl")
 
 include("sensitivity/gradient.jl")
 include("sensitivity/sobolindices.jl")

@@ -13,6 +13,7 @@ using KernelDensity
 using LinearAlgebra
 using Mustache
 using PRIMA
+using Optim
 using Primes
 using QuasiMonteCarlo
 using Random

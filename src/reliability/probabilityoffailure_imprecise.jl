@@ -19,11 +19,16 @@ function probability_of_failure(
     lb, ub = bounds(inputs)
     x0 = (lb .+ ub) ./ 2
 
-    rhobeg = minimum(ub .- lb) ./ 4
-    _, info_min = prima(montecarlo_pf, x0; xl=lb, xu=ub, rhobeg=rhobeg)
-    pf_lb = info_min.fx
-    _, info_max = prima(x -> -montecarlo_pf(x), x0; xl=lb, xu=ub, rhobeg=rhobeg)
-    pf_ub = -info_max.fx
+    result_lb = optimize(montecarlo_pf, x0, ParticleSwarm(float.(lb), float.(ub), 4))
+    @show result_lb
+
+    result_ub = optimize(
+        x -> -montecarlo_pf(x), x0, ParticleSwarm(float.(lb), float.(ub), 4)
+    )
+
+    pf_lb = result_lb.minimum
+
+    pf_ub = -result_ub.minimum
 
     if pf_lb == pf_ub
         return pf_ub
