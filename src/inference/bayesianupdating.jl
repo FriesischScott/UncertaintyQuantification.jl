@@ -84,7 +84,7 @@ function bayesianupdating(
     j = 1
     θj = tmcmc.sample_prior(n)
     log_likelihood_j = zeros(n, 1)
-    log_ev = 0
+    log_evidence = [0]
 
     θ_dim = size(θj, 2)
 
@@ -101,7 +101,7 @@ function bayesianupdating(
         up_αj = 2
 
         log_likelihood_adjust = maximum(log_likelihood_j)
-
+        ωj_adjust = zeros(size(log_likelihood_j, 1), 1)
         while (up_αj - low_αj) / ((up_αj + low_αj) / 2) > 1e-6
             α_new = (up_αj + low_αj) / 2
             weight_test = exp(α_new - αj[j]) .* (log_likelihood_j .- log_likelihood_adjust)
@@ -110,8 +110,20 @@ function bayesianupdating(
             else
                 low_αj = α_new
             end
+            ωj_adjust = weight_test
         end
         push!(αj, minimum(1, α_new))
+
+        # Compute plausibility weights
+        ωj = ωj_adjust / sum(ωj_adjust)
+
+        # Compute log evidence 
+        push!(
+            log_evidence, log(mean(ωj_adjust)) + (αj[j + 1] - αj[j]) * log_likelihood_adjust
+        )
+
+        # MH porposal pdf: covariance matrix and weighted mean
+
     end
     return error("Not implemented!")
 end
