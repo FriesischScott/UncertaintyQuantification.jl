@@ -121,12 +121,6 @@ export to_copula_space
 export to_physical_space!
 export to_standard_normal_space
 export to_standard_normal_space!
-export mh
-export gibbssample
-export smc
-export tmcmc
-export grconvergence
-export calcequaltails
 
 include("inputs/empiricaldistribution.jl")
 include("inputs/inputs.jl")
@@ -147,10 +141,11 @@ include("models/responsesurface.jl")
 include("models/pce/pcebases.jl")
 include("models/pce/polynomialchaosexpansion.jl")
 
+include("modelupdating/bayesianupdating.jl")
+
 include("sensitivity/finitedifferences.jl")
 include("sensitivity/gradient.jl")
 
-include("simulations/bayesianinference.jl")
 include("simulations/doe.jl")
 include("simulations/linesampling.jl")
 include("simulations/montecarlo.jl")
@@ -162,7 +157,5 @@ include("reliability/probabilityoffailure.jl")
 include("sensitivity/sobolindices.jl")
 
 include("util/wrap.jl")
-
-include("inference/bayesianupdating.jl")
 
 end
