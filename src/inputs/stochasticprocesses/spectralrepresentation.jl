@@ -29,3 +29,13 @@ end
 function (sr::SpectralRepresentation)(ϕ::AbstractVector{<:Real})
     return evaluate(sr, ϕ)
 end
+
+function to_standard_normal_space!(sr::SpectralRepresentation, df::DataFrame)
+    df[!, sr.name] = map(p -> quantile.(Normal(), cdf.(Uniform(0, 2π), p)), df[:, sr.name])
+    return nothing
+end
+
+function to_physical_space!(sr::SpectralRepresentation, df::DataFrame)
+    df[!, sr.name] = map(p -> quantile.(Uniform(0, 2π), cdf.(Normal(), p)), df[:, sr.name])
+    return nothing
+end
