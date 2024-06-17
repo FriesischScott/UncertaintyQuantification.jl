@@ -59,6 +59,7 @@ export BackwardFiniteDifferences
 export BoxBehnken
 export CentralComposite
 export CentralFiniteDifferences
+export CloughPenzien
 export ExternalModel
 export SlurmInterface
 export Extractor
@@ -73,6 +74,7 @@ export HaltonSampling
 export HermiteBasis
 export ImportanceSampling
 export JointDistribution
+export KanaiTajimi
 export LatinHypercubeSampling
 export LatticeRuleSampling
 export LeastSquares
@@ -127,6 +129,8 @@ include("inputs/randomvariables/randomvariable.jl")
 include("inputs/randomvariables/distributionparameters.jl")
 include("inputs/copulas/gaussian.jl")
 include("inputs/jointdistribution.jl")
+
+include("dynamics/psd.jl")
 
 include("solvers/solver.jl")
 include("solvers/extractor.jl")
