@@ -92,6 +92,7 @@ export RandomVariable
 export ResponseSurface
 export SobolSampling
 export Solver
+export SpectralRepresentation
 export SubSetInfinity
 export SubSetInfinityAdaptive
 export SubSetSimulation
@@ -131,6 +132,7 @@ include("inputs/copulas/gaussian.jl")
 include("inputs/jointdistribution.jl")
 
 include("dynamics/psd.jl")
+include("inputs/stochasticprocesses/spectralrepresentation.jl")
 
 include("solvers/solver.jl")
 include("solvers/extractor.jl")
