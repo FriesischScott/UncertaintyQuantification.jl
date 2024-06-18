@@ -69,61 +69,125 @@ function bayesianupdating(
 end
 
 struct TMCMC <: AbstractBayesianMethod # Transitional Markov Chain Monte Carlo
-    sample_prior::Function
+    sample_prior::Vector{RandomVariable}
     n::Int
     burnin::Int
+    thin::Int
     β2::Real
-    TMCMC(n) = n > 0 ? new(n) : error("n must be greater than zero")
+
+    function TMCMC(
+        sample_prior::Vector{RandomVariable}, n::Int, burnin::Int, thin::Int, β2::Real
+    )
+        if n <= 0
+            error("n must be positive")
+        end
+
+        return new(sample_prior, n, burnin, thin, β2)
+    end
 end
 
 # TMCMC implementation
 function bayesianupdating(
     prior::Function, likelihood::Function, models::Vector{<:UQModel}, tmcmc::TMCMC
 )
-    αj = [0]
-    j = 1
-    θj = tmcmc.sample_prior(n)
-    log_likelihood_j = zeros(n, 1)
-    log_evidence = [0]
+    covariance_method = LinearShrinkage(DiagonalUnitVariance(), :lw)
 
-    θ_dim = size(θj, 2)
+    rv_names = names(tmcmc.sample_prior)
 
-    while αj[j] < 1
-        print("Start iteration $j")
+    j = 0 # iteration
+    βⱼ = 0.0 # tempering
 
-        # Parallel Computation of Likelihood
-        temp_likelihood_j = pmap(likelihood, eachrow(θj))
-        log_likelihood_j = log.(temp_likelihood_j)
-        log_likelihood_j = reduce(vcat, log_likelihood_j)
+    θⱼ = sample(tmcmc.sample_prior, tmcmc.n) # prior samples
 
-        # BisectionMethod
-        low_αj = αj[j]
-        up_αj = 2
-
-        log_likelihood_adjust = maximum(log_likelihood_j)
-        ωj_adjust = zeros(size(log_likelihood_j, 1), 1)
-        while (up_αj - low_αj) / ((up_αj + low_αj) / 2) > 1e-6
-            α_new = (up_αj + low_αj) / 2
-            weight_test = exp(α_new - αj[j]) .* (log_likelihood_j .- log_likelihood_adjust)
-            if (std(weight_test) / mean(weight_test)) > 1
-                up_αj = α_new
-            else
-                low_αj = α_new
-            end
-            ωj_adjust = weight_test
-        end
-        push!(αj, minimum(1, α_new))
-
-        # Compute plausibility weights
-        ωj = ωj_adjust / sum(ωj_adjust)
-
-        # Compute log evidence
-        push!(
-            log_evidence, log(mean(ωj_adjust)) + (αj[j + 1] - αj[j]) * log_likelihood_adjust
-        )
-
-        # MH porposal pdf: covariance matrix and weighted mean
-
+    if !isempty(models)
+        evaluate!(models, θⱼ)
     end
-    return error("Not implemented!")
+
+    log_evidence = 0
+
+    while βⱼ < 1
+        j += 1
+
+        print("Start iteration $j\n")
+
+        likelihood_j = likelihood(θⱼ)
+
+        adjust = maximum(likelihood_j)
+
+        βⱼ⁺, wⱼ = _beta_and_weights(βⱼ, likelihood_j .- adjust)
+
+        print("Βⱼ = $βⱼ⁺\n")
+
+        log_evidence += (log(mean(wⱼ)) + (βⱼ⁺ - βⱼ) * adjust)
+
+        wₙⱼ = wⱼ ./ sum(wⱼ)
+
+        idx = StatsBase.sample(collect(1:(tmcmc.n)), Weights(wₙⱼ), tmcmc.n; replace=true)
+
+        θⱼ⁺ = θⱼ[idx, :]
+
+        Σⱼ = tmcmc.β2 * cov(covariance_method, Matrix(θⱼ⁺[:, rv_names]))
+
+        # Run inner MH algorithm
+
+        chain = Vector{DataFrame}(undef, 1 * tmcmc.thin + tmcmc.burnin)
+
+        chain[1] = copy(θⱼ⁺)
+
+        target = df -> likelihood(df) .* βⱼ⁺ .* prior(df)
+
+        for i in 2:(1 * tmcmc.thin + tmcmc.burnin)
+            next = copy(chain[i - 1])
+
+            for (j, x) in enumerate(eachrow(next[:, rv_names]))
+                next[j, rv_names] = rand(MvNormal(collect(x), Σⱼ))
+            end
+
+            if !isempty(models)
+                evaluate!(models, next)
+            end
+
+            α = target(next) ./ target(chain[i - 1])
+
+            accept = α .>= rand(length(α))
+
+            reject = .!accept
+
+            next[reject, :] .= chain[i - 1][reject, :]
+
+            chain[i] = next
+        end
+
+        chain = chain[(tmcmc.burnin + 1):(tmcmc.thin):end]
+
+        θⱼ⁺ = chain[end]
+
+        βⱼ = βⱼ⁺
+        θⱼ = θⱼ⁺
+    end
+    return θⱼ, log_evidence
+end
+"""
+    _beta_and_weights(β, likelihood)
+
+Compute the next value for `β` and the nominal weights `w` using bisection.
+"""
+function _beta_and_weights(β::Real, adjusted_likelihood::AbstractVector{<:Real})
+    low = β
+    high = 2
+
+    local x, w # Declare variables so they are visible outside the loop
+
+    while (high - low) / ((high + low) / 2) > 1e-6 && high > eps()
+        x = (high + low) / 2
+        w = exp.((x .- β) .* adjusted_likelihood)
+
+        if std(w) / mean(w) > 1
+            high = x
+        else
+            low = x
+        end
+    end
+
+    return min(1, x), w
 end

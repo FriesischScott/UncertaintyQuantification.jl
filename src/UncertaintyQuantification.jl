@@ -1,6 +1,7 @@
 module UncertaintyQuantification
 
 using Bootstrap
+using CovarianceEstimation
 using DataFrames
 using Dates
 using Dierckx
