@@ -134,7 +134,7 @@ function bayesianupdating(
 
         chain[1] = copy(θⱼ⁺)
 
-        target = df -> likelihood(df) .* βⱼ⁺ .* prior(df)
+        target = df -> likelihood(df) .* βⱼ⁺ .+ prior(df)
 
         for i in 2:(1 * tmcmc.thin + tmcmc.burnin)
             next = copy(chain[i - 1])
@@ -147,9 +147,9 @@ function bayesianupdating(
                 evaluate!(models, next)
             end
 
-            α = target(next) ./ target(chain[i - 1])
+            α = min.(0, target(next) .- target(chain[i - 1]))
 
-            accept = α .>= rand(length(α))
+            accept = α .>= log.(rand(length(α)))
 
             reject = .!accept
 
