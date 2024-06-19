@@ -7,7 +7,8 @@ using Plots
 function likelihood(df, data::AbstractMatrix)
     σ = [1 0.1]
     λ = [df.λ1 df.λ2]
-    return exp(-0.5 * sum(((data .- λ) ./ σ) .^ 2))
+
+    return log.(exp.([-0.5 * sum(((data .- λ[n, :]') ./ σ) .^ 2) for n in axes(λ, 1)]))
 end
 
 # Obervations
@@ -31,28 +32,30 @@ data = [
 
 # Prior
 function prior(df)
-    return pdf(Uniform(0, 4), df.θ1) .* pdf(Uniform(0, 4), df.θ2)
+    return logpdf(Uniform(0, 4), df.θ1) .+ logpdf(Uniform(0, 4), df.θ2)
 end
+
+prior_sample = RandomVariable.(Uniform(0, 4), [:θ1, :θ2])
 
 lh(df) = likelihood(df, data)
 
-proposal = Normal(0, 0.1)
-x0 = (θ1=2.84, θ2=2.33)
-n = 10000
-burnin = 450
+n = 1000
+burnin = 0
 
-mh = SingleComponentMetropolisHastings(proposal, x0, n, burnin)
+tmcmc = UncertaintyQuantification.TMCMC(prior_sample, n, burnin, 0.2)
 
-mh_samples, α = bayesianupdating(prior, lh, [λ1, λ2], mh)
+tmcmc_samples, S = bayesianupdating(prior, lh, [λ1, λ2], tmcmc)
 
-println("Acceptance rate: $α")
-println("Identified (θ1, θ2): ($(mean(mh_samples.θ1)), $(mean(mh_samples.θ2)))")
+println("Log evidence: $S")
+println("Identified (θ1, θ2): ($(mean(tmcmc_samples.θ1)), $(mean(tmcmc_samples.θ2)))")
 
 scatter(
-    mh_samples.θ1,
-    mh_samples.θ2;
+    tmcmc_samples.θ1,
+    tmcmc_samples.θ2;
     xlabel="θ1",
     ylabel="θ2",
     color="red",
-    label="Posterior Input",
+    label="",
+    xlim=[0, 4],
+    ylim=[0, 2],
 )

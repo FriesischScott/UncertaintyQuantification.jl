@@ -1,5 +1,8 @@
 using UncertaintyQuantification
 using Plots
+using Random
+
+Random.seed!(2873)
 
 prior_sample = RandomVariable.(Uniform(-5, 5), [:x, :y])
 
@@ -15,10 +18,10 @@ n = 2000
 
 burnin = 20
 
-thin = 1
+tmcmc = UncertaintyQuantification.TMCMC(prior_sample, n, burnin, 0.2)
 
-tmcmc = UncertaintyQuantification.TMCMC(prior_sample, n, burnin, thin, 0.01)
-
-samples, log_evidence = bayesianupdating(prior, likelihood, [himmelblau], tmcmc)
+samples, S = bayesianupdating(prior, likelihood, [himmelblau], tmcmc)
 
 scatter(samples.x, samples.y; aspect_ratio=:equal, lims=[-5, 5])
+
+@show S

@@ -72,17 +72,14 @@ struct TMCMC <: AbstractBayesianMethod # Transitional Markov Chain Monte Carlo
     sample_prior::Vector{RandomVariable}
     n::Int
     burnin::Int
-    thin::Int
-    β2::Real
+    β::Real
 
-    function TMCMC(
-        sample_prior::Vector{RandomVariable}, n::Int, burnin::Int, thin::Int, β2::Real
-    )
+    function TMCMC(sample_prior::Vector{RandomVariable}, n::Int, burnin::Int, β::Real)
         if n <= 0
             error("n must be positive")
         end
 
-        return new(sample_prior, n, burnin, thin, β2)
+        return new(sample_prior, n, burnin, β)
     end
 end
 
@@ -90,7 +87,7 @@ end
 function bayesianupdating(
     prior::Function, likelihood::Function, models::Vector{<:UQModel}, tmcmc::TMCMC
 )
-    covariance_method = LinearShrinkage(DiagonalUnitVariance(), :lw)
+    covariance_method = LinearShrinkage(DiagonalUnitVariance(), :lw; corrected=true)
 
     rv_names = names(tmcmc.sample_prior)
 
@@ -103,12 +100,10 @@ function bayesianupdating(
         evaluate!(models, θⱼ)
     end
 
-    log_evidence = 0
+    S = 0.0
 
     while βⱼ < 1
         j += 1
-
-        print("Start iteration $j\n")
 
         likelihood_j = likelihood(θⱼ)
 
@@ -116,9 +111,9 @@ function bayesianupdating(
 
         βⱼ⁺, wⱼ = _beta_and_weights(βⱼ, likelihood_j .- adjust)
 
-        print("Βⱼ = $βⱼ⁺\n")
+        @debug "βⱼ" βⱼ⁺
 
-        log_evidence += (log(mean(wⱼ)) + (βⱼ⁺ - βⱼ) * adjust)
+        S += (log(mean(wⱼ)) + (βⱼ⁺ - βⱼ) * adjust)
 
         wₙⱼ = wⱼ ./ sum(wⱼ)
 
@@ -126,17 +121,19 @@ function bayesianupdating(
 
         θⱼ⁺ = θⱼ[idx, :]
 
-        Σⱼ = tmcmc.β2 * cov(covariance_method, Matrix(θⱼ⁺[:, rv_names]))
+        Σⱼ =
+            tmcmc.β^2 *
+            cov(covariance_method, Matrix(θⱼ[:, rv_names]), FrequencyWeights(wⱼ))
 
         # Run inner MH algorithm
 
-        chain = Vector{DataFrame}(undef, 1 * tmcmc.thin + tmcmc.burnin)
+        chain = Vector{DataFrame}(undef, tmcmc.burnin + 2)
 
         chain[1] = copy(θⱼ⁺)
 
         target = df -> likelihood(df) .* βⱼ⁺ .+ prior(df)
 
-        for i in 2:(1 * tmcmc.thin + tmcmc.burnin)
+        for i in 2:(tmcmc.burnin + 2)
             next = copy(chain[i - 1])
 
             for (j, x) in enumerate(eachrow(next[:, rv_names]))
@@ -158,14 +155,12 @@ function bayesianupdating(
             chain[i] = next
         end
 
-        chain = chain[(tmcmc.burnin + 1):(tmcmc.thin):end]
-
         θⱼ⁺ = chain[end]
 
         βⱼ = βⱼ⁺
         θⱼ = θⱼ⁺
     end
-    return θⱼ, log_evidence
+    return θⱼ, S
 end
 """
     _beta_and_weights(β, likelihood)
