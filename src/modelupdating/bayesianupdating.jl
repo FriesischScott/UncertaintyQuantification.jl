@@ -140,6 +140,18 @@ function bayesianupdating(
                 next[j, rv_names] = rand(MvNormal(collect(x), Σⱼ))
             end
 
+            # safeguard for Inf in the prior
+            # !TODO: Find a cleaner way to do this
+            idx_inf = findall(isinf, prior(next))
+
+            while !isempty(idx_inf)
+                for (j, x) in zip(idx_inf, (eachrow(chain[i - 1][idx_inf, rv_names])))
+                    next[j, rv_names] = rand(MvNormal(collect(x), Σⱼ))
+                end
+
+                idx_inf = findall(isinf, prior(next))
+            end
+
             if !isempty(models)
                 evaluate!(models, next)
             end
