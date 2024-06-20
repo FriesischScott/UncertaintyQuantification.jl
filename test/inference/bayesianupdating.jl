@@ -1,7 +1,7 @@
 @testset "Bayesian Updating" begin
     @testset "Single Component Metropolis Hastings" begin
-        prior(df) = pdf(Normal(), df.x)
-        likelihood(df) = pdf(Normal(2, 0.5), df.x)
+        prior(df) = pdf.(Normal(), df.x)
+        likelihood(df) = pdf.(Normal(2, 0.5), df.x)
 
         proposal = Normal()
         x0 = (x=0.0,)
@@ -17,9 +17,9 @@
 
     @testset "Transitional Markov Chain Monte Carlo" begin
         prior_sample = [RandomVariable(Normal(), :x)]
-        prior(df) = logpdf(Normal(), df.x)
+        prior(df) = logpdf.(Normal(), df.x)
 
-        likelihood(df) = logpdf(Normal(2, 0.5), df.x)
+        likelihood(df) = logpdf.(Normal(2, 0.5), df.x)
 
         n = 1000
         burnin = 100
