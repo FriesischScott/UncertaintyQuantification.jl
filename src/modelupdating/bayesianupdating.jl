@@ -87,7 +87,7 @@ end
 function bayesianupdating(
     prior::Function, likelihood::Function, models::Vector{<:UQModel}, tmcmc::TMCMC
 )
-    covariance_method = LinearShrinkage(DiagonalUnitVariance(), :lw; corrected=true)
+    covariance_method = LinearShrinkage(DiagonalUnitVariance(), :lw)
 
     rv_names = names(tmcmc.sample_prior)
 
@@ -115,15 +115,15 @@ function bayesianupdating(
 
         S += (log(mean(wⱼ)) + (βⱼ⁺ - βⱼ) * adjust)
 
-        wₙⱼ = wⱼ ./ sum(wⱼ)
+        weights = FrequencyWeights(wⱼ ./ sum(wⱼ))
 
-        idx = StatsBase.sample(collect(1:(tmcmc.n)), Weights(wₙⱼ), tmcmc.n; replace=true)
+        idx = StatsBase.sample(
+            collect(1:(tmcmc.n)), FrequencyWeights(wⱼ ./ sum(wⱼ)), tmcmc.n; replace=true
+        )
 
         θⱼ⁺ = θⱼ[idx, :]
 
-        Σⱼ =
-            tmcmc.β^2 *
-            cov(covariance_method, Matrix(θⱼ[:, rv_names]), FrequencyWeights(wⱼ))
+        Σⱼ = tmcmc.β^2 * cov(covariance_method, Matrix(θⱼ[:, rv_names]), weights)
 
         # Run inner MH algorithm
 
@@ -167,15 +167,15 @@ end
 
 Compute the next value for `β` and the nominal weights `w` using bisection.
 """
-function _beta_and_weights(β::Real, adjusted_likelihood::AbstractVector{<:Real})
+function _beta_and_weights(β::Real, L::AbstractVector{<:Real})
     low = β
     high = 2
 
     local x, w # Declare variables so they are visible outside the loop
 
-    while (high - low) / ((high + low) / 2) > 1e-6 && high > eps()
-        x = (high + low) / 2
-        w = exp.((x .- β) .* adjusted_likelihood)
+    while (high - low) / middle(low, high) > 1e-6 && high > eps()
+        x = middle(low, high)
+        w = exp.((x - β) .* L)
 
         if std(w) / mean(w) > 1
             high = x
@@ -184,5 +184,10 @@ function _beta_and_weights(β::Real, adjusted_likelihood::AbstractVector{<:Real}
         end
     end
 
-    return min(1, x), w
+    if x > 1
+        x = 1
+        w = exp.((x - β) .* L)
+    end
+
+    return x, w
 end

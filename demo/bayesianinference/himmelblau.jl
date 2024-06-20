@@ -22,6 +22,6 @@ tmcmc = UncertaintyQuantification.TMCMC(prior_sample, n, burnin, 0.2)
 
 samples, S = bayesianupdating(prior, likelihood, [himmelblau], tmcmc)
 
-scatter(samples.x, samples.y; aspect_ratio=:equal, lims=[-5, 5])
-
 @show S
+
+scatter(samples.x, samples.y; aspect_ratio=:equal, lims=[-5, 5])
