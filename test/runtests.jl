@@ -10,8 +10,6 @@ using StatsBase: fit, Histogram
 using Test
 using UncertaintyQuantification
 
-include("inference/bayesianupdating.jl")
-
 include("inputs/empericaldistribution.jl")
 include("inputs/parameter.jl")
 include("inputs/randomvariables/randomvariable.jl")
@@ -27,6 +25,8 @@ include("models/polyharmonicspline.jl")
 include("models/pce/pcebases.jl")
 include("models/pce/polynomialchaosexpansion.jl")
 include("models/responsesurface.jl")
+
+include("modelupdating/bayesianupdating.jl")
 
 include("reliability/form.jl")
 include("reliability/probabilityoffailure.jl")
