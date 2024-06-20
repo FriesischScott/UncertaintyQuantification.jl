@@ -18,7 +18,7 @@ n = 2000
 
 burnin = 20
 
-tmcmc = UncertaintyQuantification.TMCMC(prior_sample, n, burnin, 0.2)
+tmcmc = TransitionalMarkovChainMonteCarlo(prior_sample, n, burnin, 0.2)
 
 samples, S = bayesianupdating(prior, likelihood, [himmelblau], tmcmc)
 

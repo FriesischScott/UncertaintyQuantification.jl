@@ -95,6 +95,7 @@ export Solver
 export SubSetInfinity
 export SubSetInfinityAdaptive
 export SubSetSimulation
+export TransitionalMarkovChainMonteCarlo
 export TwoLevelFactorial
 
 # Methods

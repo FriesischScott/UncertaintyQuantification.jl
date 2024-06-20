@@ -68,13 +68,15 @@ function bayesianupdating(
     return bayesianupdating(prior, likelihood, UQModel[], mh)
 end
 
-struct TMCMC <: AbstractBayesianMethod # Transitional Markov Chain Monte Carlo
+struct TransitionalMarkovChainMonteCarlo <: AbstractBayesianMethod # Transitional Markov Chain Monte Carlo
     sample_prior::Vector{RandomVariable}
     n::Int
     burnin::Int
     β::Real
 
-    function TMCMC(sample_prior::Vector{RandomVariable}, n::Int, burnin::Int, β::Real)
+    function TransitionalMarkovChainMonteCarlo(
+        sample_prior::Vector{RandomVariable}, n::Int, burnin::Int, β::Real
+    )
         if n <= 0
             error("n must be positive")
         end
@@ -85,7 +87,10 @@ end
 
 # TMCMC implementation
 function bayesianupdating(
-    prior::Function, likelihood::Function, models::Vector{<:UQModel}, tmcmc::TMCMC
+    prior::Function,
+    likelihood::Function,
+    models::Vector{<:UQModel},
+    tmcmc::TransitionalMarkovChainMonteCarlo,
 )
     covariance_method = LinearShrinkage(DiagonalUnitVariance(), :lw)
 
