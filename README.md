@@ -24,3 +24,4 @@ A Julia package for uncertainty quantification. Current functionality includes:
   * Response Surface Methodology
 * Third-party solvers
   * Connect to any solver by injecting random samples into source files
+  * HPC interfacing with slurm
