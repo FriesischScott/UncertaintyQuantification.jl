@@ -4,11 +4,8 @@ authors = [
     "Jasper Behrensdorf <behrensdorf@irz.uni-hannover.de>",
     "Ander Gray <ander.gray@liverpool.ac.uk>",
 ]
-<<<<<<< HEAD
-version = "0.8.2"
-=======
+
 version = "0.9.0"
->>>>>>> master
 
 [deps]
 Bootstrap = "e28b5b4c-05e8-5b66-bc03-6f0c0a0a06e0"
