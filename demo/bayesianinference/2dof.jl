@@ -30,21 +30,16 @@ data = [
     2.62 0.25
 ]
 
-# Prior
-function prior(df)
-    return logpdf(Uniform(0, 4), df.θ1) .+ logpdf(Uniform(0, 4), df.θ2)
-end
-
-prior_sample = RandomVariable.(Uniform(0, 4), [:θ1, :θ2])
+prior = RandomVariable.(Uniform(0, 4), [:θ1, :θ2])
 
 lh(df) = likelihood(df, data)
 
 n = 1000
 burnin = 0
 
-tmcmc = UncertaintyQuantification.TMCMC(prior_sample, n, burnin, 0.2)
+tmcmc = UncertaintyQuantification.TransitionalMarkovChainMonteCarlo(prior, n, burnin, 0.2)
 
-tmcmc_samples, S = bayesianupdating(prior, lh, [λ1, λ2], tmcmc)
+tmcmc_samples, S = bayesianupdating(lh, [λ1, λ2], tmcmc)
 
 println("Log evidence: $S")
 println("Identified (θ1, θ2): ($(mean(tmcmc_samples.θ1)), $(mean(tmcmc_samples.θ2)))")
