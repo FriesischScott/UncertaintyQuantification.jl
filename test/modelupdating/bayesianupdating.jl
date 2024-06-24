@@ -89,13 +89,12 @@
     @testset "TMCMC binomal inference analytical" begin
         n = 2000
         burnin = 200
-        thin = 5
 
         prior = Beta(1, 1)
 
         prior_sample_ = RandomVariable(prior, :x)
 
-        tmcmc = TransitionalMarkovChainMonteCarlo([prior_sample_], n, burnin, thin)
+        tmcmc = TransitionalMarkovChainMonteCarlo([prior_sample_], n, burnin)
 
         mc_samples, analytic_mean, analytic_std = binomialinferencebenchmark(tmcmc, prior)
 
@@ -106,7 +105,6 @@
     @testset "TMCMC normal mean analytical" begin
         n = 2000
         burnin = 200
-        thin = 5
 
         prior_mean = 2
         prior_std = 10
@@ -115,7 +113,7 @@
 
         prior_sample_ = RandomVariable(prior, :x)
 
-        tmcmc = TransitionalMarkovChainMonteCarlo([prior_sample_], n, burnin, thin)
+        tmcmc = TransitionalMarkovChainMonteCarlo([prior_sample_], n, burnin)
 
         mc_samples, analytic_mean, analytic_std = normalmeanbenchmark(tmcmc, prior)
 
