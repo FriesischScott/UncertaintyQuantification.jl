@@ -3,6 +3,20 @@ struct SingleComponentMetropolisHastings <: AbstractBayesianMethod
     x0::NamedTuple
     n::Int
     burnin::Int
+    islog::Bool
+
+    function SingleComponentMetropolisHastings(
+        proposal::UnivariateDistribution,
+        x0::NamedTuple,
+        n::Int,
+        burnin::Int,
+        islog::Bool=true,
+    )
+        if n <= 0
+            error("Number of samples `n` must be positive")
+        end
+        return new(proposal, x0, n, burnin, islog)
+    end
 end
 
 function bayesianupdating(
@@ -19,7 +33,11 @@ function bayesianupdating(
         evaluate!(models, samples)
     end
 
-    posterior = df -> likelihood(df) .* prior(df)
+    posterior = if mh.islog
+        df -> likelihood(df) .+ prior(df)
+    else
+        df -> log.(likelihood(df)) .+ log.(prior(df))
+    end
 
     rejection = 0.0
 
@@ -34,9 +52,9 @@ function bayesianupdating(
                 evaluate!(models, x)
             end
 
-            α = min(1, posterior(x)[1] / posterior(current)[1])
+            α = min(0, posterior(x)[1] - posterior(current)[1])
 
-            if α >= rand()
+            if α >= log(rand())
                 current[1, d] = x[1, d]
             else
                 x[1, d] = current[1, d]
