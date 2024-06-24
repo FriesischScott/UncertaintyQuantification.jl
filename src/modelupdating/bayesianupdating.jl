@@ -48,6 +48,11 @@ function bayesianupdating(
         for d in 1:number_of_dimensions
             x[1, d] += rand(mh.proposal)
 
+            # safeguard for areas where the logprior is -Inf (prior = 0)
+            while mh.islog ? isinf(prior(x)[1]) : isinf(log.(prior(x))[1])
+                x[1, d] = current[1, d] + rand(mh.proposal)
+            end
+
             if !isempty(models)
                 evaluate!(models, x)
             end
