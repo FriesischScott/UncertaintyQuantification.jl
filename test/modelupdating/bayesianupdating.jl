@@ -51,6 +51,39 @@
         return mcmc_samples, analytic_mean, analytic_std
     end
 
+    function normalvarbenchmark(
+        sampler::AbstractBayesianMethod, prior::InverseGamma, var_true=5, N_data=25
+    )
+        mean_fixed = 4     # Fixed
+
+        Data = rand(Normal(mean_fixed, sqrt(var_true)), N_data)
+
+        prior_shape = prior.invd.α
+        prior_scale = prior.θ
+
+        posterior_shape = prior_shape + N_data/2
+        posterior_scale = prior_scale + sum(( Data .- mean_fixed) .^2 )/2
+
+        posterior_exact = InverseGamma(posterior_shape, posterior_scale)
+
+        function loglikelihood(df)
+            return [sum(logpdf.(Normal.(mean_fixed, sqrt(df_i.x)), Data)) for df_i in eachrow(df)]
+        end
+
+        function logprior1(df)  # Required because inverse gamma throws error for negative values
+            if df.x < 0
+                return -Inf
+            end
+            return logpdf(prior, df.x)
+        end
+        
+        logprior(df) = [logprior1(df_i) for df_i in eachrow(df)]        
+
+        mcmc_samples, _ = bayesianupdating(logprior, loglikelihood, UQModel[], sampler)
+
+        return mcmc_samples, mean(posterior_exact), std(posterior_exact)
+    end
+
     @testset "Single Component MH binomal inference analytical" begin
         proposal = Normal()
         x0 = (x=0.5,)
@@ -86,6 +119,25 @@
         @test std(mc_samples.x) ≈ analytic_std rtol = 0.1
     end
 
+    @testset "Single Component MH normal var analytical" begin
+        proposal = Normal()
+        x0 = (x=4.0,)
+        n = 2000
+        burnin = 500
+
+        prior_shape = 30
+        prior_scale = 100
+
+        prior = InverseGamma(prior_shape, prior_scale)
+
+        mh = SingleComponentMetropolisHastings(proposal, x0, n, burnin)
+
+        mc_samples, analytic_mean, analytic_std = normalvarbenchmark(mh, prior)
+
+        @test mean(mc_samples.x) ≈ analytic_mean rtol = 0.1
+        @test std(mc_samples.x) ≈ analytic_std rtol = 0.1
+    end
+
     @testset "TMCMC binomal inference analytical" begin
         n = 2000
         burnin = 200
@@ -116,6 +168,25 @@
         tmcmc = TransitionalMarkovChainMonteCarlo([prior_sample_], n, burnin)
 
         mc_samples, analytic_mean, analytic_std = normalmeanbenchmark(tmcmc, prior)
+
+        @test mean(mc_samples.x) ≈ analytic_mean rtol = 0.05
+        @test std(mc_samples.x) ≈ analytic_std rtol = 0.05
+    end
+
+    @testset "TMCMC normal var analytical" begin
+        n = 2000
+        burnin = 200
+
+        prior_shape = 30
+        prior_scale = 100
+
+        prior = InverseGamma(prior_shape, prior_scale)
+
+        prior_sample_ = RandomVariable(prior, :x)
+
+        tmcmc = TransitionalMarkovChainMonteCarlo([prior_sample_], n, burnin)
+
+        mc_samples, analytic_mean, analytic_std = normalvarbenchmark(tmcmc, prior)
 
         @test mean(mc_samples.x) ≈ analytic_mean rtol = 0.05
         @test std(mc_samples.x) ≈ analytic_std rtol = 0.05
