@@ -11,9 +11,9 @@ DocMeta.setdocmeta!(
 
 bib = CitationBibliography(joinpath(@__DIR__, "references.bib"))
 
-makedocs(
-    bib;
+makedocs(;
     modules=[UncertaintyQuantification],
+    plugins=[bib],
     format=Documenter.HTML(; prettyurls=get(ENV, "CI", nothing) == "true"),
     sitename="UncertaintyQuantification.jl",
     authors="Jasper Behrensdorf and Ander Gray",
@@ -23,6 +23,7 @@ makedocs(
             "Getting Started" => "manual/gettingstarted.md",
             "Reliability Analysis" => "manual/reliability.md",
             "Metamodelling" => "manual/metamodels.md",
+            "Bayesian Updating" => "manual/bayesianupdating.md",
             "High Performance Computing" => "manual/hpc.md",
         ],
         "Examples" => [
@@ -40,7 +41,7 @@ makedocs(
         ],
         "References" => "references.md",
     ],
-    strict=:doctest,
+    warnonly=true,
 )
 
 deploydocs(;
