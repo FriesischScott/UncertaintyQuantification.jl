@@ -228,6 +228,12 @@ function bayesianupdating(likelihood::Function, tmcmc::TransitionalMarkovChainMo
     return bayesianupdating(likelihood, UQModel[], tmcmc)
 end
 
+function bayesianupdating(
+    prior::Function, likelihood::Function, tmcmc::TransitionalMarkovChainMonteCarlo
+)
+    return bayesianupdating(prior, likelihood, UQModel[], tmcmc)
+end
+
 """
     _beta_and_weights(β, likelihood)
 
