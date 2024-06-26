@@ -62,7 +62,7 @@ Note, how the normalization constant $P(Y)$ cancels out. Because of the symmetry
 
 In practice, a random number $r \sim U(0,1)$ is sampled, and the candidate sample is accepted if $a \leq r$.
 
-As an example consider a data sequence `Y` as the outcome of 100 Bernoulli trials with unknown success probability `p` (here p=0.8).
+As an example consider a synthetic data sequence `Y` as the outcome of 100 Bernoulli trials with unknown success probability `p` (here p=0.8).
 
 ```@example metropolis
 using UncertaintyQuantification # hide
@@ -71,7 +71,7 @@ using UncertaintyQuantification # hide
  return nothing # hide
 ```
 
-The likelihood function which, similar to a `Model` must accept a `DataFrame`, follows a Binomial distribution. And the prior is chosen as a beta distribution with $\alpha=\beta=1$. It is often beneficial to use the log-likelihood and log-prior for numerical reasons.
+The likelihood function which, similar to a `Model` must accept a `DataFrame`, follows a Binomial distribution and returns the likeliood for each row in the `DataFrame` as a vector. The prior is chosen as a beta distribution with $\alpha=\beta=1$. It is often beneficial to use the log-likelihood and log-prior for numerical reasons.
 
 ```@example metropolis
     function loglikelihood(df)
@@ -89,7 +89,7 @@ return nothing # hide
 ```@example metropolis
     proposal = Normal(0, 0.2)
     x0 = (;p=0.5)
-    n_samples= 2000
+    n_samples= 4000
     burnin = 500
 
     mh = SingleComponentMetropolisHastings(proposal, x0, n_samples, burnin)
@@ -102,9 +102,53 @@ The final optional argument `islog=true` can be omitted when passing the log-lik
 mh_samples, α   = bayesianupdating(logprior, loglikelihood, mh)
 ```
 
+The following figure shows a histogram plot of the samples returned by the Metropolis-Hastings algorithm. For comparison, we also plot the analytical posterior distribution obtained using conjugate priors [raiffaAppliedStatisticalDecision1961](@cite).
+
 ```@example metropolis
+
 using Plots # hide
-histogram(mh_samples.p, bin = 100, label = "MH"; xlabel="p")
+p = histogram(mh_samples.p, normalize=:pdf, bin = 100, label = "MH"; xlabel="p") # hide
+
+posterior = Beta(1+ sum(Y), 1 + n - sum(Y)) # hide
+
+x = range(0,1; length=200) # hide
+y = pdf.(posterior, x) # hide
+
+plot!(x, y, label="analytical posterior", linewidth=2) # hide
+
+xlims!(0.5, 1.0) # hide
+return p # hide
 ```
+
+As a second example we will attempt to sample from a bimodial target distribution in two dimensions. The prior is uniform over $[-2, 2]$ in each dimension and the likelihood is a mixture of two Gaussian functions centred at $[0.5, 0.5]$ and $[-0.5, -0.5]$.  The standard deviation for both Gaussians is identical and if small enough will effectively disconnect the two functions.
+
+```@example tmcmc
+using UncertaintyQuantification # hide
+using Plots # hide
+prior = Uniform(-2, 2)
+logprior = df -> logpdf.(prior, df.x) .+ logpdf.(prior, df.y)
+
+N1 = MvNormal([-0.5, -0.5], 0.1)
+
+N2 = MvNormal([0.5, 0.5], 0.1)
+
+loglikelihood =
+    df -> log.([0.5 * pdf(N1, collect(x)) + 0.5 * pdf(N2, collect(x)) for x in eachrow(df)])
+
+n = 2000
+burnin = 500
+
+x0 = (; x=0.0, y=0.0)
+
+proposal = Normal()
+
+mh = SingleComponentMetropolisHastings(proposal, x0, n, burnin)
+
+mh_samples, α = bayesianupdating(logprior, loglikelihood, mh)
+
+scatter(mh_samples.x, mh_samples.y; lim=[-2, 2], label="MH")
+```
+
+By using a scatter plot we can clearly see, that the MH algorithm has converged to only one of the two peaks in the bimodial target distribution. In fact, this is a known weakness of the MH algorithm. However, there are a number of alternative MCMC methods that aim to solve this problem. One of these methods, known as Transitional Markov Chain Monte Carlo [chingTransitionalMarkovChain2007](@cite), will be presented next.
 
 ### Transitional Markov Chain Monte Carlo
