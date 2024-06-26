@@ -168,7 +168,7 @@ w(\theta_i) = \frac{P(Y|\theta_i)^{\beta_j-\beta_{j-1}}}{\sum_{i=1}^N P(Y|\theta
 
 The complete TMCMC algorithm can be summarized as
 
-1. Set $j=0$ and $beta_j=0$. Saple $\theta_i \sim P(\theta).
+1. Set $j=0$ and $beta_j=0$. Sample $\theta_i \sim P(\theta)$.
 2. Set $j = j+1$.
 3. Compute the next tempering parameter $\beta_j$.
 4. Determine the weights $w(\theta_i)$.
