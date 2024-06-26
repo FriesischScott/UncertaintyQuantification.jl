@@ -1,3 +1,15 @@
+"""
+    SingleComponentMetropolisHastings(proposal, x0, n, burnin, islog)
+
+Passed to [`bayesianupdating`](@ref) to run the single-component Metropolis-Hastings algorithm starting from `x0` with  univariate proposal distibution `proposal`. Will generate `n` samples *after* performing `burnin` steps of the Markov chain and discarding the samples. The flag `islog` specifies whether the prior and likelihood functions passed to the  [`bayesianupdating`](@ref) method are already  given as logarithms.
+
+Alternative constructor
+
+```julia
+    SingleComponentMetropolisHastings(proposal, x0, n, burnin)  # `islog` = true
+```
+
+"""
 struct SingleComponentMetropolisHastings <: AbstractBayesianMethod
     proposal::UnivariateDistribution
     x0::NamedTuple
@@ -19,6 +31,20 @@ struct SingleComponentMetropolisHastings <: AbstractBayesianMethod
     end
 end
 
+"""
+    bayesianupdating(prior, likelihood, models, mcmc)
+
+Perform bayesian updating using the given `prior`, `likelihood`, `models`  and any MCMC sampler [`AbstractBayesianMethod`](@ref).
+
+Alternatively the method can be called without `models`.
+
+    bayesianupdating(prior, likelihood, mcmc)
+
+When using [`TransitionalMarkovChainMonteCarlo`](@ref) the `prior` can automatically be constructed.
+
+    bayesinupdating(likelihood, models, tmcmc)
+    bayesianupdating(likelihood, tmcmc)
+"""
 function bayesianupdating(
     prior::Function,
     likelihood::Function,
@@ -91,6 +117,23 @@ function bayesianupdating(
     return bayesianupdating(prior, likelihood, UQModel[], mh)
 end
 
+"""
+    TransitionalMarkovChainMonteCarlo(prior, n, burnin, β, islog)
+
+    Passed to [`bayesianupdating`](@ref) to run thetransitional Markov chain Monte Carlo algorithm  with [`RandomVariable'](@ref) vector `prior`. At each transitional level, one sample will be generated from `n` independent Markov chains after `burnin` steps have been discarded. The flag `islog` specifies whether the prior and likelihood functions passed to the  [`bayesianupdating`](@ref) method are already  given as logarithms.
+
+Alternative constructors
+
+```julia
+    TransitionalMarkovChainMonteCarlo(prior, n, burnin, β)  # `islog` = true
+     TransitionalMarkovChainMonteCarlo(prior, n, burnin)    # `β` = 0.2,  `islog` = true
+```
+
+# References
+
+[chingTransitionalMarkovChain2007](@cite)
+
+"""
 struct TransitionalMarkovChainMonteCarlo <: AbstractBayesianMethod # Transitional Markov Chain Monte Carlo
     prior::Vector{RandomVariable}
     n::Int

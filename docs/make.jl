@@ -37,6 +37,7 @@ makedocs(;
             "ResponseSurface" => "api/responsesurface.md",
             "PolyharmonicSpline" => "api/polyharmonicspline.md",
             "Simulations" => "api/simulations.md",
+            "Bayesian Updating" => "api/bayesianupdating.md",
             "SlurmInterface" => "api/slurm.md",
         ],
         "References" => "references.md",

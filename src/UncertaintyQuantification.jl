@@ -39,6 +39,16 @@ abstract type Copula <: UQType end
 abstract type AbstractMonteCarlo end
 abstract type AbstractQuasiMonteCarlo <: AbstractMonteCarlo end
 
+"""
+    AbstractBayesianMethod
+
+Subtypes are used to dispatch to the differenct MCMC methods in [`bayesianupdating`](@ref).
+
+Subtypes are:
+
+- [`SingleComponentMetropolisHastings`](@ref)
+- [`TransitionalMarkovChainMonteCarlo`](@ref)
+"""
 abstract type AbstractBayesianMethod end
 abstract type AbstractDesignOfExperiments end
 
