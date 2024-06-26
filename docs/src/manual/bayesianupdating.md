@@ -100,6 +100,7 @@ The final optional argument `islog=true` can be omitted when passing the log-lik
 ```@example metropolis
 
 mh_samples, α   = bayesianupdating(logprior, loglikelihood, mh)
+return nothing # hide
 ```
 
 The following figure shows a histogram plot of the samples returned by the Metropolis-Hastings algorithm. For comparison, we also plot the analytical posterior distribution obtained using conjugate priors [raiffaAppliedStatisticalDecision1961](@cite).
@@ -152,3 +153,48 @@ scatter(mh_samples.x, mh_samples.y; lim=[-2, 2], label="MH")
 By using a scatter plot we can clearly see, that the MH algorithm has converged to only one of the two peaks in the bimodial target distribution. In fact, this is a known weakness of the MH algorithm. However, there are a number of alternative MCMC methods that aim to solve this problem. One of these methods, known as Transitional Markov Chain Monte Carlo [chingTransitionalMarkovChain2007](@cite), will be presented next.
 
 ### Transitional Markov Chain Monte Carlo
+
+The Transitional Markov Chain Monte Carlo (TMCMC) method [chingTransitionalMarkovChain2007](@cite) is an extension of the MH algorithm where instead of directly sampling a complex posterior distribution, samples are obtained from a series of simpler **transitional** distributions. The samples are obtained from independent single-step Markov Chains. The transitional distributions are defined as
+
+```math
+    P^j \propto P(Y|\theta)^{\beta_j} \cdot P(\theta),
+```
+
+where $j \in \{1,\lodts,m\}$ is the number of the transition step and $\beta_j$ is a tempering parameter with $\beta_1 < \cdots, \beta_m =1$. This enables a slow transition from the prior to the posterior distribution. An important part of the TMCMC algorithm is the selection of the tempering parameter at each level to ensure the transition is smooth and gradual. In the original introduction of the algorithm the authors suggest choosing the parameter such that a coefficient of variation of 100% is maintained in the likelihood $P(Y\theta_i)^{\beta_j-\\beta_{j-1}}$. At each level $j$ the starting points for the independent Markov Chains are randomly samples (with replacement) from the current set of samples using statistical weights
+
+```math
+w(\theta_i) = \frac{P(Y|\theta_i)^{\beta_j-\beta_{j-1}}}{\sum_{i=1}^N P(Y|\theta_i)^{\beta_j-\beta_{j-1}}}.
+```
+
+The complete TMCMC algorithm can be summarized as
+
+1. Set $j=0$ and $beta_j=0$. Saple $\theta_i \sim P(\theta).
+2. Set $j = j+1$.
+3. Compute the next tempering parameter $\beta_j$.
+4. Determine the weights $w(\theta_i)$.
+5. Generate a single-step Markov chain for each $\theta_i$.
+6. Repeat steps (2) to (5) until (and including) $(\beta_j=1)$.
+
+We now return to the bimodial example, this time using the TMCMC algorithm to obtain the samples. In order to apply a different MCMC algorithm we only need to construct a `TransitionalMarkovChainMonteCarlo` object and pass it to the `bayesianupdating` method. The definition of prior and likelihood remains the same. In difference to the `SingleComponentMetropolisHastings` the log evidence is returned instead of the acceptance rate.
+
+```@example tmcmc
+
+tmcmc = TransitionalMarkovChainMonteCarlo(RandomVariable.(Uniform(-2,2), [:x, :y]), n, burnin)
+
+tmcmc_samples, S = bayesianupdating(logprior, loglikelihood, tmcmc)
+
+scatter(tmcmc_samples.x, tmcmc_samples.y; lim=[-2, 2], label="TMCMC")
+```
+
+The resulting scatter plot of the samples shows how TMCMC is able to sample both peaks of the bimodal target distribution. The standard implementation of TMCMC uses a multivariate Gaussian proposal distribution centred at each $\theta_i$ with covariance matrix $\Sigma$ estimated from the current likelihood scaled by a factor $\beta^2$. This scaling factor defaults to $0.2$ as suggested by the authors, but can optionally be passed to the constructor as a fourth argument. Application of different MCMC Algorithms nested in the TMCMC give rise to variants of the algorithm. For example, it is possible to use the previously introduced `SingleComponentMetropolisHastings` resulting in `SingleComponentTransitionalMarkovChainMonteCarlo`.
+
+!!! note "Note"
+    `SingleComponentTransitionalMarkovChainMonteCarlo` is currently not available but planned for implementation.
+
+For convenience, the prior can be automatically constructed from the random variables passed to `TransitionalMarkovChainMonteCarlo`.
+
+```julia
+tmcmc = TransitionalMarkovChainMonteCarlo(RandomVariable.(Uniform(-2,2), [:x, :y]), n, burnin)
+
+tmcmc_samples, S = bayesianupdating(loglikelihood, tmcmc)
+```
