@@ -28,6 +28,7 @@ makedocs(;
         ],
         "Examples" => [
             "Metamodels" => "examples/metamodels.md",
+            "Bayesian Updating" => "examples/bayesianupdating.md",
             "High Performance Computing" => "examples/hpc.md",
         ],
         "API" => [

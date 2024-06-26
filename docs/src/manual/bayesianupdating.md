@@ -198,3 +198,9 @@ tmcmc = TransitionalMarkovChainMonteCarlo(RandomVariable.(Uniform(-2,2), [:x, :y
 
 tmcmc_samples, S = bayesianupdating(loglikelihood, tmcmc)
 ```
+
+## Bayesian Model Updating
+
+When one or more models are evaluated in order to compute the likelihood function for Bayesian updating the procedure is sometimes referred to as Bayesian *model* updating. In *UncertaintyQuantification.jl*, [`UQModel`](@ref)s can be provided to the [`bayesianupdating`](@ref) method. These will be executed before the likelihood is evaluated and the outputs of the models will be available in the `DataFrame` inside the likelihood function. There is no restriction on the type of [`UQModel`](@ref) used. For example, it is possible to use an [`ExternalModel`](@ref) and call an external solver.
+
+For a complete example refer to the [Inverse eigenvalue problem](@ref).
