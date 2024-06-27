@@ -1,6 +1,7 @@
 module UncertaintyQuantification
 
 using Bootstrap
+using CovarianceEstimation
 using DataFrames
 using Dates
 using Dierckx
@@ -38,11 +39,23 @@ abstract type Copula <: UQType end
 abstract type AbstractMonteCarlo end
 abstract type AbstractQuasiMonteCarlo <: AbstractMonteCarlo end
 
+"""
+    AbstractBayesianMethod
+
+Subtypes are used to dispatch to the differenct MCMC methods in [`bayesianupdating`](@ref).
+
+Subtypes are:
+
+- [`SingleComponentMetropolisHastings`](@ref)
+- [`TransitionalMarkovChainMonteCarlo`](@ref)
+"""
+abstract type AbstractBayesianMethod end
 abstract type AbstractDesignOfExperiments end
 
 abstract type AbstractHPCScheduler end
 
 # Types
+export AbstractBayesianMethod
 export AbstractDesignOfExperiments
 export AbstractMonteCarlo
 export AbstractQuasiMonteCarlo
@@ -54,6 +67,7 @@ export UQModel
 export UQType
 
 # Structs
+export AdaptiveMetropolisHastings
 export EmpiricalDistribution
 export BackwardFiniteDifferences
 export BoxBehnken
@@ -78,6 +92,7 @@ export LatticeRuleSampling
 export LeastSquares
 export LegendreBasis
 export LineSampling
+export SingleComponentMetropolisHastings
 export Model
 export MonteCarlo
 export ParallelModel
@@ -93,9 +108,11 @@ export Solver
 export SubSetInfinity
 export SubSetInfinityAdaptive
 export SubSetSimulation
+export TransitionalMarkovChainMonteCarlo
 export TwoLevelFactorial
 
 # Methods
+export bayesianupdating
 export calc
 export count_rvs
 export dimensions
@@ -140,6 +157,8 @@ include("models/responsesurface.jl")
 
 include("models/pce/pcebases.jl")
 include("models/pce/polynomialchaosexpansion.jl")
+
+include("modelupdating/bayesianupdating.jl")
 
 include("sensitivity/finitedifferences.jl")
 include("sensitivity/gradient.jl")

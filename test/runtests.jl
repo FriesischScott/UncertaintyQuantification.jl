@@ -25,6 +25,8 @@ include("models/pce/pcebases.jl")
 include("models/pce/polynomialchaosexpansion.jl")
 include("models/responsesurface.jl")
 
+include("modelupdating/bayesianupdating.jl")
+
 include("reliability/form.jl")
 include("reliability/probabilityoffailure.jl")
 
