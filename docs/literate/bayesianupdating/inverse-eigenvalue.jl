@@ -46,7 +46,7 @@ The "noise" terms $\epsilon_1$ and $\epsilon_2$ follow a Normal distribution wit
 |  3.58     |    0.25   |
 |  2.62     |    0.25   |
 
-The a priori knowledge of $\theta_1$ and $\theta_2$ is that they take values between 0.01 and 4. The likelihood function used for this problem is a bivariate Gaussian function with a covariance matrix $\begin{bmatrix} \sigma_1 & 0 \\ 0 & \sigma_2 \end{bmatrix}$, with off-diagonal terms equal to 0 and the diagonal terms corresponding to the standard deviation of the respective noise terms.
+The a priori knowledge of $\theta_1$ and $\theta_2$ is that they take values between 0.01 and 4. The likelihood function used for this problem is a bivariate Gaussian function with a covariance matrix $\begin{bmatrix} \sigma_1^2 & 0 \\ 0 & \sigma_2^2 \end{bmatrix}$, with off-diagonal terms equal to 0 and the diagonal terms corresponding to the variances of the respective noise terms.
 
 ```math
 P(\lambda|\theta) \propto \exp \left[-\frac{1}{2}\sum_{i=1}^2\sum_{n=1}^{15} {\left(\frac{\lambda_{i,n}^{data}-\lambda_i^{model}}{\sigma_i}\right)}^2\right]
