@@ -9,26 +9,35 @@ function probability_of_failure(
     imprecise_inputs = filter(x -> isa(x, ImpreciseUQInput), inputs)
     precise_inputs = filter(x -> isa(x, PreciseUQInput), inputs)
 
-    function montecarlo_pf(x)
+    function pf(x)
         imprecise_inputs_x = map_to_precise_inputs(x, imprecise_inputs)
         mc_inputs = [precise_inputs..., imprecise_inputs_x...]
         mc_pf, _, _ = probability_of_failure(models, performance, mc_inputs, sim)
         return mc_pf
     end
 
-    lb, ub = bounds(inputs)
+    function pfmin(x)
+        return (true, true, [pf(x)])
+    end
+
+    function pfmax(x)
+        return (true, true, [-pf(x)])
+    end
+
+    lb, ub = UncertaintyQuantification.bounds(inputs)
     x0 = (lb .+ ub) ./ 2
 
-    result_lb = optimize(montecarlo_pf, x0, ParticleSwarm(float.(lb), float.(ub), 4))
-    @show result_lb
+    problem_min = NomadProblem(length(x0), 1, ["OBJ"], pfmin ; lower_bound=float.(lb), upper_bound=float.(ub))
+    problem_min.options.display_degree = 0
 
-    result_ub = optimize(
-        x -> -montecarlo_pf(x), x0, ParticleSwarm(float.(lb), float.(ub), 4)
-    )
+    problem_max = NomadProblem(length(x0), 1, ["OBJ"], pfmax ; lower_bound=float.(lb), upper_bound=float.(ub))
+    problem_max.options.display_degree = 0
 
-    pf_lb = result_lb.minimum
+result_lb = solve(problem_min, x0)
+result_ub = solve(problem_max, x0)
 
-    pf_ub = -result_ub.minimum
+    pf_lb = result_lb.bbo_best_feas[1]
+    pf_ub = -result_ub.bbo_best_feas[1]
 
     if pf_lb == pf_ub
         return pf_ub

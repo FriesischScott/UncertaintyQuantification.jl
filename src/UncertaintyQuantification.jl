@@ -12,8 +12,8 @@ using Formatting
 using KernelDensity
 using LinearAlgebra
 using Mustache
+using NOMAD
 using PRIMA
-using Optim
 using Primes
 using QuasiMonteCarlo
 using Random
