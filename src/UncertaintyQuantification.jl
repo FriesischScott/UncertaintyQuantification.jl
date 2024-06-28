@@ -11,9 +11,8 @@ using FiniteDifferences
 using Formatting
 using KernelDensity
 using LinearAlgebra
+using MeshAdaptiveDirectSearch
 using Mustache
-using NOMAD
-using PRIMA
 using Primes
 using QuasiMonteCarlo
 using Random

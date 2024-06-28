@@ -50,7 +50,7 @@ function ProbabilityBox{T}(
 end
 
 function map_to_precise(
-    x::Vector{<:Real}, pbox::ProbabilityBox{T}
+    x::AbstractVector{<:Real}, pbox::ProbabilityBox{T}
 ) where {T<:UnivariateDistribution}
     intervals = filter(x -> isa(x, Interval), pbox.parameters)
     if !all(in.(x, intervals))

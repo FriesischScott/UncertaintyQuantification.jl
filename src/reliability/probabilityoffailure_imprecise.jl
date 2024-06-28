@@ -16,28 +16,29 @@ function probability_of_failure(
         return mc_pf
     end
 
-    function pfmin(x)
-        return (true, true, [pf(x)])
-    end
+    lb, ub = float.(bounds(inputs))
+    x0 = middle.(lb, ub)
 
-    function pfmax(x)
-        return (true, true, [-pf(x)])
-    end
+    result_lb = minimize(
+        isa(sim, FORM) ? OrthoMADS(length(x0)) : RobustOrthoMADS(length(x0)),
+        x -> pf(x),
+        x0;
+        lowerbound=lb,
+        upperbound=ub,
+        min_mesh_size=1e-13,
+    )
 
-    lb, ub = UncertaintyQuantification.bounds(inputs)
-    x0 = (lb .+ ub) ./ 2
+    result_ub = minimize(
+        isa(sim, FORM) ? OrthoMADS(length(x0)) : RobustOrthoMADS(length(x0)),
+        x -> -pf(x),
+        x0;
+        lowerbound=lb,
+        upperbound=ub,
+        min_mesh_size=1e-13,
+    )
 
-    problem_min = NomadProblem(length(x0), 1, ["OBJ"], pfmin ; lower_bound=float.(lb), upper_bound=float.(ub))
-    problem_min.options.display_degree = 0
-
-    problem_max = NomadProblem(length(x0), 1, ["OBJ"], pfmax ; lower_bound=float.(lb), upper_bound=float.(ub))
-    problem_max.options.display_degree = 0
-
-result_lb = solve(problem_min, x0)
-result_ub = solve(problem_max, x0)
-
-    pf_lb = result_lb.bbo_best_feas[1]
-    pf_ub = -result_ub.bbo_best_feas[1]
+    pf_lb = result_lb.f
+    pf_ub = -result_ub.f
 
     if pf_lb == pf_ub
         return pf_ub
@@ -68,9 +69,9 @@ function probability_of_failure(
             df = DataFrame()
         end
 
-        bounds = sample.(imprecise_inputs)
-        lb = getindex.(bounds, 1)
-        ub = getindex.(bounds, 2)
+        intervals = sample.(imprecise_inputs)
+        lb = float.(getindex.(intervals, 1))
+        ub = float.(getindex.(intervals, 2))
 
         function g(x)
             inner_sample = hcat(df, DataFrame(imprecise_names .=> x))
@@ -79,22 +80,32 @@ function probability_of_failure(
             return performance(inner_sample)[1]
         end
 
-        x0 = (lb .+ ub) ./ 2
-        rhobeg = minimum(ub .- lb) ./ 4
+        x0 = middle.(lb, ub)
 
-        _, info_min = prima(g, x0; xl=lb, xu=ub, rhobeg=rhobeg)
-        g_lb = info_min.fx
-        _, info_max = prima(x -> -g(x), x0; xl=lb, xu=ub, rhobeg=rhobeg)
-        g_ub = -info_max.fx
+        result_lb = minimize(
+            OrthoMADS(length(x0)),
+            x -> g(x),
+            x0;
+            lowerbound=lb,
+            upperbound=ub,
+            min_mesh_size=1e-13,
+        )
 
-        return [g_lb, g_ub]
+        result_ub = minimize(
+            OrthoMADS(length(x0)),
+            x -> -g(x),
+            x0;
+            lowerbound=lb,
+            upperbound=ub,
+            min_mesh_size=1e-13,
+        )
+
+        return [result_lb.f, -result_ub.f]
     end
 
-    left_bound_failures = getindex.(g_intervals, 1) .< 0
-    pf_ub = sum(left_bound_failures) / n
+    pf_ub = sum(getindex.(g_intervals, 1) .< 0) / n
 
-    both_bound_failures = getindex.(g_intervals[left_bound_failures], 2) .< 0
-    pf_lb = sum(both_bound_failures) / n
+    pf_lb = sum(getindex.(g_intervals, 2) .< 0) / n
 
     if pf_lb == pf_ub
         return pf_ub
@@ -114,7 +125,7 @@ end
 
 function map_to_precise_inputs(x::AbstractVector, inputs::AbstractVector{<:UQInput})
     precise_inputs = PreciseUQInput[]
-    params = copy(x)
+    params = collect(x)
     for i in inputs
         if isa(i, Interval)
             push!(precise_inputs, map_to_precise(popfirst!(params), i))
