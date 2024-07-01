@@ -6,7 +6,7 @@ using Literate
 Groups all files from a directory into a temp file and creates one markdown-file (saved to ./docs/src/examples) using Literate.jl.
 
 """
-function fuseConvert(r::String, dir::String)
+function fuseConvert(r::String, dir::String; documenter::Bool=true)
     path = tempname(; cleanup=false)
 
     # merge all example files of a subfolder into one
@@ -18,15 +18,17 @@ function fuseConvert(r::String, dir::String)
         end
     end
 
-    Literate.markdown(path, "./docs/src/examples"; documenter=true, name=dir)
+    Literate.markdown(path, "./docs/src/examples"; documenter=documenter, name=dir)
 
     rm(path) # delete the temporary file
 
     #remove @meta block created by literate
-    example_file = joinpath("./docs/src/examples", "$dir.md")
-    lines = readlines(example_file; keep=true)
-    open(example_file, "w") do file
-        write.(file, lines[5:end])
+    if documenter
+        example_file = joinpath("./docs/src/examples", "$dir.md")
+        lines = readlines(example_file; keep=true)
+        open(example_file, "w") do file
+            write.(file, lines[5:end])
+        end
     end
 
     return nothing
@@ -34,6 +36,10 @@ end
 
 for (r, d, f) in walkdir("./docs/literate/")
     for dir in d
-        fuseConvert(r, dir)
+        if dir == "hpc"
+            fuseConvert(r, dir; documenter=false)
+        else
+            fuseConvert(r, dir)
+        end
     end
 end

@@ -13,13 +13,13 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: julia-actions/setup-julia@latest
+      - uses: actions/checkout@v4
+      - uses: julia-actions/setup-julia@v2
         with:
-          version: "1.9"
+          version: '1.10'
       - name: Install dependencies
         run: julia --project=docs/ -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'
       - name: Check demo files
         run: |
           julia --project=docs/ docs/literateDemo.jl;
-          if [[ $(git diff demo) ]] ; then exit 1; else exit 0; fi
+          if [[ `git status --porcelain` ]] ; then exit 1; else exit 0; fi
