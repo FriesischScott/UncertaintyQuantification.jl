@@ -1,4 +1,4 @@
-struct FORM
+struct FORM <: AbstractSimulation
     n::Integer
     tol::Real
     fdm::FiniteDifferencesMethod
