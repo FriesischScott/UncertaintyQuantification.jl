@@ -1,18 +1,26 @@
 ## 1st Method -  External: Global Opt ; Internal: Sampling
+struct DoubleLoop
+    sim::AbstractSimulation
+end
+
+struct IntervalMonteCarlo
+    n::Int
+end
+
 function probability_of_failure(
     models::Union{Vector{<:UQModel},UQModel},
     performance::Function,
     inputs::Union{Vector{<:UQInput},UQInput},
-    sim::AbstractSimulation,
+    dl::DoubleLoop,
 )
     inputs = wrap(inputs)
     imprecise_inputs = filter(x -> isa(x, ImpreciseUQInput), inputs)
-    precise_inputs = filter(x -> isa(x, PreciseUQInput), inputs)
+    precise_inputs = filter(x -> !isa(x, ImpreciseUQInput), inputs)
 
     function pf(x)
         imprecise_inputs_x = map_to_precise_inputs(x, imprecise_inputs)
         mc_inputs = [precise_inputs..., imprecise_inputs_x...]
-        mc_pf, _, _ = probability_of_failure(models, performance, mc_inputs, sim)
+        mc_pf, _, _ = probability_of_failure(models, performance, mc_inputs, dl.sim)
         return mc_pf
     end
 
@@ -20,7 +28,7 @@ function probability_of_failure(
     x0 = middle.(lb, ub)
 
     result_lb = minimize(
-        isa(sim, FORM) ? OrthoMADS(length(x0)) : RobustOrthoMADS(length(x0)),
+        isa(dl.sim, FORM) ? OrthoMADS(length(x0)) : RobustOrthoMADS(length(x0)),
         x -> pf(x),
         x0;
         lowerbound=lb,
@@ -29,7 +37,7 @@ function probability_of_failure(
     )
 
     result_ub = minimize(
-        isa(sim, FORM) ? OrthoMADS(length(x0)) : RobustOrthoMADS(length(x0)),
+        isa(dl.sim, FORM) ? OrthoMADS(length(x0)) : RobustOrthoMADS(length(x0)),
         x -> -pf(x),
         x0;
         lowerbound=lb,
@@ -52,17 +60,17 @@ function probability_of_failure(
     models::Union{Vector{<:UQModel},UQModel},
     performance::Function,
     inputs::Union{Vector{<:UQInput},UQInput},
-    n::Integer,
+    imc::IntervalMonteCarlo,
 )
     inputs = wrap(inputs)
     imprecise_inputs = filter(x -> isa(x, ImpreciseUQInput), inputs)
     precise_inputs = convert(
-        Vector{PreciseUQInput}, filter(x -> isa(x, PreciseUQInput), inputs)
+        Vector{UQInput}, filter(x -> !isa(x, ImpreciseUQInput), inputs)
     )
 
     imprecise_names = names(imprecise_inputs)
 
-    g_intervals = map(1:n) do _
+    g_intervals = map(1:(imc.n)) do _
         if !isempty(precise_inputs)
             df = sample(precise_inputs)
         else
@@ -124,7 +132,7 @@ function bounds(inputs::AbstractVector{<:UQInput})
 end
 
 function map_to_precise_inputs(x::AbstractVector, inputs::AbstractVector{<:UQInput})
-    precise_inputs = PreciseUQInput[]
+    precise_inputs = UQInput[]
     params = collect(x)
     for i in inputs
         if isa(i, Interval)

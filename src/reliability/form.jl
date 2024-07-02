@@ -15,7 +15,7 @@ end
 function probability_of_failure(
     models::Union{Vector{<:UQModel},UQModel},
     performance::Function,
-    inputs::Union{Vector{<:PreciseUQInput},PreciseUQInput},
+    inputs::Union{Vector{<:UQInput},UQInput},
     sim::FORM,
 )
     models, inputs = wrap.([models, inputs])

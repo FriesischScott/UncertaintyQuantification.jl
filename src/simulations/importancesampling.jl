@@ -10,7 +10,7 @@ struct ImportanceSampling <: AbstractSimulation
     end
 end
 
-function sample(inputs::Vector{<:PreciseUQInput}, sim::ImportanceSampling)
+function sample(inputs::Vector{<:UQInput}, sim::ImportanceSampling)
     β = sim.β
     dp = DataFrame([sim.dp])
     to_standard_normal_space!(inputs, dp)

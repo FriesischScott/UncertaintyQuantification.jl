@@ -26,17 +26,14 @@ import Base: rand, names, copy, run, length
 import Distributions: cdf, quantile, pdf, logpdf, minimum, maximum, insupport, mean, var
 import Statistics: mean, var
 
-abstract type UQType end
-
-abstract type UQInput <: UQType end
-abstract type PreciseUQInput <: UQInput end
+abstract type UQInput end
+abstract type DeterministicUQInput <: UQInput end
 abstract type ImpreciseUQInput <: UQInput end
-abstract type UQModel <: UQType end
+abstract type RandomUQInput <: UQInput end
 
-abstract type DeterministicUQInput <: PreciseUQInput end
-abstract type RandomUQInput <: PreciseUQInput end
+abstract type UQModel end
 
-abstract type Copula <: UQType end
+abstract type Copula end
 
 abstract type AbstractSimulation end
 abstract type AbstractMonteCarlo <: AbstractSimulation end
@@ -66,11 +63,9 @@ export AbstractSimulation
 export Copula
 export DeterministicUQInput
 export RandomUQInput
-export PreciseUQInput
 export ImpreciseUQInput
 export UQInput
 export UQModel
-export UQType
 
 # Structs
 export AdaptiveMetropolisHastings
@@ -79,6 +74,7 @@ export BackwardFiniteDifferences
 export BoxBehnken
 export CentralComposite
 export CentralFiniteDifferences
+export DoubleLoop
 export ExternalModel
 export SlurmInterface
 export Extractor
@@ -93,6 +89,7 @@ export HaltonSampling
 export HermiteBasis
 export ImportanceSampling
 export Interval
+export IntervalMonteCarlo
 export JointDistribution
 export LatinHypercubeSampling
 export LatticeRuleSampling

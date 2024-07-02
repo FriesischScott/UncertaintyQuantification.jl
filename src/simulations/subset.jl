@@ -72,7 +72,7 @@ struct SubSetInfinity <: AbstractSubSetSimulation
     end
 end
 
-function sample(inputs::Vector{<:PreciseUQInput}, sim::AbstractSubSetSimulation)
+function sample(inputs::Vector{<:UQInput}, sim::AbstractSubSetSimulation)
     random_inputs = filter(i -> isa(i, RandomUQInput), inputs)
     deterministic_inputs = filter(i -> isa(i, DeterministicUQInput), inputs)
 
@@ -96,7 +96,7 @@ Implementation of: Papaioannou, Iason, et al. "MCMC algorithms for subset simula
 
 Defines the properties of a Subset-∞ adaptive where `n` are the number of samples per level,
 `target` is the target probability of failure at each level, `levels` is the maximum number
-of levels, `λ` (λ = 1 recommended) is the initial scaling parameter, and `Na` is the number simulations that will be run before `λ` 
+of levels, `λ` (λ = 1 recommended) is the initial scaling parameter, and `Na` is the number simulations that will be run before `λ`
 is updated. Note that Na must be a multiple of n * target: `mod(ceil(n * target), Na) == 0)`. The initial variance of the proposal distribution is `s`.
 
 
@@ -167,7 +167,7 @@ end
 function probability_of_failure(
     models::Union{Vector{<:UQModel},UQModel},
     performancefunction::Function,
-    inputs::Union{Vector{<:PreciseUQInput},PreciseUQInput},
+    inputs::Union{Vector{<:UQInput},UQInput},
     sim::AbstractSubSetSimulation,
 )
     samples = [sample(inputs, sim)]
@@ -245,7 +245,7 @@ function nextlevelsamples(
     threshold::Real,
     models::Union{Vector{<:UQModel},UQModel},
     performancefunction::Function,
-    inputs::Union{Vector{<:PreciseUQInput},PreciseUQInput},
+    inputs::Union{Vector{<:UQInput},UQInput},
     sim::SubSetSimulation,
 )
     nextlevelsamples = [samples]
@@ -282,7 +282,7 @@ function nextlevelsamples(
 
         α_MCMC[i] = mean(α_accept_per_dim)
 
-        α_accept = any(α_accept_per_dim, dims = 2)[:]
+        α_accept = any(α_accept_per_dim; dims=2)[:]
 
         to_physical_space!(inputs, chainsamples)
 
@@ -324,7 +324,7 @@ function nextlevelsamples(
     threshold::Real,
     models::Union{Vector{<:UQModel},UQModel},
     performancefunction::Function,
-    inputs::Union{Vector{<:PreciseUQInput},PreciseUQInput},
+    inputs::Union{Vector{<:UQInput},UQInput},
     sim::SubSetInfinity,
 )
     samples_per_seed = Int64(floor(sim.n / length(performance)))
