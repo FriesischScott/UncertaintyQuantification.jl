@@ -41,6 +41,7 @@ makedocs(;
             "Bayesian Updating" => "api/bayesianupdating.md",
             "SlurmInterface" => "api/slurm.md",
         ],
+        "Benchmarks" => ["Subset Simulation" => "benchmarks/subset.md"],
         "References" => "references.md",
     ],
     warnonly=true,
