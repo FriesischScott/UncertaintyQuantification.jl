@@ -118,7 +118,7 @@ function reverse_quantile(pbox::ProbabilityBox{T}, x::Interval) where {T<:Univar
     
     error = abs(u_hi - u_lo)
     if error >10^-6
-        @warn("When inverting the quantile function for p-box $(pbox.name), the error was $(error)")
+        @warn("When inverting the quantile function for p-box $(pbox.name), the error was $(error), greater than the allowed tolerance of 10^-6")
     end
     return mean([u_lo, u_hi])   # Return midpoint
 end
