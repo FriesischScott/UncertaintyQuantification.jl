@@ -35,3 +35,23 @@ end
 displacement = Model(sdof, :d)
 
 inputs = [ex, m, k, c]
+
+# samples = sample(inputs, 10)
+
+# evaluate!(displacement, samples)
+
+# p = plot()
+
+# for i in 1:size(samples, 1)
+#     t = range(ex.time[1], ex.time[end], length(samples[i, :d]))
+
+#     plot!(p, t, samples[i, :d])
+# end
+
+function g(df)
+    return map(eachrow(df)) do s
+        1.5 - maximum(abs.(s.d))
+    end
+end
+
+pf, σ, samples, = probability_of_failure([displacement], g, inputs, MonteCarlo(100000))

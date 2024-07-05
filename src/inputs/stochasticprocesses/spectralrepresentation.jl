@@ -1,4 +1,4 @@
-abstract type AbstractStochasticProcess <: UQInput end
+abstract type AbstractStochasticProcess <: RandomUQInput end
 
 struct SpectralRepresentation <: AbstractStochasticProcess
     psd::AbstractPowerSpectralDensity
@@ -7,9 +7,7 @@ struct SpectralRepresentation <: AbstractStochasticProcess
 end
 
 function sample(sr::SpectralRepresentation, n::Integer=1)
-    return DataFrame(
-        sr.name => map(collect, eachcol(rand(Uniform(0, 2π), (length(sr.psd.ω), n))))
-    )
+    return DataFrame(names(sr) .=> eachcol(rand(Uniform(0, 2π), (n, length(sr.psd.ω)))))
 end
 
 function evaluate(sr::SpectralRepresentation, ϕ::AbstractVector{<:Real})
@@ -30,12 +28,34 @@ function (sr::SpectralRepresentation)(ϕ::AbstractVector{<:Real})
     return evaluate(sr, ϕ)
 end
 
+function evaluate(sr::SpectralRepresentation, row::DataFrameRow)
+    ϕ = collect(row[[Symbol("$(sr.name)_$i") for i in 1:length(sr.psd.ω)]])
+
+    return evaluate(sr, ϕ)
+end
+
+function (sr::SpectralRepresentation)(row::DataFrameRow)
+    return evaluate(sr, row)
+end
+
 function to_standard_normal_space!(sr::SpectralRepresentation, df::DataFrame)
-    df[!, sr.name] = map(p -> quantile.(Normal(), cdf.(Uniform(0, 2π), p)), df[:, sr.name])
+    for v in names(sr)
+        df[!, v] = quantile.(Normal(), cdf.(Uniform(0, 2π), df[:, v]))
+    end
     return nothing
 end
 
 function to_physical_space!(sr::SpectralRepresentation, df::DataFrame)
-    df[!, sr.name] = map(p -> quantile.(Uniform(0, 2π), cdf.(Normal(), p)), df[:, sr.name])
+    for v in names(sr)
+        df[!, v] = quantile.(Uniform(0, 2π), cdf.(Normal(), df[:, v]))
+    end
     return nothing
+end
+
+function dimensions(sr::SpectralRepresentation)
+    return length(sr.psd.ω)
+end
+
+function names(sr::SpectralRepresentation)
+    return [Symbol("$(sr.name)_$i") for i in 1:dimensions(sr)]
 end

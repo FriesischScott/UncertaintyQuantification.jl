@@ -29,7 +29,7 @@ function names(inputs::Vector{<:UQInput})
     for i in inputs
         if i isa Parameter || i isa RandomVariable
             push!(_names, i.name)
-        elseif i isa JointDistribution
+        elseif i isa JointDistribution || i isa SpectralRepresentation
             append!(_names, names(i))
         end
     end
