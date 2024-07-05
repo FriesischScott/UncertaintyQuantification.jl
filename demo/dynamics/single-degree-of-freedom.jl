@@ -16,7 +16,7 @@ ex = SpectralRepresentation(cp, collect(0:0.02:10), :ex)
 
 function sdof(df)
     return map(eachrow(df)) do s
-        excitation = Spline1D(ex.time, ex(s.ex); k=1)
+        excitation = Spline1D(ex.time, ex(s); k=1)
 
         function f(dy, y, _, t)
             dy[1] = y[2]
@@ -54,4 +54,10 @@ function g(df)
     end
 end
 
-pf, σ, samples, = probability_of_failure([displacement], g, inputs, MonteCarlo(100000))
+mc_pf, mc_std, mc_samples, = probability_of_failure(
+    [displacement], g, inputs, MonteCarlo(10000)
+)
+
+ss_pf, ss_std, ss_samples = probability_of_failure(
+    [displacement], g, inputs, SubSetSimulation(2000, 0.1, 10, Uniform(-0.5, 0.5))
+)
