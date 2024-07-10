@@ -111,9 +111,9 @@ function probability_of_failure(
         return [result_lb.f, -result_ub.f]
     end
 
-    pf_ub = sum(getindex.(g_intervals, 1) .< 0) / n
+    pf_ub = sum(getindex.(g_intervals, 1) .< 0) / imc.n
 
-    pf_lb = sum(getindex.(g_intervals, 2) .< 0) / n
+    pf_lb = sum(getindex.(g_intervals, 2) .< 0) / imc.n
 
     if pf_lb == pf_ub
         return pf_ub
