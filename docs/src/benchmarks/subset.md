@@ -2,7 +2,7 @@
 
 ## Subset simulation
 
-The implemented subset simulation algorithms [`SubSetSimulation`](@ref)(using component-wise MCMC), [`SubSetInfinity`](@ref)(conditional sampling MCMC) and [`SubSetInfinityAdaptive`](@ref)(adaptive conditional sampling MCMC), work efficiently in high dimensions. This benchmark shows how these algorithms scale with increasing number of dimension `N` and increasingly smaller target probability of failure `pf_target`.
+The implemented subset simulation algorithms [`SubSetSimulation`](@ref)(using Metropolis-Hastings MCMC), [`SubSetInfinity`](@ref)(conditional sampling MCMC) and [`SubSetInfinityAdaptive`](@ref)(adaptive conditional sampling MCMC), work efficiently in high dimensions. This benchmark shows how these algorithms scale with increasing number of dimension `N` and increasingly smaller target probability of failure `pf_target`.
 
 ## Example function
 
@@ -65,16 +65,22 @@ end
 For this benchmark, the probability of failure will be estimated using all available variants of Subset simulation
 
 ```julia
-simulation_method_1 = SubSetSimulation(2000, 0.1, 20, Uniform(-0.5, 0.5))
-simulation_method_2 = SubSetInfinity(2000, 0.1, 20, 0.5)
-simulation_method_3 = SubSetInfinityAdaptive(2000, 0.1, 20, 200)
-
-pf_1, std_1, samples_1 = probability_of_failure(f, g, inputs, simulation_method_1)
-pf_2, std_2, samples_2 = probability_of_failure(f, g, inputs, simulation_method_2)
-pf_3, std_3, samples_3 = probability_of_failure(f, g, inputs, simulation_method_3)
-
-println("True pf: $pf_target | SS: $pf_1 ± $(1.96 * std_1) | SS_inf: $pf_2 ± $(1.96 * std_2) | SS_inf_a: $pf_3 ± $(1.96 * std_3)")
+subset_MH = SubSetSimulation(2000, 0.1, 20, Uniform(-0.5, 0.5))
+subset_CS = SubSetInfinity(2000, 0.1, 20, 0.5)
+subset_aCS = SubSetInfinityAdaptive(2000, 0.1, 20, 200)
 ```
 
 !!! note "Monte Carlo simulation"
     Although standard Monte Carlo simulation works independently of dimension, for a target failure probability of $10^{-9}$, even with a billion $10^9$ samples it can return $p_f=0$.
+
+As a first benchmark the three subset simulation algorithms are used to solve the example problem with a fixed number of dimensions `N=200` and sample size per level `N_samples=2000` for increasingly smaller target probability of failures. The following figure shows the average estimated probabilities of failure and the standard deviation resulting from 100 independent simulation runs. Note how the variance of the estimation increases for smaller `pf` values. However, in comparison, the variance of the Metropolis-Hastings variant is higher than the variance of the conditional sampling methods.
+
+![Subset simulation for smaller pfs](../assets/subset-pf.svg)
+
+For the next benchmark, the number of dimensions remains fixed at 200 while the  number of samples is increased to estimate a target probability of failure of$0.001$.
+
+![Subset simulation with increasing samples](../assets/subset-samples.svg)
+
+The final benchmark uses the same fixed target `pf` and again keeps the number of samples constant at `2000` per level. This time, the number of dimensions is increased to raise the complexity of the problem.
+
+![Subset simulation with increasing dimensions](../assets/subset-dimensions.svg)
