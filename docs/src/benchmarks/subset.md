@@ -2,7 +2,7 @@
 
 ## Subset simulation
 
-The implemented subset simulation algorithms [`SubSetSimulation`](@ref)(using Metropolis-Hastings MCMC), [`SubSetInfinity`](@ref)(conditional sampling MCMC) and [`SubSetInfinityAdaptive`](@ref)(adaptive conditional sampling MCMC), work efficiently in high dimensions. This benchmark shows how these algorithms scale with increasing number of dimension `N` and increasingly smaller target probability of failure `pf_target`.
+The implemented subset simulation algorithms [`SubSetSimulation`](@ref) (using Metropolis-Hastings MCMC), [`SubSetInfinity`](@ref) (conditional sampling MCMC) and [`SubSetInfinityAdaptive`](@ref) (adaptive conditional sampling MCMC), work efficiently in high dimensions. This benchmark shows how these algorithms scale with increasing number of dimension `N` and increasingly smaller target probability of failure `pf_target`.
 
 ## Example function
 
@@ -23,7 +23,7 @@ where $C_N$ will be defined such that the failure probability $\mathbb{P}(g(X) \
 We can find $C_N$ analytically, depending on the chosen number of dimensions and target probability of failure
 
 ```math
-C_N = F_{\Phi_{\sqrt{N}}}^{-1}(1 - pf_{\text{target}}),
+C_N = F_{\Phi_{\sqrt{N}}}^{-1}(1 - p_{\text{target}}),
 ```
 
 where $F_{\Phi_{\sqrt{N}}}^{-1}$ is the quantile function of a Gaussian distribution, with zero mean and standard deviation `sqrt(N)`.
@@ -35,14 +35,13 @@ using UncertaintyQuantification
 
 N = 2000
 
- inputs = RandomVariable.(Normal(), [Symbol("x$i") for i in 1:N])
+inputs = RandomVariable.(Normal(), [Symbol("x$i") for i in 1:N])
 
 ```
 
 The model can be defined generalized for arbitrary dimensions by summing the columns of the `DataFrame`. Using `names(inputs)` to select the columns we can safely exclude any extra variables that might be present.
 
 ```julia
-
 f = Model(
     df -> sum(eachcol(df[:, names(inputs)])),
     :f
@@ -52,7 +51,6 @@ f = Model(
 Next, the `pf_target` and corresponding limit state are defined.
 
 ```julia
-
 pf_target = 1e-9
 
 fail_limit = quantile(Normal(0, sqrt(N)), 1 - pf_target)
@@ -77,10 +75,10 @@ As a first benchmark the three subset simulation algorithms are used to solve th
 
 ![Subset simulation for smaller pfs](../assets/subset-pf.svg)
 
-For the next benchmark, the number of dimensions remains fixed at 200 while the  number of samples is increased to estimate a target probability of failure of$0.001$.
+For the next benchmark, the number of dimensions remains fixed at 200 while the  number of samples is increased to estimate a target probability of failure of $10^{-4}$.
 
 ![Subset simulation with increasing samples](../assets/subset-samples.svg)
 
-The final benchmark uses the same fixed target `pf` and again keeps the number of samples constant at `2000` per level. This time, the number of dimensions is increased to raise the complexity of the problem.
+The final benchmark uses the same fixed target $p_{f} = 10^{-4}$ and again keeps the number of samples constant at `2000` per level. This time, the number of dimensions is increased to raise the complexity of the problem.
 
 ![Subset simulation with increasing dimensions](../assets/subset-dimensions.svg)
