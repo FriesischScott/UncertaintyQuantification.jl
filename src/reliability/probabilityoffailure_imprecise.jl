@@ -61,7 +61,7 @@ hi(x::Float64) = x
 lo(x::Float64) = x
 
 ## 2nd Method -  External: Sampling ; Internal: Global Opt
-function probability_of_failure_slicing(
+function probability_of_failure(
     models::Union{Vector{<:UQModel},UQModel},
     performance::Function,
     inputs::Union{Vector{<:UQInput},UQInput},
