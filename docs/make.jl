@@ -31,6 +31,7 @@ makedocs(;
             "Bayesian Updating" => "examples/bayesianupdating.md",
             "High Performance Computing" => "examples/hpc.md",
         ],
+        "Benchmarks" => ["Subset Simulation" => "benchmarks/subset.md"],
         "API" => [
             "Inputs" => "api/inputs.md",
             "Parameter" => "api/parameter.md",
