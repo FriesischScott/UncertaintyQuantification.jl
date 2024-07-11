@@ -1,5 +1,5 @@
 """
-	sample(inputs::Vector{<:PreciseUQInput}, n::Integer)
+	sample(inputs::Vector{<:UQInput}, n::Integer)
 
 Generates n correlated samples from a collection of inputs. Returns a DataFrame
 

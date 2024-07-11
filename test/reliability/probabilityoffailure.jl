@@ -87,46 +87,4 @@
         # 95% conf intervals estimated from 1000 runs
         @test 3.14e-11 < pf < 3.4e-10
     end
-
-    @testset "Imprecise Probabilities Simulation" begin
-        l = ProbabilityBox{Uniform}(
-            [Interval(1.75, 1.77, :a), Interval(1.78, 1.85, :b)], :l
-        ) # length
-        b = Interval(0.10, 0.14, :b) # width
-        h = RandomVariable(Normal(0.24, 0.01), :h) # height
-        μ = log(10e9^2 / sqrt(1.6e9^2 + 10e9^2))
-        σ = sqrt(log(1.6e9^2 / 10e9^2 + 1))
-        E = RandomVariable(LogNormal(μ, σ), :E) # young's modulus
-        μ = log(5000^2 / sqrt(400^2 + 5000^2))
-        σ = sqrt(log(400^2 / 5000^2 + 1))
-        P = RandomVariable(LogNormal(μ, σ), :P) # tip load
-        μ = log(600^2 / sqrt(140^2 + 600^2))
-        σ = sqrt(log(140^2 / 600^2 + 1))
-        ρ = RandomVariable(LogNormal(μ, σ), :ρ) # density
-        c = GaussianCopula([1 0.8; 0.8 1])
-        jd = JointDistribution([E, ρ], c)
-
-        inputs = [l, b, h, P, jd]
-        inertia = Model(df -> df.b .* df.h .^ 3 / 12, :I)
-        displacement = Model(
-            df ->
-                (df.ρ .* 9.81 .* df.b .* df.h .* df.l .^ 4) ./ (8 .* df.E .* df.I) .+
-                (df.P .* df.l .^ 3) ./ (3 .* df.E .* df.I),
-            :w,
-        )
-        max_displacement = 0.01
-        mc = MonteCarlo(10^6)
-        models = [inertia, displacement]
-        performance = df -> max_displacement .- df.w
-        @testset "External GO" begin
-            interval_pf = probability_of_failure(models, performance, inputs, mc)
-            @test interval_pf.lb ≈ 0.0078 atol = 0.002
-            @test interval_pf.ub ≈ 0.261 atol = 0.04
-        end
-        @testset "Internal GO" begin
-            interval_pf = probability_of_failure(models, performance, inputs, 20_000)
-            @test interval_pf.lb ≈ 0.0078 atol = 0.002
-            @test interval_pf.ub ≈ 0.261 atol = 0.04
-        end
-    end
 end

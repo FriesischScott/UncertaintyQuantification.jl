@@ -1,6 +1,7 @@
 module UncertaintyQuantification
 
 using Bootstrap
+using CovarianceEstimation
 using DataFrames
 using Dates
 using Dierckx
@@ -11,8 +12,8 @@ using FiniteDifferences
 using Formatting
 using KernelDensity
 using LinearAlgebra
+using MeshAdaptiveDirectSearch
 using Mustache
-using PRIMA
 using Primes
 using QuasiMonteCarlo
 using Random
@@ -25,27 +26,36 @@ import Base: rand, names, copy, run, length
 import Distributions: cdf, quantile, pdf, logpdf, minimum, maximum, insupport, mean, var
 import Statistics: mean, var
 
-abstract type UQType end
-
-abstract type UQInput <: UQType end
-abstract type PreciseUQInput <: UQInput end
+abstract type UQInput end
+abstract type DeterministicUQInput <: UQInput end
 abstract type ImpreciseUQInput <: UQInput end
-abstract type UQModel <: UQType end
+abstract type RandomUQInput <: UQInput end
 
-abstract type DeterministicUQInput <: PreciseUQInput end
-abstract type RandomUQInput <: PreciseUQInput end
+abstract type UQModel end
 
-abstract type Copula <: UQType end
+abstract type Copula end
 
 abstract type AbstractSimulation end
 abstract type AbstractMonteCarlo <: AbstractSimulation end
 abstract type AbstractQuasiMonteCarlo <: AbstractMonteCarlo end
 
+"""
+    AbstractBayesianMethod
+
+Subtypes are used to dispatch to the differenct MCMC methods in [`bayesianupdating`](@ref).
+
+Subtypes are:
+
+- [`SingleComponentMetropolisHastings`](@ref)
+- [`TransitionalMarkovChainMonteCarlo`](@ref)
+"""
+abstract type AbstractBayesianMethod end
 abstract type AbstractDesignOfExperiments end
 
 abstract type AbstractHPCScheduler end
 
 # Types
+export AbstractBayesianMethod
 export AbstractDesignOfExperiments
 export AbstractMonteCarlo
 export AbstractQuasiMonteCarlo
@@ -53,18 +63,18 @@ export AbstractSimulation
 export Copula
 export DeterministicUQInput
 export RandomUQInput
-export PreciseUQInput
 export ImpreciseUQInput
 export UQInput
 export UQModel
-export UQType
 
 # Structs
+export AdaptiveMetropolisHastings
 export EmpiricalDistribution
 export BackwardFiniteDifferences
 export BoxBehnken
 export CentralComposite
 export CentralFiniteDifferences
+export DoubleLoop
 export ExternalModel
 export SlurmInterface
 export Extractor
@@ -79,12 +89,14 @@ export HaltonSampling
 export HermiteBasis
 export ImportanceSampling
 export Interval
+export IntervalMonteCarlo
 export JointDistribution
 export LatinHypercubeSampling
 export LatticeRuleSampling
 export LeastSquares
 export LegendreBasis
 export LineSampling
+export SingleComponentMetropolisHastings
 export Model
 export MonteCarlo
 export ParallelModel
@@ -101,9 +113,11 @@ export Solver
 export SubSetInfinity
 export SubSetInfinityAdaptive
 export SubSetSimulation
+export TransitionalMarkovChainMonteCarlo
 export TwoLevelFactorial
 
 # Methods
+export bayesianupdating
 export calc
 export count_rvs
 export dimensions
@@ -153,6 +167,8 @@ include("models/responsesurface.jl")
 
 include("models/pce/pcebases.jl")
 include("models/pce/polynomialchaosexpansion.jl")
+
+include("modelupdating/bayesianupdating.jl")
 
 include("sensitivity/finitedifferences.jl")
 include("sensitivity/gradient.jl")

@@ -29,9 +29,11 @@ include("models/pce/polynomialchaosexpansion.jl")
 include("models/responsesurface.jl")
 
 include("imprecise_probability/interval_propagation.jl")
+include("modelupdating/bayesianupdating.jl")
 
 include("reliability/form.jl")
 include("reliability/probabilityoffailure.jl")
+include("reliability/probabilityoffailure_imprecise.jl")
 
 include("sensitivity/gradient.jl")
 include("sensitivity/sobolindices.jl")

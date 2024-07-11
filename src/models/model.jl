@@ -68,15 +68,27 @@ function evaluate_imprecise!(m::Model, df::DataFrame)
             return m.func(df_run)[1]
         end
 
-        x0 = (lb .+ ub) ./ 2
-        rhobeg = minimum(ub .- lb) ./ 4
+        x0 = middle.(lb, ub)
 
-        _, info_min = prima(f, x0; xl=lb, xu=ub, rhobeg=rhobeg)
-        g_lb = info_min.fx
-        _, info_max = prima(x -> -f(x), x0; xl=lb, xu=ub, rhobeg=rhobeg)
-        g_ub = -info_max.fx
+        result_lb = minimize(
+            OrthoMADS(length(x0)),
+            x -> f(x),
+            x0;
+            lowerbound=lb,
+            upperbound=ub,
+            min_mesh_size=1e-13,
+        )
 
-        g_intervals[i] = Interval(g_lb, g_ub, m.name)
+        result_ub = minimize(
+            OrthoMADS(length(x0)),
+            x -> -f(x),
+            x0;
+            lowerbound=lb,
+            upperbound=ub,
+            min_mesh_size=1e-13,
+        )
+
+        g_intervals[i] = Interval(result_lb.f, -result_ub.f, m.name)
     end
 
     df[!, m.name] .= g_intervals
