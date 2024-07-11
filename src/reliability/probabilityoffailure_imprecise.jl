@@ -68,9 +68,11 @@ function probability_of_failure(
     imc::IntervalMonteCarlo,
 )
 
-    model_imprecise = Model(x -> performance(hcat(DataFrame(models.name => models.func(x)), x)), :performance)
-    performance_hi(df) = hi.(df[!, :performance])
-    performance_lo(df) = lo.(df[!, :performance])
+    # model_imprecise = Model(x -> performance(hcat(DataFrame(models.name => models.func(x)), x)), :performance_IMC)
+    model_imprecise = [wrap(models)..., Model(x -> performance(x), :performance_IMC)]
+
+    performance_hi(df) = hi.(df[!, :performance_IMC])
+    performance_lo(df) = lo.(df[!, :performance_IMC])
 
     pf_ub, sig_ub, samples_hi = probability_of_failure(model_imprecise, performance_lo, inputs, imc.sim)
     pf_lb, sig_lb, samples_lo = probability_of_failure(model_imprecise, performance_hi, inputs, imc.sim)

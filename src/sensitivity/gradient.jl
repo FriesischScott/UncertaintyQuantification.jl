@@ -29,27 +29,27 @@ function gradient_in_standard_normal_space(
     models::Vector{<:UQModel},
     inputs::Vector{<:UQInput},
     reference::DataFrame,
-    output::Symbol;
+    performance::Function;
     fdm::FiniteDifferencesMethod=CentralFiniteDifferences(3),
 )
     samples = copy(reference)
 
-    random_names = names(filter(i -> isa(i, RandomUQInput), inputs))
-    to_standard_normal_space!(inputs, samples)
+    random_names = names(filter(i -> isa(i, RandomUQInput) || isa(i, ProbabilityBox), inputs))
 
     function f(x)
-        samples[:, random_names] .= x
-        to_physical_space!(inputs, samples)
+        samples_eval = deepcopy(reference)
+        samples_eval[:, random_names] .= x
 
-        evaluate!(models, samples)
+        to_physical_space!(inputs, samples_eval)
 
-        return samples[:, output][1]
+        evaluate!(models, samples_eval)
+
+        return performance(samples_eval)[1]
     end
 
-    reference = Matrix{Float64}(samples[:, random_names])
+    reference_point = Matrix{Float64}(samples[:, random_names])
 
-    g = _grad(f, fdm, reference)
-
+    g = _grad(f, fdm, reference_point)
     return (; zip(random_names, g)...)
 end
 

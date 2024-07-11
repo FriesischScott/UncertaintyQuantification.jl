@@ -37,14 +37,15 @@ function probability_of_failure(
     # compute pf through HLRF algorithm
     for it in 1:(sim.n)
         physical = DataFrame(random_names .=> y)
-        to_physical_space!(inputs, physical)
         physical = hcat(physical, parameters)
 
         H = gradient_in_standard_normal_space(
-            G, inputs, physical, :performance; fdm=sim.fdm
+            G, inputs, physical, performance, fdm=sim.fdm
         )
 
         H = map(n -> H[n], random_names)
+
+        to_physical_space!(inputs, physical)
 
         evaluate!(G, physical)
 

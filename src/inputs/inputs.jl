@@ -43,3 +43,6 @@ function count_rvs(inputs::Vector{<:UQInput})
 end
 
 mean(inputs::Vector{<:UQInput}) = mapreduce(mean, vcat, inputs)
+
+sns_zero_point(inputs::Vector{<:UQInput}) = mapreduce(sns_zero_point, vcat, inputs)
+sns_zero_point(input :: UQInput) = (isa(input, RandomUQInput) || isa(input, ProbabilityBox)) ? 0.0 : mean(input)
