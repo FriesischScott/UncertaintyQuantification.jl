@@ -7,5 +7,6 @@ model = Model(df -> 7 .- df.X1 .^ 2 .+ df.X2, :f)
 inputs = [X1, X2]
 simulation = MonteCarlo(10^6)
 performance = df -> df.f
-pf1 = probability_of_failure(model, performance, inputs, simulation)
-pf2 = probability_of_failure(model, performance, inputs, 5000)
+pf1 = probability_of_failure(model, performance, inputs, DoubleLoop(simulation))
+
+pf2 = probability_of_failure(model, performance, inputs, IntervalMonteCarlo(5000))

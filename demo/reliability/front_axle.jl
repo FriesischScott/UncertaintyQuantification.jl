@@ -1,12 +1,10 @@
 using UncertaintyQuantification
 
-a = ProbabilityBox{Normal}([Interval(11, 13, :μ), Parameter(1.2, :σ)], :a)
-t = ProbabilityBox{Normal}([Interval(13, 15, :μ), Parameter(1.4, :σ)], :t)
-# a = RandomVariable(Normal(12, 1.2), :a)
-# t = RandomVariable(Normal(14, 1.4), :t)
+a = ProbabilityBox{Normal}([Interval(11, 13, :μ), Parameter(1.2, :σ)], :a, 0, Inf)
+t = ProbabilityBox{Normal}([Interval(13, 15, :μ), Parameter(1.4, :σ)], :t, 0, Inf)
 
-b = RandomVariable(Normal(65, 6.5), :b)
-h = RandomVariable(Normal(85, 8.5), :h)
+b = RandomVariable(truncated(Normal(65, 6.5), 0, Inf), :b)
+h = RandomVariable(truncated(Normal(85, 8.5), 0, Inf), :h)
 μ_M, σ_M = distribution_parameters(3.5, 0.35, LogNormal)
 M = RandomVariable(LogNormal(μ_M, σ_M), :M)
 μ_T, σ_T = distribution_parameters(3.1, 0.31, LogNormal)
@@ -31,9 +29,7 @@ p = Model(df -> sqrt.(df.σ .^ 2 .+ 3 .* df.τ .^ 2), :p)
 inputs = [a, t, b, h, M, T]
 model = [Wx, Wz, σ, τ, p]
 performance = df -> σ_s .- df.p
-simulation = MonteCarlo(10^5)
 
-# pf1 = probability_of_failure(model, performance, inputs, MonteCarlo(10^6))
+pf1 = probability_of_failure(model, performance, inputs, DoubleLoop(MonteCarlo(10^6)))
 
-pf1 = probability_of_failure(model, performance, inputs, simulation)
-# pf2 = probability_of_failure(model, performance, inputs, 5000)
+# pf2 = probability_of_failure(model, performance, inputs, IntervalMonteCaerlo(10000))
