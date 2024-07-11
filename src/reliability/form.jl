@@ -24,8 +24,6 @@ function probability_of_failure(
     random_names = names(filter(i -> (isa(i, RandomUQInput) || isa(i, ProbabilityBox)), inputs))
     y::Vector{Float64} = zeros(length(random_names))
 
-    G = [models..., Model(performance, :performance)]
-
     deterministic_inputs = filter(i -> (isa(i, DeterministicUQInput) || isa(i, Interval)), inputs)
     parameters =
         !isempty(deterministic_inputs) ? sample(deterministic_inputs, 1) : DataFrame()
@@ -40,16 +38,15 @@ function probability_of_failure(
         physical = hcat(physical, parameters)
 
         H = gradient_in_standard_normal_space(
-            G, inputs, physical, performance, fdm=sim.fdm
+            models, inputs, physical, performance, fdm=sim.fdm
         )
 
         H = map(n -> H[n], random_names)
 
         to_physical_space!(inputs, physical)
 
-        evaluate!(G, physical)
-
-        h = physical[1, :performance]
+        evaluate!(models, physical)
+        h = performance(physical)[1]
 
         α = H ./ norm(H)
 

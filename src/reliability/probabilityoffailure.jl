@@ -26,7 +26,7 @@ function probability_of_failure(
             wrap(models),
             inputs,
             DataFrame(names(inputs) .=> sns_zero_point(inputs)),
-            performance
+            x-> -1*performance(x)
         )
     end
 

@@ -22,5 +22,4 @@ performance(df) = 7 .- df.g
 @time interval_ss = probability_of_failure(models, performance, inputs, IntervalMonteCarlo(ss))
 @time interval_ss_infinity = probability_of_failure(models, performance, inputs, IntervalMonteCarlo(ss_infinity))
 @time interval_ss_infinity_adaptive = probability_of_failure(models, performance, inputs, IntervalMonteCarlo(ss_infinity_adaptive))
-
 @time interval_line_sampling = probability_of_failure(models, performance, inputs, IntervalMonteCarlo(LS))
