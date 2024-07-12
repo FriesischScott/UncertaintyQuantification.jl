@@ -1,4 +1,4 @@
-mutable struct LineSampling <: AbstractSimulation
+struct LineSampling <: AbstractSimulation
     lines::Integer
     points::Vector{<:Real}
     direction::NamedTuple
