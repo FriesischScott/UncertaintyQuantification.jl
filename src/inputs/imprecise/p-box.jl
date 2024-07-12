@@ -114,6 +114,24 @@ function sample(pbox::ProbabilityBox, n::Integer=1)
     return DataFrame(pbox.name => rand(pbox, n))
 end
 
+function cdf(pbox::ProbabilityBox{T}, x::Real)where {T<:UnivariateDistribution}
+    
+    lb, ub = bounds(pbox)
+
+    cdfs_lo = map(
+        par -> cdf(map_to_precise([par...], pbox), x),
+        Iterators.product([[a, b] for (a, b) in zip(lb, ub)]...),
+    )
+
+    cdfs_hi = map(
+        par -> cdf(map_to_precise([par...], pbox), x),
+        Iterators.product([[a, b] for (a, b) in zip(lb, ub)]...),
+    )
+
+    return Interval(minimum(cdfs_lo), maximum(cdfs_hi), :cdf)
+
+end
+
 # Does the inverse of quantile, not cdf, which would return an interval
 function reverse_quantile(pbox::ProbabilityBox{T}, x::Interval) where {T<:UnivariateDistribution}
     lb, ub = bounds(pbox)
