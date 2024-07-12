@@ -18,9 +18,11 @@ ProbabilityBox{Normal}(Interval[Interval(0, 1, :μ), Interval(0.1, 1, :σ)], :x)
 struct ProbabilityBox{T<:UnivariateDistribution} <: ImpreciseUQInput
     parameters::AbstractVector{<:UQInput}
     name::Symbol
+    lb::Real
+    ub::Real
 
     function ProbabilityBox{T}(
-        p::AbstractVector{<:UQInput}, name::Symbol
+        p::AbstractVector{<:UQInput}, name::Symbol, lb::Real, ub::Real
     ) where {T<:UnivariateDistribution}
         # Only allow Intervals and Parameters
         if !isempty(filter(x -> !isa(x, Interval) && !isa(x, Parameter), p))
@@ -39,8 +41,15 @@ struct ProbabilityBox{T<:UnivariateDistribution} <: ImpreciseUQInput
             return RandomVariable(T(getproperty.(p, :value)...), name)
         end
 
-        return new(p, name)
+        return new(p, name, lb, ub)
     end
+end
+
+function ProbabilityBox{T}(
+    p::AbstractVector{<:UQInput}, name::Symbol
+) where {T<:UnivariateDistribution}
+    domain = support(T())
+    return ProbabilityBox{T}(p, name, domain.lb, domain.ub)
 end
 
 function ProbabilityBox{T}(
@@ -68,7 +77,13 @@ function map_to_precise(
         end for par in pbox.parameters
     ]
 
-    return RandomVariable(T(p...), pbox.name)
+    dist_support = support(T())
+
+    if pbox.lb == dist_support.lb && pbox.ub == dist_support.ub
+        return RandomVariable(T(p...), pbox.name)
+    end
+
+    return RandomVariable(truncated(T(p...), pbox.lb, pbox.ub), pbox.name)
 end
 
 function quantile(pbox::ProbabilityBox{T}, u::Real) where {T<:UnivariateDistribution}
