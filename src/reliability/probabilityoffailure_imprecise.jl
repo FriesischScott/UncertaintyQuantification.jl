@@ -74,15 +74,11 @@ function probability_of_failure(
     performance_hi(df) = hi.(df[!, :performance_IMC])
     performance_lo(df) = lo.(df[!, :performance_IMC])
 
-    outputs_hi = probability_of_failure(
-        model_imprecise, performance_lo, inputs, imc.sim
-    )
+    outputs_hi = probability_of_failure(model_imprecise, performance_lo, inputs, imc.sim)
     pf_ub = outputs_hi[1]
     other_output_hi = outputs_hi[2:end]
 
-    outputs_lo = probability_of_failure(
-        model_imprecise, performance_hi, inputs, imc.sim
-    )
+    outputs_lo = probability_of_failure(model_imprecise, performance_hi, inputs, imc.sim)
     pf_lb = outputs_lo[1]
     other_output_lo = outputs_lo[2:end]
 

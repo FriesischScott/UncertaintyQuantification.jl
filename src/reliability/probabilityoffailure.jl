@@ -69,14 +69,21 @@ function probability_of_failure(
     inputs::Union{Vector{<:UQInput},UQInput},
     sim::ImportanceSampling,
 )
-    samples, weights = sample(inputs, sim)
+    if isempty(sim.dp) || isempty(sim.α)
+        _, β, dp, α = probability_of_failure(models, performance, inputs, FORM())
+        sim_next = ImportanceSampling(sim.n, β, dp, α; c=sim.c)
+    else
+        sim_next = deepcopy(sim)
+    end
+
+    samples, weights = sample(inputs, sim_next)
     evaluate!(models, samples)
 
     # Probability of failure
     weighted_failures = (performance(samples) .< 0) .* weights
-    pf = sum(weighted_failures) / sim.n
+    pf = sum(weighted_failures) / sim_next.n
 
-    variance = ((sum(weighted_failures .* weights) / sim.n) - pf^2) / sim.n
+    variance = ((sum(weighted_failures .* weights) / sim_next.n) - pf^2) / sim_next.n
 
     return pf, sqrt(variance), samples
 end
