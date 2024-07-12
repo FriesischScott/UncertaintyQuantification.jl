@@ -34,7 +34,9 @@ function gradient_in_standard_normal_space(
 )
     samples = copy(reference)
 
-    random_names = names(filter(i -> isa(i, RandomUQInput) || isa(i, ProbabilityBox), inputs))
+    random_names = names(
+        filter(i -> isa(i, RandomUQInput) || isa(i, ProbabilityBox), inputs)
+    )
 
     function f(x)
         samples_eval = deepcopy(reference)

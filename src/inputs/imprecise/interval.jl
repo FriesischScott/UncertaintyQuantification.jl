@@ -28,7 +28,6 @@ function map_to_precise(x::Real, input::Interval)
     return Parameter(x, input.name)
 end
 
-
 function sample(i::Interval, n::Integer=1)
     return DataFrame(i.name => fill(i, n))
 end

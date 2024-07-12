@@ -17,7 +17,6 @@ function (m::ParallelModel)(df::DataFrame)
 end
 
 function evaluate!(m::Model, df::DataFrame)
-
     if any(eltype.(eachcol(df)) .== Interval)
         return evaluate_imprecise!(m, df)
     end
@@ -36,7 +35,6 @@ function evaluate_precise!(m::Model, df::DataFrame)
 end
 
 function evaluate_imprecise!(m::Model, df::DataFrame)
-
     n = size(df, 1)
 
     rv_names = names(df)
@@ -47,8 +45,7 @@ function evaluate_imprecise!(m::Model, df::DataFrame)
 
     g_intervals = fill(Interval(0, 0, m.name), n)
 
-    for i = 1:n
-
+    for i in 1:n
         df_precise = df[i, precise_names]
         df_imprecise = df[i, imprecise_names]
 

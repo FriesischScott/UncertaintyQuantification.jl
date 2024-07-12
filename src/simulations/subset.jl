@@ -74,7 +74,9 @@ end
 
 function sample(inputs::Vector{<:UQInput}, sim::AbstractSubSetSimulation)
     random_inputs = filter(i -> (isa(i, RandomUQInput) || isa(i, ProbabilityBox)), inputs)
-    deterministic_inputs = filter(i -> (isa(i, DeterministicUQInput) || isa(i, Interval)), inputs)
+    deterministic_inputs = filter(
+        i -> (isa(i, DeterministicUQInput) || isa(i, Interval)), inputs
+    )
 
     n_rv = count_rvs(random_inputs)
     rv_names = names(random_inputs)
