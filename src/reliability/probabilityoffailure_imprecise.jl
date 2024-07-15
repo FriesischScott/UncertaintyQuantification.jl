@@ -7,6 +7,11 @@ struct IntervalMonteCarlo
     sim::AbstractSimulation
 end
 
+struct RandomSlicing
+    lb::AbstractSimulation
+    ub::AbstractSimulation
+end
+
 function probability_of_failure(
     models::Union{Vector{<:UQModel},UQModel},
     performance::Function,
@@ -111,4 +116,37 @@ function map_to_precise_inputs(x::AbstractVector, inputs::AbstractVector{<:UQInp
         end
     end
     return precise_inputs
+end
+
+function probability_of_failure(
+    models::Union{Vector{<:UQModel},UQModel},
+    performance::Function,
+    inputs::Union{Vector{<:UQInput},UQInput},
+    rs::RandomSlicing,
+)
+    inputs = wrap(inputs)
+
+    sns_inputs = mapreduce(transform_to_sns_input, vcat, inputs)
+
+    models = [wrap(models)..., Model(x -> performance(x), :g_slice)]
+
+    sm_min = SlicingModel(models, inputs, false)
+
+    out_ub = probability_of_failure(sm_min, df -> df.g_slice, sns_inputs, rs.ub)
+
+    sm_max = SlicingModel(models, inputs, true)
+
+    out_lb = probability_of_failure(sm_max, df -> df.g_slice, sns_inputs, rs.lb)
+
+    return Interval(out_lb[1], out_ub[1], :pf), out_lb[2:end], out_ub[2:end]
+end
+
+function transform_to_sns_input(i::UQInput)
+    if isa(i, RandomVariable) || isa(i, ProbabilityBox)
+        return RandomVariable(Normal(), i.name)
+    elseif isa(i, JointDistribution)
+        return RandomVariable.(Normal(), names(i))
+    end
+
+    return UQInput[]
 end

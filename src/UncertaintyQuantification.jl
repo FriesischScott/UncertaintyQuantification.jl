@@ -107,6 +107,7 @@ export PolynomialChaosExpansion
 export PolyharmonicSpline
 export ProbabilityBox
 export RandomVariable
+export RandomSlicing
 export ResponseSurface
 export SobolSampling
 export Solver
@@ -164,6 +165,7 @@ include("models/externalmodel.jl")
 include("models/model.jl")
 include("models/polyharmonicspline.jl")
 include("models/responsesurface.jl")
+include("models//slicingmodel.jl")
 
 include("models/pce/pcebases.jl")
 include("models/pce/polynomialchaosexpansion.jl")

@@ -96,7 +96,7 @@ function quantile(pbox::ProbabilityBox{T}, u::Real) where {T<:UnivariateDistribu
     lb = minimum(quantiles)
     ub = maximum(quantiles)
 
-    return lb == ub ? lb : Interval(lb, ub, pbox.name)
+    return [lb, ub]
 end
 
 rand(pbox::ProbabilityBox, n::Integer=1) = quantile.(Ref(pbox), rand(n))
@@ -160,14 +160,8 @@ end
 function to_physical_space!(
     pbox::ProbabilityBox{T}, x::DataFrame
 ) where {T<:UnivariateDistribution}
-    x[!, pbox.name] = _to_physical_space(pbox, x[:, pbox.name])
+    x[!, pbox.name] = map(x -> quantile(pbox, x), cdf.(Normal(), collect(x[:, pbox.name])))
     return nothing
-end
-
-function _to_physical_space(
-    d::ProbabilityBox{T}, x::Vector
-) where {T<:UnivariateDistribution}
-    return quantile.(Ref(d), cdf.(Normal(), x))
 end
 
 function to_standard_normal_space!(
