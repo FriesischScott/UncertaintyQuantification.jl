@@ -1,9 +1,6 @@
 name = "UncertaintyQuantification"
 uuid = "7183a548-a887-11e9-15ce-a56ab60bad7a"
-authors = [
-    "Jasper Behrensdorf <behrensdorf@irz.uni-hannover.de>",
-    "Ander Gray <ander.gray@liverpool.ac.uk>",
-]
+authors = ["Jasper Behrensdorf <behrensdorf@irz.uni-hannover.de>", "Ander Gray <ander.gray@liverpool.ac.uk>"]
 version = "0.9.0"
 
 [deps]
@@ -25,6 +22,7 @@ Mustache = "ffc61752-8dc7-55ee-8c37-f3e9cdd09e70"
 Primes = "27ebfcd6-29c5-5fa9-bf4b-fb8fc14df3ae"
 QuasiMonteCarlo = "8a4e6c94-4038-4cdc-81c3-7e6ffdb2a71b"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
+RecipesBase = "3cdcf5f2-1ef4-517c-9805-6587b60abb01"
 Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
