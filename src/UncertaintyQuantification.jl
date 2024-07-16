@@ -133,6 +133,7 @@ export multivariate_indices
 export polynomialchaos
 export probability_of_failure
 export probability_of_failure_slicing
+export propagate_intervals!
 export qmc_samples
 export quadrature_nodes
 export quadrature_weights
@@ -163,6 +164,7 @@ include("hpc/slurm.jl")
 
 include("models/externalmodel.jl")
 include("models/model.jl")
+include("models/imprecise/propagation.jl")
 include("models/polyharmonicspline.jl")
 include("models/responsesurface.jl")
 include("models//slicingmodel.jl")
