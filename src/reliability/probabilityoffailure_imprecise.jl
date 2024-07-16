@@ -3,13 +3,13 @@ struct DoubleLoop
     sim::AbstractSimulation
 end
 
-struct IntervalMonteCarlo
-    sim::AbstractSimulation
-end
-
 struct RandomSlicing
     lb::AbstractSimulation
     ub::AbstractSimulation
+end
+
+function RandomSlicing(sim::AbstractSimulation)
+    return RandomSlicing(sim, sim)
 end
 
 function probability_of_failure(
@@ -57,40 +57,6 @@ function probability_of_failure(
         return pf_ub
     else
         return Interval(pf_lb, pf_ub, :pf)
-    end
-end
-
-hi(x::Interval) = x.ub
-lo(x::Interval) = x.lb
-hi(x::Float64) = x
-lo(x::Float64) = x
-
-## 2nd Method -  External: Sampling ; Internal: Global Opt
-function probability_of_failure(
-    models::Union{Vector{<:UQModel},UQModel},
-    performance::Function,
-    inputs::Union{Vector{<:UQInput},UQInput},
-    imc::IntervalMonteCarlo,
-)
-
-    # model_imprecise = Model(x -> performance(hcat(DataFrame(models.name => models.func(x)), x)), :performance_IMC)
-    model_imprecise = [wrap(models)..., Model(x -> performance(x), :performance_IMC)]
-
-    performance_hi(df) = hi.(df[!, :performance_IMC])
-    performance_lo(df) = lo.(df[!, :performance_IMC])
-
-    outputs_hi = probability_of_failure(model_imprecise, performance_lo, inputs, imc.sim)
-    pf_ub = outputs_hi[1]
-    other_output_hi = outputs_hi[2:end]
-
-    outputs_lo = probability_of_failure(model_imprecise, performance_hi, inputs, imc.sim)
-    pf_lb = outputs_lo[1]
-    other_output_lo = outputs_lo[2:end]
-
-    if pf_lb == pf_ub
-        return pf_ub, other_output_hi
-    else
-        return Interval(pf_lb, pf_ub, :pf), (other_output_lo, other_output_hi)
     end
 end
 

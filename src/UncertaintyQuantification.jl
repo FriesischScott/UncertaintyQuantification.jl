@@ -132,7 +132,6 @@ export mean
 export multivariate_indices
 export polynomialchaos
 export probability_of_failure
-export probability_of_failure_slicing
 export propagate_intervals!
 export qmc_samples
 export quadrature_nodes
