@@ -4,13 +4,7 @@ struct ImportanceSampling <: AbstractSimulation
     dp::NamedTuple
     α::NamedTuple
     c::Real
-    function ImportanceSampling(
-        n::Integer,
-        β::Real=0,
-        dp::NamedTuple=NamedTuple(),
-        α::NamedTuple=NamedTuple();
-        c=2.0,
-    )
+    function ImportanceSampling(n, β, dp, α; c=2.0)
         @assert n > 0 "n must be greater than zero"
         return new(n, β, dp, α, c)
     end
@@ -22,12 +16,8 @@ function sample(inputs::Vector{<:UQInput}, sim::ImportanceSampling)
     to_standard_normal_space!(inputs, dp)
     α = -1 * collect(sim.α)
 
-    random_names = names(
-        filter(i -> isa(i, RandomUQInput) || isa(i, ProbabilityBox), inputs)
-    )
-    deterministic_names = names(
-        filter(i -> isa(i, DeterministicUQInput) || isa(i, Interval), inputs)
-    )
+    random_names = names(filter(i -> isa(i, RandomUQInput), inputs))
+    deterministic_names = names(filter(i -> isa(i, DeterministicUQInput), inputs))
 
     # generate [n x m] samples in SNS
     Z = randn(sim.n, length(random_names))
@@ -44,13 +34,11 @@ function sample(inputs::Vector{<:UQInput}, sim::ImportanceSampling)
 
     weights = pdf.(Normal(), Zforced) ./ pdf.(Normal(b, v), Zforced)
     samples = DataFrame(Z, random_names)
-    to_physical_space!(
-        filter(i -> isa(i, RandomUQInput) || isa(i, ProbabilityBox), inputs), samples
-    )
+    to_physical_space!(filter(i -> isa(i, RandomUQInput), inputs), samples)
 
     if !isempty(deterministic_names)
         deterministic_samples = sample(
-            filter(i -> isa(i, DeterministicUQInput), inputs) || isa(i, Interval), sim.n
+            filter(i -> isa(i, DeterministicUQInput), inputs), sim.n
         )
         samples = hcat(deterministic_samples, samples)
     end
