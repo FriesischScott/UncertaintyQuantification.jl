@@ -21,10 +21,12 @@ function probability_of_failure(
     models, inputs = wrap.([models, inputs])
 
     # create reference point in standard normal space origin
-    random_names = names(filter(i -> (isa(i, RandomUQInput) || isa(i, ProbabilityBox)), inputs))
+    random_names = names(filter(i -> isa(i, RandomUQInput), inputs))
     y::Vector{Float64} = zeros(length(random_names))
 
-    deterministic_inputs = filter(i -> (isa(i, DeterministicUQInput) || isa(i, Interval)), inputs)
+    G = [models..., Model(performance, :performance)]
+
+    deterministic_inputs = filter(i -> isa(i, DeterministicUQInput), inputs)
     parameters =
         !isempty(deterministic_inputs) ? sample(deterministic_inputs, 1) : DataFrame()
 
@@ -35,18 +37,18 @@ function probability_of_failure(
     # compute pf through HLRF algorithm
     for it in 1:(sim.n)
         physical = DataFrame(random_names .=> y)
+        to_physical_space!(inputs, physical)
         physical = hcat(physical, parameters)
 
         H = gradient_in_standard_normal_space(
-            models, inputs, physical, performance, fdm=sim.fdm
+            G, inputs, physical, :performance; fdm=sim.fdm
         )
 
         H = map(n -> H[n], random_names)
 
-        to_physical_space!(inputs, physical)
+        evaluate!(G, physical)
 
-        evaluate!(models, physical)
-        h = performance(physical)[1]
+        h = physical[1, :performance]
 
         α = H ./ norm(H)
 
