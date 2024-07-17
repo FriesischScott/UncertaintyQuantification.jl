@@ -20,3 +20,5 @@ performance(df) = 7 .- df.g
 rs = RandomSlicing(ss_infinity_adaptive, mc)
 
 pf, out_lb, out_ub = probability_of_failure(models, performance, inputs, rs)
+
+pf_dl = probability_of_failure(models, performance, inputs, DoubleLoop(mc))

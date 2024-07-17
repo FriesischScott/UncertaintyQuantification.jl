@@ -1,13 +1,17 @@
-struct ImportanceSampling <: AbstractSimulation
+mutable struct ImportanceSampling <: AbstractSimulation
     n::Integer
     β::Real
     dp::NamedTuple
     α::NamedTuple
     c::Real
-    function ImportanceSampling(n, β, dp, α; c=2.0)
+    function ImportanceSampling(n, β, dp, α, c=2.0)
         @assert n > 0 "n must be greater than zero"
         return new(n, β, dp, α, c)
     end
+end
+
+function ImportanceSampling(n::Integer, c=2.0)
+    return ImportanceSampling(n, 0.0, NamedTuple(), NamedTuple(), c)
 end
 
 function sample(inputs::Vector{<:UQInput}, sim::ImportanceSampling)

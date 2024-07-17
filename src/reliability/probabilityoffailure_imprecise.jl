@@ -9,7 +9,7 @@ struct RandomSlicing
 end
 
 function RandomSlicing(sim::AbstractSimulation)
-    return RandomSlicing(sim, sim)
+    return RandomSlicing(sim, deepcopy(sim))
 end
 
 function probability_of_failure(
