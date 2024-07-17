@@ -1,4 +1,4 @@
-struct LineSampling <: AbstractSimulation
+mutable struct LineSampling <: AbstractSimulation
     lines::Integer
     points::Vector{<:Real}
     direction::NamedTuple
@@ -13,10 +13,8 @@ struct LineSampling <: AbstractSimulation
 end
 
 function sample(inputs::Vector{<:UQInput}, sim::LineSampling)
-    random_inputs = filter(i -> (isa(i, RandomUQInput) || isa(i, ProbabilityBox)), inputs)
-    deterministic_inputs = filter(
-        i -> (isa(i, DeterministicUQInput) || isa(i, Interval)), inputs
-    )
+    random_inputs = filter(i -> isa(i, RandomUQInput), inputs)
+    deterministic_inputs = filter(i -> isa(i, DeterministicUQInput), inputs)
 
     n_rv = count_rvs(random_inputs)
     n_samples = length(sim.points) * sim.lines
