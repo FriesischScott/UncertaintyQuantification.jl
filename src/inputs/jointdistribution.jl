@@ -46,6 +46,5 @@ end
 names(jd::JointDistribution) = vec(map(x -> x.name, jd.marginals))
 
 mean(jd::JointDistribution) = mean.(jd.marginals)
-sns_zero_point(jd::JointDistribution) = sns_zero_point.(jd.marginals)
 
 dimensions(jd::JointDistribution) = dimensions(jd.copula)
