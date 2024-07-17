@@ -112,6 +112,8 @@ function transform_to_sns_input(i::UQInput)
         return RandomVariable(Normal(), i.name)
     elseif isa(i, JointDistribution)
         return RandomVariable.(Normal(), names(i))
+    elseif isa(i, Parameter)
+        return i
     end
 
     return UQInput[]
