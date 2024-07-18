@@ -89,7 +89,6 @@ export HaltonSampling
 export HermiteBasis
 export ImportanceSampling
 export Interval
-export IntervalMonteCarlo
 export JointDistribution
 export LatinHypercubeSampling
 export LatticeRuleSampling
