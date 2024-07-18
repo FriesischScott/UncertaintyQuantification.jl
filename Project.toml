@@ -1,6 +1,9 @@
 name = "UncertaintyQuantification"
 uuid = "7183a548-a887-11e9-15ce-a56ab60bad7a"
-authors = ["Jasper Behrensdorf <behrensdorf@irz.uni-hannover.de>", "Ander Gray <ander.gray@liverpool.ac.uk>"]
+authors = [
+    "Jasper Behrensdorf <behrensdorf@irz.uni-hannover.de>",
+    "Ander Gray <ander.gray@liverpool.ac.uk>",
+]
 version = "0.9.0"
 
 [deps]
@@ -39,6 +42,7 @@ FastGaussQuadrature = "0.4, 0.5, 1"
 FiniteDifferences = "0.12"
 Formatting = "0.4"
 KernelDensity = "0.6"
+MeshAdaptiveDirectSearch = "0.1.0"
 Mustache = "1.0"
 Primes = "0.5"
 QuasiMonteCarlo = "0.3"
