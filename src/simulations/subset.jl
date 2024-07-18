@@ -170,6 +170,10 @@ function probability_of_failure(
     inputs::Union{Vector{<:UQInput},UQInput},
     sim::AbstractSubSetSimulation,
 )
+    if isimprecise(inputs)
+        error("You must use DoubleLoop or RandomSlicing with imprecise inputs.")
+    end
+
     samples = [sample(inputs, sim)]
 
     evaluate!(models, samples[end])

@@ -4,7 +4,9 @@ function probability_of_failure(
     inputs::Union{Vector{<:UQInput},UQInput},
     sim::AbstractMonteCarlo,
 )
-    @assert !isimprecise(inputs)
+    if isimprecise(inputs)
+        error("You must use DoubleLoop or RandomSlicing with imprecise inputs.")
+    end
 
     samples = sample(inputs, sim)
     evaluate!(models, samples)
@@ -23,7 +25,9 @@ function probability_of_failure(
     inputs::Union{Vector{<:UQInput},UQInput},
     sim::LineSampling,
 )
-    @assert !isimprecise(inputs)
+    if isimprecise(inputs)
+        error("You must use DoubleLoop or RandomSlicing with imprecise inputs.")
+    end
 
     if isempty(sim.direction)
         sim.direction = gradient_in_standard_normal_space(
@@ -73,7 +77,9 @@ function probability_of_failure(
     inputs::Union{Vector{<:UQInput},UQInput},
     sim::ImportanceSampling,
 )
-    @assert !isimprecise(inputs)
+    if isimprecise(inputs)
+        error("You must use DoubleLoop or RandomSlicing with imprecise inputs.")
+    end
 
     if isempty(sim.dp) || isempty(sim.α)
         _, β, dp, α = probability_of_failure(models, performance, inputs, FORM())
