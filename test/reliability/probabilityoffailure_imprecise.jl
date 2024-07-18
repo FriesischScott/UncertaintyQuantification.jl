@@ -61,7 +61,7 @@
             pbox_analyt = ProbabilityBox{Normal}(
                 [Interval(-2, 2, :μ), Interval(sqrt(2), sqrt(8), :σ)], :X
             )
-            failure_analty = cdf(pbox_analyt, -9)om
+            failure_analty = cdf(pbox_analyt, -9)
 
             @test pf.lb ≈ failure_analty.lb atol = 1e-6
             @test pf.ub ≈ failure_analty.ub atol = 1e-6
@@ -114,8 +114,8 @@
             )
             failure_analty = cdf(pbox_analyt, -9)
 
-            @test pf.lb ≈ failure_analty.lb atol = 1e-6 broken = true
-            @test pf.ub ≈ failure_analty.ub atol = 1e-6 broken = true
+            @test pf.lb ≈ failure_analty.lb atol = 1e-6
+            @test pf.ub ≈ failure_analty.ub atol = 1e-6
         end
     end
 end

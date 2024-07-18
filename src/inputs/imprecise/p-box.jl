@@ -96,7 +96,11 @@ function quantile(pbox::ProbabilityBox{T}, u::Real) where {T<:UnivariateDistribu
     lb = minimum(quantiles)
     ub = maximum(quantiles)
 
-    return Interval(lb, ub, pbox.name)
+    if lb == ub
+        return lb
+    else
+        return Interval(lb, ub, pbox.name)
+    end
 end
 
 rand(pbox::ProbabilityBox, n::Integer=1) = quantile.(Ref(pbox), rand(n))
