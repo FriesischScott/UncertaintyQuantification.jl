@@ -1,3 +1,7 @@
 function isimprecise(inputs::AbstractVector{<:UQInput})
-    return any(map(i -> isa(i, ImpreciseUQInput), inputs))
+    return any(isimprecise.(inputs))
+end
+
+function isimprecise(input::UQInput)
+    return isa(input, ImpreciseUQInput)
 end

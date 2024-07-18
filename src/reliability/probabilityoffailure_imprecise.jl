@@ -18,6 +18,8 @@ function probability_of_failure(
     inputs::Union{Vector{<:UQInput},UQInput},
     dl::DoubleLoop,
 )
+    @assert is imprecise(inputs)
+
     inputs = wrap(inputs)
     imprecise_inputs = filter(x -> isa(x, ImpreciseUQInput), inputs)
     precise_inputs = filter(x -> !isa(x, ImpreciseUQInput), inputs)
@@ -90,6 +92,8 @@ function probability_of_failure(
     inputs::Union{Vector{<:UQInput},UQInput},
     rs::RandomSlicing,
 )
+    @assert is imprecise(inputs)
+
     inputs = wrap(inputs)
 
     sns_inputs = mapreduce(transform_to_sns_input, vcat, inputs)
