@@ -12,9 +12,9 @@ function propagate_intervals!(
     output = isa(m, AbstractVector) ? m[end].name : m.name
 
     y = map(eachrow(df)) do row
-        lb = getproperty.(collect(row[interval_cols]), :lb)
+        lb = getproperty.(collect(row[interval_names]), :lb)
 
-        ub = getproperty.(collect(row[interval_cols]), :ub)
+        ub = getproperty.(collect(row[interval_names]), :ub)
 
         x0 = middle.(lb, ub)
 
@@ -25,7 +25,7 @@ function propagate_intervals!(
         )
 
         function f(x)
-            precise_df[1, interval_cols] .= x
+            precise_df[1, interval_names] .= x
 
             evaluate!(m, precise_df)
 
