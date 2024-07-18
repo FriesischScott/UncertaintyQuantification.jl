@@ -28,33 +28,78 @@
     @test UncertaintyQuantification.map_to_precise(par, p_box) ==
         RandomVariable(Uniform(par...), p_box.name)
 
-    p_box = ProbabilityBox{Normal}([Interval(0, 1, :μ), Interval(0.1, 1, :σ)], name)
-    a, b = UncertaintyQuantification.sample(p_box, 0.25)
-    @test a == quantile(Normal(0, 1), 0.25)
-    @test b == quantile(Normal(1, 0.1), 0.25)
+    @testset "Quantile and sampling" begin
+        name = :l
 
-    a, b = UncertaintyQuantification.sample(p_box, 0.5)
-    @test a == quantile(Normal(0, 0.1), 0.5)
-    @test a == quantile(Normal(0, 1), 0.5)
-    @test b == quantile(Normal(1, 0.1), 0.5)
-    @test b == quantile(Normal(1, 1), 0.5)
+        p_box = ProbabilityBox{Normal}([Interval(0, 1, :μ), Interval(0.1, 1, :σ)], name)
+        a = UncertaintyQuantification.quantile(p_box, 0.25)
+        @test a.lb == quantile(Normal(0, 1), 0.25)
+        @test a.ub == quantile(Normal(1, 0.1), 0.25)
 
-    a, b = UncertaintyQuantification.sample(p_box, 0.75)
-    @test a == quantile(Normal(0, 0.1), 0.75)
-    @test b == quantile(Normal(1, 1), 0.75)
+        a = UncertaintyQuantification.quantile(p_box, 0.5)
+        @test a.lb == quantile(Normal(0, 0.1), 0.5)
+        @test a.lb == quantile(Normal(0, 1), 0.5)
+        @test a.ub == quantile(Normal(1, 0.1), 0.5)
+        @test a.ub == quantile(Normal(1, 1), 0.5)
 
-    p_box = ProbabilityBox{Normal}([Parameter(0, :μ), Interval(0.1, 1, :σ)], name)
-    @test UncertaintyQuantification.bounds(p_box) == ([0.1], [1])
+        a = UncertaintyQuantification.quantile(p_box, 0.75)
+        @test a.lb == quantile(Normal(0, 0.1), 0.75)
+        @test a.ub == quantile(Normal(1, 1), 0.75)
 
-    a, b = UncertaintyQuantification.sample(p_box, 0.25)
-    @test a == quantile(Normal(0, 1), 0.25)
-    @test b == quantile(Normal(0, 0.1), 0.25)
+        p_box = ProbabilityBox{Normal}([Parameter(0, :μ), Interval(0.1, 1, :σ)], name)
+        @test UncertaintyQuantification.bounds(p_box) == ([0.1], [1])
 
-    a, b = UncertaintyQuantification.sample(p_box, 0.5)
-    @test a == 0.0
-    @test b == 0.0
+        a = UncertaintyQuantification.quantile(p_box, 0.25)
+        @test a.lb == quantile(Normal(0, 1), 0.25)
+        @test a.ub == quantile(Normal(0, 0.1), 0.25)
 
-    a, b = UncertaintyQuantification.sample(p_box, 0.75)
-    @test a == quantile(Normal(0, 0.1), 0.75)
-    @test b == quantile(Normal(0, 1), 0.75)
+        a = UncertaintyQuantification.quantile(p_box, 0.5)
+        @test a == 0.0
+
+        a = UncertaintyQuantification.quantile(p_box, 0.75)
+        @test a.lb == quantile(Normal(0, 0.1), 0.75)
+        @test a.ub == quantile(Normal(0, 1), 0.75)
+    end
+
+    @testset "Inverse quantile and transformations" begin
+        p_box = ProbabilityBox{Uniform}([Interval(0, 0.2, :a), Interval(0.5, 1, :b)], name)
+
+        Nsamples = 1000
+
+        u = rand(Nsamples)
+        x = quantile.(Ref(p_box), u)
+
+        u_back = UncertaintyQuantification.reverse_quantile.(Ref(p_box), x)
+
+        @test all(abs.(u_back .- u) .<= 10^-10)
+
+        SNS_distribution = RandomVariable(Normal(0, 1), name)
+        SNS_samples = sample(SNS_distribution, Nsamples)
+
+        SNS_samples_before = deepcopy(SNS_samples)
+
+        to_physical_space!(p_box, SNS_samples)
+        to_standard_normal_space!(p_box, SNS_samples)
+
+        @test all(abs.(SNS_samples[!, :l] .- SNS_samples_before[!, :l]) .<= 10^-10)
+
+        p_box = ProbabilityBox{Uniform}([Interval(0, 0.2, :a), Parameter(1, :b)], name)
+
+        u = rand(Nsamples)
+        x = quantile.(Ref(p_box), u)
+
+        u_back = UncertaintyQuantification.reverse_quantile.(Ref(p_box), x)
+
+        @test all(abs.(u_back .- u) .<= 10^-10)
+
+        SNS_distribution = RandomVariable(Normal(0, 1), name)
+        SNS_samples = sample(SNS_distribution, Nsamples)
+
+        SNS_samples_before = deepcopy(SNS_samples)
+
+        to_physical_space!(p_box, SNS_samples)
+        to_standard_normal_space!(p_box, SNS_samples)
+
+        @test all(abs.(SNS_samples[!, :l] .- SNS_samples_before[!, :l]) .<= 10^-10)
+    end
 end

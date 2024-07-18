@@ -69,6 +69,13 @@ function probability_of_failure(
     inputs::Union{Vector{<:UQInput},UQInput},
     sim::ImportanceSampling,
 )
+    if isempty(sim.dp) || isempty(sim.α)
+        _, β, dp, α = probability_of_failure(models, performance, inputs, FORM())
+        sim.β = β
+        sim.dp = dp
+        sim.α = α
+    end
+
     samples, weights = sample(inputs, sim)
     evaluate!(models, samples)
 

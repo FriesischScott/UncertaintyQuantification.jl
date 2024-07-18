@@ -3,8 +3,13 @@ struct DoubleLoop
     sim::AbstractSimulation
 end
 
-struct IntervalMonteCarlo
-    n::Int
+struct RandomSlicing
+    lb::AbstractSimulation
+    ub::AbstractSimulation
+end
+
+function RandomSlicing(sim::AbstractSimulation)
+    return RandomSlicing(sim, deepcopy(sim))
 end
 
 function probability_of_failure(
@@ -55,73 +60,6 @@ function probability_of_failure(
     end
 end
 
-## 2nd Method -  External: Sampling ; Internal: Global Opt
-function probability_of_failure(
-    models::Union{Vector{<:UQModel},UQModel},
-    performance::Function,
-    inputs::Union{Vector{<:UQInput},UQInput},
-    imc::IntervalMonteCarlo,
-)
-    inputs = wrap(inputs)
-    imprecise_inputs = filter(x -> isa(x, ImpreciseUQInput), inputs)
-    precise_inputs = convert(
-        Vector{UQInput}, filter(x -> !isa(x, ImpreciseUQInput), inputs)
-    )
-
-    imprecise_names = names(imprecise_inputs)
-
-    g_intervals = map(1:(imc.n)) do _
-        if !isempty(precise_inputs)
-            df = sample(precise_inputs)
-        else
-            df = DataFrame()
-        end
-
-        intervals = sample.(imprecise_inputs)
-        lb = float.(getindex.(intervals, 1))
-        ub = float.(getindex.(intervals, 2))
-
-        function g(x)
-            inner_sample = hcat(df, DataFrame(imprecise_names .=> x))
-            evaluate!(models, inner_sample)
-
-            return performance(inner_sample)[1]
-        end
-
-        x0 = middle.(lb, ub)
-
-        result_lb = minimize(
-            OrthoMADS(length(x0)),
-            x -> g(x),
-            x0;
-            lowerbound=lb,
-            upperbound=ub,
-            min_mesh_size=1e-13,
-        )
-
-        result_ub = minimize(
-            OrthoMADS(length(x0)),
-            x -> -g(x),
-            x0;
-            lowerbound=lb,
-            upperbound=ub,
-            min_mesh_size=1e-13,
-        )
-
-        return [result_lb.f, -result_ub.f]
-    end
-
-    pf_ub = sum(getindex.(g_intervals, 1) .< 0) / imc.n
-
-    pf_lb = sum(getindex.(g_intervals, 2) .< 0) / imc.n
-
-    if pf_lb == pf_ub
-        return pf_ub
-    else
-        return Interval(pf_lb, pf_ub, :pf)
-    end
-end
-
 function bounds(inputs::AbstractVector{<:UQInput})
     imprecise_inputs = filter(x -> isa(x, ImpreciseUQInput), inputs)
 
@@ -144,4 +82,39 @@ function map_to_precise_inputs(x::AbstractVector, inputs::AbstractVector{<:UQInp
         end
     end
     return precise_inputs
+end
+
+function probability_of_failure(
+    models::Union{Vector{<:UQModel},UQModel},
+    performance::Function,
+    inputs::Union{Vector{<:UQInput},UQInput},
+    rs::RandomSlicing,
+)
+    inputs = wrap(inputs)
+
+    sns_inputs = mapreduce(transform_to_sns_input, vcat, inputs)
+
+    models = [wrap(models)..., Model(x -> performance(x), :g_slice)]
+
+    sm_min = SlicingModel(models, inputs, false)
+
+    out_ub = probability_of_failure(sm_min, df -> df.g_slice, sns_inputs, rs.ub)
+
+    sm_max = SlicingModel(models, inputs, true)
+
+    out_lb = probability_of_failure(sm_max, df -> df.g_slice, sns_inputs, rs.lb)
+
+    return Interval(out_lb[1], out_ub[1], :pf), out_lb[2:end], out_ub[2:end]
+end
+
+function transform_to_sns_input(i::UQInput)
+    if isa(i, RandomVariable) || isa(i, ProbabilityBox)
+        return RandomVariable(Normal(), i.name)
+    elseif isa(i, JointDistribution)
+        return RandomVariable.(Normal(), names(i))
+    elseif isa(i, Parameter)
+        return i
+    end
+
+    return UQInput[]
 end
