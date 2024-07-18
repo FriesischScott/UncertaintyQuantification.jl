@@ -49,7 +49,7 @@
         end
     end
 
-    @testset "Interval Monte Carlo" begin
+    @testset "Random Slicing" begin
         @testset "P-boxes only" begin
             X = ProbabilityBox{Normal}([Interval(-1, 1, :μ), Interval(1, 2, :σ)], :X)
             Y = ProbabilityBox{Normal}([Interval(-1, 1, :μ), Interval(1, 2, :σ)], :Y)
@@ -61,7 +61,7 @@
             pbox_analyt = ProbabilityBox{Normal}(
                 [Interval(-2, 2, :μ), Interval(sqrt(2), sqrt(8), :σ)], :X
             )
-            failure_analty = cdf(pbox_analyt, -9)
+            failure_analty = cdf(pbox_analyt, -9)om
 
             @test pf.lb ≈ failure_analty.lb atol = 1e-6
             @test pf.ub ≈ failure_analty.ub atol = 1e-6
