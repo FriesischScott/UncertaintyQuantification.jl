@@ -41,16 +41,12 @@ function gradient_in_standard_normal_space(
         samples[:, random_names] .= x
         to_physical_space!(inputs, samples)
 
-        # @show samples
-
         evaluate!(models, samples)
 
         return samples[:, output][1]
     end
 
     reference = Matrix{Float64}(samples[:, random_names])
-
-    @show reference
 
     g = _grad(f, fdm, reference)
 
