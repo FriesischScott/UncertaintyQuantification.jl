@@ -46,8 +46,6 @@ function probability_of_failure(
 
         H = map(n -> H[n], random_names)
 
-        @show H
-
         evaluate!(G, physical)
 
         h = physical[1, :performance]
