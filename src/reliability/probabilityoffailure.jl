@@ -4,6 +4,8 @@ function probability_of_failure(
     inputs::Union{Vector{<:UQInput},UQInput},
     sim::AbstractMonteCarlo,
 )
+    @assert !isimprecise(inputs)
+
     samples = sample(inputs, sim)
     evaluate!(models, samples)
 
@@ -21,6 +23,8 @@ function probability_of_failure(
     inputs::Union{Vector{<:UQInput},UQInput},
     sim::LineSampling,
 )
+    @assert !isimprecise(inputs)
+
     if isempty(sim.direction)
         sim.direction = gradient_in_standard_normal_space(
             [models..., Model(x -> -1 * performance(x), :performance)],
@@ -69,6 +73,8 @@ function probability_of_failure(
     inputs::Union{Vector{<:UQInput},UQInput},
     sim::ImportanceSampling,
 )
+    @assert !isimprecise(inputs)
+
     if isempty(sim.dp) || isempty(sim.α)
         _, β, dp, α = probability_of_failure(models, performance, inputs, FORM())
         sim.β = β

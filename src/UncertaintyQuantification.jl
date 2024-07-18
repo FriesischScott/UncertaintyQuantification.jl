@@ -187,5 +187,6 @@ include("reliability/probabilityoffailure_imprecise.jl")
 include("sensitivity/sobolindices.jl")
 
 include("util/wrap.jl")
+include("util/imprecise.jl")
 
 end
