@@ -1,4 +1,4 @@
-struct FORM
+struct FORM <: AbstractSimulation
     n::Integer
     tol::Real
     fdm::FiniteDifferencesMethod
@@ -18,6 +18,10 @@ function probability_of_failure(
     inputs::Union{Vector{<:UQInput},UQInput},
     sim::FORM,
 )
+    if isimprecise(inputs)
+        error("You must use DoubleLoop or RandomSlicing with imprecise inputs.")
+    end
+
     models, inputs = wrap.([models, inputs])
 
     # create reference point in standard normal space origin
