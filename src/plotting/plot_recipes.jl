@@ -1,5 +1,3 @@
-using RecipesBase
-
 DEFAULT_ALPHA = 0.2
 DEFAULT_LABEL = ""
 DEFAULT_GRID = false
@@ -10,7 +8,8 @@ DEFAULT_COLOUR_PDF = :blue
 DEFAULT_COLOUR_UPPER = :red
 DEFAULT_COLOUR_LOWER = :black
 
-DEFAULT_PLOT_RANGE_EXTEND = 0.2
+DEFAULT_PLOT_RANGE_EXTEND_DENSITY = 0.1
+DEFAULT_PLOT_RANGE_EXTEND = 0.4
 DEFAULT_PLOT_RANGE_INTERVAL = 0.4
 DEFAULT_PLOT_GRID_NUMBER = 500
 DEFAULT_FONT_SIZE = 18
@@ -27,13 +26,10 @@ DEFAULT_TICK_SIZE = 12
     lo_grid = quantile(x, 0.001)
     hi_grid = quantile(x, 0.999)
 
-    lo_grid = x.lb
-    hi_grid = x.ub
-
     width = (hi_grid + lo_grid)/2
 
-    lo_grid = lo_grid - abs(width * DEFAULT_PLOT_RANGE_EXTEND)
-    hi_grid = hi_grid + abs(width * DEFAULT_PLOT_RANGE_EXTEND)
+    lo_grid = lo_grid - abs(width * DEFAULT_PLOT_RANGE_EXTEND_DENSITY)
+    hi_grid = hi_grid + abs(width * DEFAULT_PLOT_RANGE_EXTEND_DENSITY)
 
     x_grid = range(lo_grid, hi_grid, DEFAULT_PLOT_GRID_NUMBER)
     pdf_evals = pdf.(Ref(x), x_grid)
@@ -65,13 +61,15 @@ end
 
     width = (hi_grid + lo_grid)/2
 
-    lo_grid = lo_grid - abs(width * DEFAULT_PLOT_RANGE_INTERVAL)
-    hi_grid = hi_grid + abs(width * DEFAULT_PLOT_RANGE_INTERVAL)
+    plot_lo = lo_grid - abs(width * DEFAULT_PLOT_RANGE_EXTEND)
+    plot_hi = hi_grid + abs(width * DEFAULT_PLOT_RANGE_EXTEND)
 
     x_grid = range(lo_grid, hi_grid, DEFAULT_PLOT_GRID_NUMBER)
 
     cdf_lo = x_grid .>= x.ub
-    cdf_hi = x_grid .>= x.lb
+    cdf_hi = x_grid .> x.lb
+
+    xlims --> (plot_lo, plot_hi)
     
     @series begin
         fillrange := cdf_hi
@@ -103,8 +101,8 @@ end
     ylabel --> "cdf"
     xlabel --> x.name
 
-    lo_grid = quantile(x, 0.001)[1]
-    hi_grid = quantile(x, 0.999)[2]
+    lo_grid = quantile(x, 0.001).lb
+    hi_grid = quantile(x, 0.999).ub
 
     width = (hi_grid + lo_grid)/2
 
@@ -136,7 +134,23 @@ end
     end
 end
 
+@recipe function _plot(x::Vector{T}) where T <: UQInput
 
+    x_no_params = filter(x -> !isa(x, Parameter), x)
+
+    N_inputs = length(x_no_params)
+
+    cols = ceil(Int, sqrt(N_inputs))  # Calculate the number of columns
+    rows = ceil(Int, N_inputs / cols)  # Calculate the number of rows needed
+    layout := grid(rows, cols)  # Create a grid layout
+
+    for i = 1:N_inputs
+        @series begin
+            subplot := i
+            x_no_params[i]
+        end
+    end
+end
 ###
 #   This code is a modified version of the plot recipe from IntervalArithmetic.jl
 #       https://github.com/JuliaIntervals/IntervalArithmetic.jl       

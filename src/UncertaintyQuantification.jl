@@ -19,6 +19,8 @@ using QuasiMonteCarlo
 using Random
 using Reexport
 using StatsBase
+using Plots
+using RecipesBase
 
 @reexport using Distributions
 
@@ -185,6 +187,8 @@ include("simulations/importancesampling.jl")
 include("reliability/probabilityoffailure.jl")
 include("reliability/probabilityoffailure_imprecise.jl")
 include("sensitivity/sobolindices.jl")
+
+include("plotting/plot_recipes.jl")
 
 include("util/wrap.jl")
 include("util/imprecise.jl")

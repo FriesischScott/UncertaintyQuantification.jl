@@ -42,3 +42,8 @@ function bounds(i::Interval)
 end
 
 Base.in(u, i::Interval) = i.lb <= u <= i.ub
+
+hi(X::Interval) = X.ub
+lo(X::Interval) = X.lb
+hi(X::Real) = X
+lo(X::Real) = X
