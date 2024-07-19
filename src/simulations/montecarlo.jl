@@ -75,8 +75,8 @@ function sample(inputs::Vector{<:UQInput}, sim::MonteCarlo)
 end
 
 function sample(inputs::Vector{<:UQInput}, sim::AbstractQuasiMonteCarlo)
-    random_inputs = filter(i -> isa(i, RandomUQInput), inputs)
-    deterministic_inputs = filter(i -> isa(i, DeterministicUQInput), inputs)
+    random_inputs = filter(i -> isa(i, RandomUQInput) || isa(i, ProbabilityBox), inputs)
+    deterministic_inputs = filter(i -> isa(i, Parameter) || isa(i, Interval), inputs)
 
     n_rv = count_rvs(random_inputs)
 

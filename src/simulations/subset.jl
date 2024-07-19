@@ -1,4 +1,4 @@
-abstract type AbstractSubSetSimulation end
+abstract type AbstractSubSetSimulation <: AbstractSimulation end
 
 """
     SubSetSimulation(n::Integer, target::Float64, levels::Integer, proposal::UnivariateDistribution)
@@ -96,7 +96,7 @@ Implementation of: Papaioannou, Iason, et al. "MCMC algorithms for subset simula
 
 Defines the properties of a Subset-∞ adaptive where `n` are the number of samples per level,
 `target` is the target probability of failure at each level, `levels` is the maximum number
-of levels, `λ` (λ = 1 recommended) is the initial scaling parameter, and `Na` is the number simulations that will be run before `λ` 
+of levels, `λ` (λ = 1 recommended) is the initial scaling parameter, and `Na` is the number simulations that will be run before `λ`
 is updated. Note that Na must be a multiple of n * target: `mod(ceil(n * target), Na) == 0)`. The initial variance of the proposal distribution is `s`.
 
 
@@ -170,6 +170,10 @@ function probability_of_failure(
     inputs::Union{Vector{<:UQInput},UQInput},
     sim::AbstractSubSetSimulation,
 )
+    if isimprecise(inputs)
+        error("You must use DoubleLoop or RandomSlicing with imprecise inputs.")
+    end
+
     samples = [sample(inputs, sim)]
 
     evaluate!(models, samples[end])
@@ -282,7 +286,7 @@ function nextlevelsamples(
 
         α_MCMC[i] = mean(α_accept_per_dim)
 
-        α_accept = any(α_accept_per_dim, dims = 2)[:]
+        α_accept = any(α_accept_per_dim; dims=2)[:]
 
         to_physical_space!(inputs, chainsamples)
 
