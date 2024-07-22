@@ -2,6 +2,7 @@ DEFAULT_ALPHA = 0.2
 DEFAULT_LABEL = ""
 DEFAULT_GRID = false
 DEFAULT_LEGEND = false
+DEFAULT_CDF = false
 DEFAULT_DISTRIBUTION = :pdf
 DEFAULT_FILL = :gray
 DEFAULT_COLOUR_PDF = :blue
@@ -15,13 +16,17 @@ DEFAULT_PLOT_GRID_NUMBER = 500
 DEFAULT_FONT_SIZE = 18
 DEFAULT_TICK_SIZE = 12
 
-
-@recipe function _plot(x::RandomVariable)
+###
+#   Plots for UQInputs
+###
+@recipe function _plot(x::RandomVariable; cdf_on = DEFAULT_CDF)
 
     grid --> DEFAULT_GRID
     legend --> DEFAULT_LEGEND
-    ylabel --> "pdf"
     xlabel --> x.name
+    cdf_on ? ylabel --> "cdf" : ylabel --> "pdf"
+
+    # cdf_on --> DEFAULT_CDF
 
     lo_grid = quantile(x, 0.001)
     hi_grid = quantile(x, 0.999)
@@ -32,20 +37,28 @@ DEFAULT_TICK_SIZE = 12
     hi_grid = hi_grid + abs(width * DEFAULT_PLOT_RANGE_EXTEND_DENSITY)
 
     x_grid = range(lo_grid, hi_grid, DEFAULT_PLOT_GRID_NUMBER)
-    pdf_evals = pdf.(Ref(x), x_grid)
+
+    if cdf_on
+        distribution_evals = cdf.(Ref(x), x_grid)
+    else
+        distribution_evals = pdf.(Ref(x), x_grid)
+    end
     
-    @series begin
-        fillrange := pdf_evals
-        color := DEFAULT_FILL
-        fillalpha := DEFAULT_ALPHA
-        x_grid, zeros(length(x_grid))
+    if ~cdf_on
+        @series begin
+            fillrange := distribution_evals
+            color := DEFAULT_FILL
+            fillalpha := DEFAULT_ALPHA
+            x_grid, zeros(length(x_grid))
+        end
     end
 
+    
     @series begin
         color --> DEFAULT_COLOUR_PDF
         alpha := 1
         label := ""
-        x_grid, pdf_evals
+        x_grid, distribution_evals
     end
 end
 
