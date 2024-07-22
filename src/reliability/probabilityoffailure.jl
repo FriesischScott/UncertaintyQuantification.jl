@@ -33,7 +33,7 @@ function probability_of_failure(
         sim.direction = gradient_in_standard_normal_space(
             [models..., Model(x -> -1 * performance(x), :performance)],
             inputs,
-            DataFrame(names(inputs) .=> mean(inputs)),
+            sns_zero_point(inputs),
             :performance,
         )
     end
