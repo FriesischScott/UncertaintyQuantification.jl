@@ -1,16 +1,24 @@
 # Inputs
 
-General functions operating on a collection of inputs defined as subtypes of `UQInput`.
-
 ## Index
 
 ```@index
 Pages = ["inputs.md"]
-Module = ["UncertaintyQuantification"]
+```
+
+## Types
+
+```@docs
+Parameter
+RandomVariable
+Interval
+ProbabilityBox
 ```
 
 ## Functions
 
 ```@docs
-sample(inputs::Array{<:UQInput}, n::Integer)
+sample(rv::RandomVariable, n::Integer)
+sample(inputs::Vector{<:UQInput}, n::Integer)
+
 ```
