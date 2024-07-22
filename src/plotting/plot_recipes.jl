@@ -203,3 +203,38 @@ end
     xs, ys
 
 end
+
+###
+# Plots for samples of data frames
+###
+
+@recipe function _plot(x::Vector{Interval})
+
+    if length(unique(x))==1
+        return x[1]
+    else
+        grid --> DEFAULT_GRID
+        legend --> DEFAULT_LEGEND
+
+        xlabel --> x[1].name
+        ylabel --> "cdf"
+        N_samples = length(x)
+
+        lows = sort(lo.(x))
+        his = sort(hi.(x))
+
+        is = range(0, 1, length = N_samples)
+
+        @series begin
+            seriestype := :steppre
+            color --> DEFAULT_COLOUR_LOWER
+            lows, is
+        end
+
+        @series begin
+            seriestype := :steppost
+            color --> DEFAULT_COLOUR_UPPER
+            his, is
+        end
+    end
+end
