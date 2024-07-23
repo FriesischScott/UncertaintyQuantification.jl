@@ -144,12 +144,20 @@ function formatinputs(row::DataFrameRow, formats::Dict{Symbol,String})
     values = []
     for symbol in names
         if haskey(formats, symbol)
-            push!(values, fmt(formats[symbol], row[symbol]))
+            push!(values, formatinput(row[symbol], formats[symbol]))
         elseif haskey(formats, :*)
-            push!(values, fmt(formats[:*], row[symbol]))
+            push!(values, formatinput(row[symbol], formats[:*]))
         else
             push!(values, row[symbol])
         end
     end
     return (; zip(names, values)...)
+end
+
+function formatinput(data::Real, formatstring::String)
+    return fmt(formatstring, data)
+end
+
+function formatinput(data::AbstractVector{<:Real}, formatstring::String)
+    return fmt.(formatstring, data)
 end

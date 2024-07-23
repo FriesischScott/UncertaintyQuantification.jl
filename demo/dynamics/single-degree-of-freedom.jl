@@ -14,9 +14,11 @@ cp = CloughPenzien(ω, 0.1, 0.8π, 0.6, 8π, 0.6)
 
 ex = SpectralRepresentation(cp, collect(0:0.02:10), :ex)
 
+ex_model = StochasticProcessModel(ex)
+
 function sdof(df)
     return map(eachrow(df)) do s
-        excitation = Spline1D(ex.time, ex(s); k=1)
+        excitation = Spline1D(ex.time, s.ex; k=1)
 
         function f(dy, y, _, t)
             dy[1] = y[2]
@@ -36,9 +38,11 @@ displacement = Model(sdof, :d)
 
 inputs = [ex, m, k, c]
 
+models = [ex_model, displacement]
+
 # samples = sample(inputs, 10)
 
-# evaluate!(displacement, samples)
+# evaluate!(models, samples)
 
 # p = plot()
 
@@ -54,10 +58,8 @@ function g(df)
     end
 end
 
-mc_pf, mc_std, mc_samples, = probability_of_failure(
-    [displacement], g, inputs, MonteCarlo(10000)
-)
+mc_pf, mc_std, mc_samples, = probability_of_failure(models, g, inputs, MonteCarlo(10000))
 
 ss_pf, ss_std, ss_samples = probability_of_failure(
-    [displacement], g, inputs, SubSetSimulation(2000, 0.1, 10, Uniform(-0.5, 0.5))
+    models, g, inputs, SubSetInfinityAdaptive(2000, 0.1, 10, 10)
 )
