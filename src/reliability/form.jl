@@ -1,4 +1,4 @@
-struct FORM
+struct FORM <: AbstractSimulation
     n::Integer
     tol::Real
     fdm::FiniteDifferencesMethod
@@ -18,6 +18,10 @@ function probability_of_failure(
     inputs::Union{Vector{<:UQInput},UQInput},
     sim::FORM,
 )
+    if isimprecise(inputs)
+        error("You must use DoubleLoop or RandomSlicing with imprecise inputs.")
+    end
+
     models, inputs = wrap.([models, inputs])
 
     # create reference point in standard normal space origin
@@ -26,9 +30,7 @@ function probability_of_failure(
 
     G = [models..., Model(performance, :performance)]
 
-    deterministic_inputs = filter(i -> isa(i, DeterministicUQInput), inputs)
-    parameters =
-        !isempty(deterministic_inputs) ? sample(deterministic_inputs, 1) : DataFrame()
+    sns = sample(inputs, 1)
 
     α = Vector{Float64}(undef, length(random_names))
     β::Float64 = 0.0
@@ -36,19 +38,16 @@ function probability_of_failure(
 
     # compute pf through HLRF algorithm
     for it in 1:(sim.n)
-        physical = DataFrame(random_names .=> y)
-        to_physical_space!(inputs, physical)
-        physical = hcat(physical, parameters)
+        sns[1, random_names] .= y
 
-        H = gradient_in_standard_normal_space(
-            G, inputs, physical, :performance; fdm=sim.fdm
-        )
+        H = gradient_in_standard_normal_space(G, inputs, sns, :performance; fdm=sim.fdm)
 
         H = map(n -> H[n], random_names)
 
-        evaluate!(G, physical)
+        to_physical_space!(inputs, sns)
+        evaluate!(G, sns)
 
-        h = physical[1, :performance]
+        h = sns[1, :performance]
 
         α = H ./ norm(H)
 
