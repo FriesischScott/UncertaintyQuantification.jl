@@ -32,7 +32,7 @@ samples = sample(x, 100) # sample(x, MonteCarlo(100))
 return nothing # hide
 ```
 
-The `sample` method returns a `DataFrame` with the samples in a single column. When sampling from a `Vector` of random variables these invidivual columns are automatically merged into one unified `DataFrame`. By default, this will use stardard Monte Carlo simulation to obtain the samples. Alternatively, any of the quasi-Monte Carlo methods can be used instead.
+The `sample` method returns a `DataFrame` with the samples in a single column. When sampling from a `Vector` of random variables these individual columns are automatically merged into one unified `DataFrame`. By default, this will use standard Monte Carlo simulation to obtain the samples. Alternatively, any of the quasi-Monte Carlo methods can be used instead.
 
 ```@example rv
 samples = sample(x, SobolSampling(100))
@@ -49,9 +49,11 @@ to_physical_space!(x, samples)
 
 ## Dependencies
 
-*UncertaintyQuantification* supports modelling of dependencies through copulas. By using copulas, the modelling of the dependence structure is separated from the modelling of the univariate marginal distributions. The basis for copulas is given by Sklar's theorem [sklarFonctionsRepartitionDimensions1959](@cite). It states that any multivariate distribution $H$ in dimensions $d \geq 2$ can be separated into its marginal distributions $F_i$ and a copula function $C $.
+*UncertaintyQuantification* supports modelling of dependencies through copulas. By using copulas, the modelling of the dependence structure is separated from the modelling of the univariate marginal distributions. The basis for copulas is given by Sklar's theorem [sklarFonctionsRepartitionDimensions1959](@cite). It states that any multivariate distribution $H$ in dimensions $d \geq 2$ can be separated into its marginal distributions $F_i$ and a copula function $C$.
 
-$H(x_1,\ldots,x_2) = C(F_1(x_1),\ldots,F_d(x_d))$
+```math
+H(x_1,\ldots,x_2) = C(F_1(x_1),\ldots,F_d(x_d))
+```
 
 For a thorough discussion of copulas, see [joeDependenceModelingCopulas2015](@cite).
 
@@ -132,7 +134,7 @@ It is important to note, that the `ParallelModel` requires some overhead to dist
 
 By using *ClusterManagers.jl* to add the workers, the `ParallelModel` can easily be run on an existing compute cluster such as *Slurm*.
 
-!!! note 
+!!! note
     For heavier external models or workflows in parallel on compute clusters, using `SlurmInterface` is recommended. See [High Performance Computing](hpc.md).
 
 ### ExternalModel
