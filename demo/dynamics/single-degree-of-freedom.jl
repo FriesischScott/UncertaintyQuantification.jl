@@ -12,21 +12,22 @@ c = Parameter(0, :c)
 
 cp = CloughPenzien(ω, 0.1, 0.8π, 0.6, 8π, 0.6)
 
-ex = SpectralRepresentation(cp, collect(0:0.02:10), :ex)
+# Ground motion
+gm = SpectralRepresentation(cp, collect(0:0.02:10), :gm)
 
-ex_model = StochasticProcessModel(ex)
+gm_model = StochasticProcessModel(gm)
 
 function sdof(df)
     return map(eachrow(df)) do s
-        excitation = Spline1D(ex.time, s.ex; k=1)
+        gm_interp = Spline1D(gm.time, s.gm; k=1)
 
         function f(dy, y, _, t)
             dy[1] = y[2]
 
-            return dy[2] = -s.c / s.m * y[2] - s.k / s.m * y[1] + excitation(t)
+            return dy[2] = -s.c / s.m * y[2] - s.k / s.m * y[1] + gm_interp(t)
         end
 
-        prob = ODEProblem(f, [0.0, 0.0], (ex.time[1], ex.time[end]))
+        prob = ODEProblem(f, [0.0, 0.0], (gm.time[1], gm.time[end]))
 
         sol = solve(prob, Tsit5())
 
@@ -36,9 +37,9 @@ end
 
 displacement = Model(sdof, :d)
 
-inputs = [ex, m, k, c]
+inputs = [gm, m, k, c]
 
-models = [ex_model, displacement]
+models = [gm_model, displacement]
 
 # samples = sample(inputs, 10)
 
