@@ -74,6 +74,7 @@ export BackwardFiniteDifferences
 export BoxBehnken
 export CentralComposite
 export CentralFiniteDifferences
+export CloughPenzien
 export DoubleLoop
 export ExternalModel
 export SlurmInterface
@@ -90,6 +91,7 @@ export HermiteBasis
 export ImportanceSampling
 export Interval
 export JointDistribution
+export KanaiTajimi
 export LatinHypercubeSampling
 export LatticeRuleSampling
 export LeastSquares
@@ -110,6 +112,8 @@ export RandomSlicing
 export ResponseSurface
 export SobolSampling
 export Solver
+export SpectralRepresentation
+export StochasticProcessModel
 export SubSetInfinity
 export SubSetInfinityAdaptive
 export SubSetSimulation
@@ -154,6 +158,10 @@ include("inputs/randomvariables/randomvariable.jl")
 include("inputs/randomvariables/distributionparameters.jl")
 include("inputs/copulas/gaussian.jl")
 include("inputs/jointdistribution.jl")
+
+include("dynamics/psd.jl")
+include("inputs/stochasticprocesses/spectralrepresentation.jl")
+include("inputs/stochasticprocesses/models.jl")
 
 include("solvers/solver.jl")
 include("solvers/extractor.jl")
