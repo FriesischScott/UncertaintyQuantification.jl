@@ -4,7 +4,6 @@
 
 ```@index
 Pages = ["slurm.md"]
-Module = ["UncertaintyQuantification"]
 ```
 
 ## Type

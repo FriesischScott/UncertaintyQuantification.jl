@@ -4,7 +4,6 @@
 
 ```@index
     Pages = ["responcesurface.md"]
-    Module = ["UncertaintyQuantification"]
 ```
 
 ## Type

@@ -4,7 +4,6 @@
 
 ```@index
     Pages = ["polyharmonicspline.md"]
-    Module = ["UncertaintyQuantification"]
 ```
 
 ## Type
