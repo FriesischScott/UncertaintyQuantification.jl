@@ -301,11 +301,23 @@ function nextlevelsamples(
 
             α_ss[i] = 1 - mean(reject)
 
-            new_samples[reject, :] = nextlevelsamples[end][α_accept_indices[reject], :]
-            new_samplesperformance[reject] = nextlevelperformance[end][α_accept_indices[reject]]
+            if length(reject) == 1
+                # only a single chain moved forward in the MH step
+                if reject
+                    new_samples[1, :] = nextlevelsamples[end][α_accept_indices[1], :]
+                    new_samplesperformance = nextlevelperformance[end][α_accept_indices]
+                end
 
-            chainsamples[α_accept_indices, :] = new_samples
-            chainperformance[α_accept_indices] = new_samplesperformance
+                chainsamples[α_accept_indices[1], :] = new_samples[1, :]
+                chainperformance[α_accept_indices[1]] = new_samplesperformance[1]
+
+            else
+                new_samples[reject, :] = nextlevelsamples[end][α_accept_indices[reject], :]
+                new_samplesperformance[reject] = nextlevelperformance[end][α_accept_indices[reject]]
+
+                chainsamples[α_accept_indices, :] = new_samples
+                chainperformance[α_accept_indices] = new_samplesperformance
+            end
         end
 
         push!(nextlevelsamples, chainsamples)
