@@ -23,11 +23,13 @@ makedocs(;
             "Getting Started" => "manual/gettingstarted.md",
             "Reliability Analysis" => "manual/reliability.md",
             "Metamodelling" => "manual/metamodels.md",
+            "Simulations" => "manual/simulations.md",
             "Bayesian Updating" => "manual/bayesianupdating.md",
             "High Performance Computing" => "manual/hpc.md",
         ],
         "Examples" => [
             "Metamodels" => "examples/metamodels.md",
+            "Simulations" => "examples/simulations.md",
             "Bayesian Updating" => "examples/bayesianupdating.md",
             "High Performance Computing" => "examples/hpc.md",
         ],
