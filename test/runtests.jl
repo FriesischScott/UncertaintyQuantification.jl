@@ -12,6 +12,9 @@ using UncertaintyQuantification
 
 include("inputs/empericaldistribution.jl")
 include("inputs/parameter.jl")
+include("inputs/jointdistribution.jl")
+include("inputs/imprecise/interval.jl")
+include("inputs/imprecise/p-box.jl")
 include("inputs/randomvariables/randomvariable.jl")
 include("inputs/randomvariables/distributionparameters.jl")
 include("inputs/jointdistribution.jl");
@@ -24,11 +27,13 @@ include("models/polyharmonicspline.jl")
 include("models/pce/pcebases.jl")
 include("models/pce/polynomialchaosexpansion.jl")
 include("models/responsesurface.jl")
+include("models/imprecise/propagation.jl")
 
 include("modelupdating/bayesianupdating.jl")
 
 include("reliability/form.jl")
 include("reliability/probabilityoffailure.jl")
+include("reliability/probabilityoffailure_imprecise.jl")
 
 include("sensitivity/gradient.jl")
 include("sensitivity/sobolindices.jl")
