@@ -1,5 +1,4 @@
 #==
-FORK
 ## Quasi Monte Carlo 
 
 ## Example
@@ -26,7 +25,7 @@ Now, we'll create an RQMC-struct of our choice.
 rqmc = SobolSampling(1000, :owenscramble)
 
 #==
-Then, simply calcualte the sobol indices:
+Then, calcualte the sobol indices:
 ==#
 
 si = sobolindices(ishigami, inputs, :y, rqmc)
