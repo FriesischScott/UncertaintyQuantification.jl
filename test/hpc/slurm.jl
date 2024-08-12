@@ -52,11 +52,12 @@ include("../test_utilities/read_write_utils.jl")
             scheduler=slurm,
         )
 
-        UncertaintyQuantification.generate_HPC_job(slurm, ext, size(df, 1), workdir)
+        n = size(df, 1)
+        UncertaintyQuantification.generate_HPC_job(slurm, ext, n, workdir)
 
         generated_file = joinpath(workdir, "slurm_array.sh")
 
-        @test isfile(joinpath(workdir, "slurm_array.sh"))
+        @test isfile(generated_file)
         @test isline(generated_file, "#SBATCH -A HPC_account_1")
         @test isline(generated_file, "#SBATCH -p CPU_partition")
         @test isline(generated_file, "#SBATCH --nodes=1")
@@ -74,21 +75,30 @@ include("../test_utilities/read_write_utils.jl")
             time="10:00:00",
             nodes=2,
             ntasks=50,
-            throttle=10,
+            throttle=2,
+            batchsize=10,
             mempercpu="100",
             extras=["load something", "load something else"],
         )
 
-        UncertaintyQuantification.generate_HPC_job(slurm, ext, 100, workdir)
+        for batch in 1:10
+            UncertaintyQuantification.generate_HPC_job(slurm, ext, 100, workdir, batch)
 
-        @test isline(generated_file, "#SBATCH -J my_test_job")
-        @test isline(generated_file, "#SBATCH --array=[1-100]%10")
-        @test isline(generated_file, "#SBATCH --nodes=2")
-        @test isline(generated_file, "#SBATCH --ntasks=50")
-        @test isline(generated_file, "#SBATCH --time=10:00:00")
-        @test isline(generated_file, "#SBATCH --mem-per-cpu=100")
-        @test isline(generated_file, "load something")
-        @test isline(generated_file, "load something else")
+            generated_file = joinpath(workdir, "slurm_array-$batch.sh")
+
+            a = (batch * -1) * 10 + 1
+            b = min(batch * 10, n)
+
+            @test isfile(generated_file)
+            @test isline(generated_file, "#SBATCH -J my_test_job")
+            @test isline(generated_file, "#SBATCH --array=[$a-$b]%2")
+            @test isline(generated_file, "#SBATCH --nodes=2")
+            @test isline(generated_file, "#SBATCH --ntasks=50")
+            @test isline(generated_file, "#SBATCH --time=10:00:00")
+            @test isline(generated_file, "#SBATCH --mem-per-cpu=100")
+            @test isline(generated_file, "load something")
+            @test isline(generated_file, "load something else")
+        end
     end
 
     @testset "run HPC job" begin
