@@ -1,9 +1,11 @@
-import UncertaintyQuantification.:run_HPC_job
+import UncertaintyQuantification.:run_slurm_array
 
 sourcedir = tempdir()
 
-# Overwrites slurm/run_HPC_job for testing
-function run_HPC_job(slurm::SlurmInterface, m, path)
+# Overwrites slurm/run_slurm_array for testing
+function run_slurm_array(
+    slurm::SlurmInterface, m::ExternalModel, path::String, batch::Integer=0
+)
     dirpath = joinpath(m.workdir, path)
 
     p = pipeline(`bash $sourcedir/loopbash.sh 5`)

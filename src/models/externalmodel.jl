@@ -124,17 +124,9 @@ function evaluate!(
         makedirectory(m, df[i, :], path)
     end
 
-    @assert scheduler.batchsize >= 0
+    setup_hpc_jobs(scheduler, m, n, datetime)
 
-    if scheduler.batchsize == 0
-        generate_HPC_job(scheduler, m, n, datetime)
-        run_HPC_job(scheduler, m, datetime)
-    else
-        for batch in 1:ceil(n / scheduler.batchsize)
-            generate_HPC_job(scheduler, m, n, datetime, batch)
-            run_HPC_job(scheduler, m, datetime, batch)
-        end
-    end
+    run_hpc_jobs(scheduler, m, n, datetime)
 
     results = map(1:n) do i
         path = joinpath(m.workdir, datetime, "sample-$(lpad(i, digits, "0"))")

@@ -41,49 +41,76 @@ Base.@kwdef struct SlurmInterface <: AbstractHPCScheduler
     time::String = ""
 end
 
-function generate_HPC_job(SI::SlurmInterface, m, n, path, i::Integer=0)
+function setup_hpc_jobs(si::SlurmInterface, m::ExternalModel, n::Integer, datetime::String)
+    if si.batchsize == 0
+        setup_slurm_array(si, m::ExternalModel, n::Integer, datetime::String)
+    else
+        for batch in 1:ceil(Integer, n / si.batchsize)
+            setup_slurm_array(si, m, n, datetime, batch)
+        end
+    end
+end
+
+function run_hpc_jobs(si::SlurmInterface, m::ExternalModel, n::Integer, datetime::String)
+    if si.batchsize == 0
+        run_slurm_array(si, m::ExternalModel, datetime::String)
+    else
+        for batch in 1:ceil(Integer, n / si.batchsize)
+            run_slurm_array(si, m, datetime, batch)
+        end
+    end
+end
+
+function setup_slurm_array(
+    si::SlurmInterface, m::ExternalModel, n::Integer, path::String, batch::Integer=0
+)
     binary = m.solver.path
     source = m.solver.source
     args = m.solver.args
 
-    extras = SI.extras
+    extras = si.extras
 
     run_command = !isempty(args) ? "$binary $args $source" : "$binary $source"
 
-    a, b = if i > 0
-        (i - 1) * SI.batchsize + 1, min(i * SI.batchsize, n)
+    a, b = if batch > 0
+        (batch - 1) * si.batchsize + 1, min(batch * si.batchsize, n)
     else
         1, n
     end
 
-    array_command = if iszero(SI.throttle)
+    array_command = if iszero(si.throttle)
         "#SBATCH --array=[$a-$b]\n"
     else
-        "#SBATCH --array=[$a-$b]%$(SI.throttle)\n"
+        "#SBATCH --array=[$a-$b]%$(si.throttle)\n"
     end
 
     digits = ndigits(n)
 
-    fname = "slurm_array.sh"
+    fname = if iszero(batch)
+        "slurm_array.sh"
+    else
+        "slurm_array-$batch.sh"
+    end
+
     dirpath = joinpath(m.workdir, path)
     fpath = joinpath(dirpath, fname)
 
     open(fpath, "w") do file
         write(file, "#!/bin/bash -l\n")
-        write(file, "#SBATCH -A $(SI.account)\n")
-        write(file, "#SBATCH -p $(SI.partition)\n")
-        write(file, "#SBATCH -J $(SI.jobname)\n")
-        write(file, "#SBATCH --nodes=$(SI.nodes)\n")
-        write(file, "#SBATCH --ntasks=$(SI.ntasks)\n")
+        write(file, "#SBATCH -A $(si.account)\n")
+        write(file, "#SBATCH -p $(si.partition)\n")
+        write(file, "#SBATCH -J $(si.jobname)\n")
+        write(file, "#SBATCH --nodes=$(si.nodes)\n")
+        write(file, "#SBATCH --ntasks=$(si.ntasks)\n")
         write(
             file, "#SBATCH --output=sample-%$(digits)a/UncertaintyQuantification-%a.out\n"
         )
         write(file, "#SBATCH --error=sample-%$(digits)a/UncertaintyQuantification-%a.err\n")
-        if !isempty(SI.mempercpu)
-            write(file, "#SBATCH --mem-per-cpu=$(SI.mempercpu)\n")
+        if !isempty(si.mempercpu)
+            write(file, "#SBATCH --mem-per-cpu=$(si.mempercpu)\n")
         end
-        if !isempty(SI.time)
-            write(file, "#SBATCH --time=$(SI.time)\n")
+        if !isempty(si.time)
+            write(file, "#SBATCH --time=$(si.time)\n")
         end
         write(file, array_command)
         write(file, "\n\n\n")
@@ -135,13 +162,15 @@ function generate_HPC_job(SI::SlurmInterface, m, n, path, i::Integer=0)
 end
 
 # Slurm interface is passed to dispatch function for slurm. Perhaps there is a more elegant solution using parametric typing.
-function run_HPC_job(slurm::SlurmInterface, m, path, i::Integer=0)
+function run_slurm_array(
+    si::SlurmInterface, m::ExternalModel, path::String, batch::Integer=0
+)
     dirpath = joinpath(m.workdir, path)
 
-    p = if i == 0
+    p = if iszero(batch)
         pipeline(`sbatch --wait slurm_array.sh`)
     else
-        pipeline(`sbatch --wait slurm_array-$i.sh`)
+        pipeline(`sbatch --wait slurm_array-$batch.sh`)
     end
 
     cd(() -> run(p), dirpath)
