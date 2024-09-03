@@ -1,4 +1,3 @@
-include("../test_utilities/slurm_test_utils.jl")
 include("../test_utilities/read_write_utils.jl")
 
 @testset "Slurm" begin
@@ -114,29 +113,62 @@ include("../test_utilities/read_write_utils.jl")
 
         # Note, the run_HPC_job function has been overwritten in tests/test_utilities/slurm_test_utils.jl
 
-        slurm = SlurmInterface(;
-            account="HPC_account_1", partition="CPU_partition", nodes=1, ntasks=32
-        )
+        @testset "unbatched" begin
+            slurm = SlurmInterface(;
+                account="HPC_account_1", partition="CPU_partition", nodes=1, ntasks=32
+            )
 
-        ext = ExternalModel(
-            sourcedir,
-            sourcefile,
-            radius,
-            solver;
-            workdir=tempname(),
-            formats=numberformats,
-            extras="extra.txt",
-            scheduler=slurm,
-        )
+            ext = ExternalModel(
+                sourcedir,
+                sourcefile,
+                radius,
+                solver;
+                workdir=tempname(),
+                formats=numberformats,
+                extras="extra.txt",
+                scheduler=slurm,
+            )
 
-        x = RandomVariable(Uniform(0, 1), :x)
-        y = RandomVariable(Uniform(0, 1), :y)
+            x = RandomVariable(Uniform(0, 1), :x)
+            y = RandomVariable(Uniform(0, 1), :y)
 
-        df = sample([x, y], 5)
+            df = sample([x, y], 10)
 
-        evaluate!(ext, df)
+            evaluate!(ext, df)
 
-        @test length(readdir(readdir(ext.workdir; join=true)[1])) == 6
-        @test isapprox(df.r, sqrt.(df.x .^ 2 + df.y .^ 2))
+            @test length(readdir(readdir(ext.workdir; join=true)[1])) == 11
+            @test isapprox(df.r, sqrt.(df.x .^ 2 + df.y .^ 2))
+        end
+
+        @testset "batched" begin
+            slurm = SlurmInterface(;
+                account="HPC_account_1",
+                partition="CPU_partition",
+                nodes=1,
+                ntasks=32,
+                batchsize=4,
+            )
+
+            ext = ExternalModel(
+                sourcedir,
+                sourcefile,
+                radius,
+                solver;
+                workdir=tempname(),
+                formats=numberformats,
+                extras="extra.txt",
+                scheduler=slurm,
+            )
+
+            x = RandomVariable(Uniform(0, 1), :x)
+            y = RandomVariable(Uniform(0, 1), :y)
+
+            df = sample([x, y], 10)
+
+            evaluate!(ext, df)
+
+            @test length(readdir(readdir(ext.workdir; join=true)[1])) == 13
+            @test isapprox(df.r, sqrt.(df.x .^ 2 + df.y .^ 2))
+        end
     end
 end
