@@ -1,9 +1,6 @@
 name = "UncertaintyQuantification"
 uuid = "7183a548-a887-11e9-15ce-a56ab60bad7a"
-authors = [
-    "Jasper Behrensdorf <behrensdorf@irz.uni-hannover.de>",
-    "Ander Gray <ander.gray@liverpool.ac.uk>",
-]
+authors = ["Jasper Behrensdorf <behrensdorf@irz.uni-hannover.de>", "Ander Gray <ander.gray@liverpool.ac.uk>"]
 version = "0.10.0"
 
 [deps]
@@ -15,13 +12,13 @@ DelimitedFiles = "8bb1440f-4735-579b-a4ab-409b98df4dab"
 Dierckx = "39dd38d3-220a-591b-8e3c-4c3a8c710a94"
 Distributed = "8ba89e20-285c-5b6f-9357-94700520ee1b"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
-DynamicPolynomials = "7c1d4256-1411-5781-91ec-d7bc3513ac07"
 FastGaussQuadrature = "442a2c76-b920-505d-bb47-c5924d526838"
 FiniteDifferences = "26cc04aa-876d-5657-8c51-4c34ba976000"
 Formatting = "59287772-0a20-5a39-b81b-1366585eb4c0"
 KernelDensity = "5ab0869b-81aa-558d-bb23-cbf5423bbe9b"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 MeshAdaptiveDirectSearch = "f4d74008-4565-11e9-04bd-4fe404e6a92a"
+Monomials = "272bfe72-f66c-432f-a94d-600f29493792"
 Mustache = "ffc61752-8dc7-55ee-8c37-f3e9cdd09e70"
 Primes = "27ebfcd6-29c5-5fa9-bf4b-fb8fc14df3ae"
 QuasiMonteCarlo = "8a4e6c94-4038-4cdc-81c3-7e6ffdb2a71b"
@@ -37,7 +34,6 @@ DataFrames = "0.22, 1.0"
 DelimitedFiles = "1"
 Dierckx = "0.5"
 Distributions = "0.24, 0.25"
-DynamicPolynomials = "0.5, 0.6"
 FastGaussQuadrature = "0.4, 0.5, 1"
 FiniteDifferences = "0.12"
 Formatting = "0.4"
