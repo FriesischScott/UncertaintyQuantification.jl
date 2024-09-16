@@ -6,13 +6,14 @@ using DataFrames
 using Dates
 using Dierckx
 using Distributed
-using DynamicPolynomials
+# using DynamicPolynomials
 using FastGaussQuadrature
 using FiniteDifferences
 using Formatting
 using KernelDensity
 using LinearAlgebra
 using MeshAdaptiveDirectSearch
+using Monomials
 using Mustache
 using Primes
 using QuasiMonteCarlo

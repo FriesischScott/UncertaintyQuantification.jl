@@ -16,60 +16,30 @@ struct ResponseSurface <: UQModel
     y::Symbol
     names::Vector{Symbol}
     p::Int64
-    monomials::DynamicPolynomials.MonomialVector{
-        DynamicPolynomials.Commutative{DynamicPolynomials.CreationOrder},
-        MultivariatePolynomials.Graded{MultivariatePolynomials.LexOrder},
-    }
+    monomials::Vector{Monomial}
 
     function ResponseSurface(data::DataFrame, output::Symbol, p::Int)
         if p < 0
             error("Degree(p) of ResponseSurface must be non-negative.")
         end
 
-        @polyvar x[1:(size(data, 2) - 1)]
-        m = monomials(x, 0:p)
+        x = ["x$i" for i in 1:(size(data, 2) - 1)]
+        m = monomials(x, p, GradedLexicographicOrder(); include_zero=true)
 
         names = propertynames(data[:, Not(output)])
 
-        X = Matrix{Float64}(data[:, names]) # convert to matrix, sort by rs.names
+        X = transpose(Matrix{Float64}(data[:, names])) # convert to matrix, sort by rs.names
         y = Vector{Float64}(data[:, output])
 
-        β = multi_dimensional_polynomial_regression(X, y, m)
-
+        β = m(X)' \ y
         return new(β, output, names, p, m)
     end
-end
-
-# only to be called internally by constructor
-function multi_dimensional_polynomial_regression(
-    X::Matrix,
-    y::Vector,
-    monomials::DynamicPolynomials.MonomialVector{
-        DynamicPolynomials.Commutative{DynamicPolynomials.CreationOrder},
-        MultivariatePolynomials.Graded{MultivariatePolynomials.LexOrder},
-    },
-)
-
-    #fill monomials with the given x values for each row
-    M = mapreduce(row -> begin
-        return map(m -> m(row), monomials)'
-    end, vcat, eachrow(X))
-
-    return M \ y   #β
-end
-
-#called internally by evaluate!
-#evaluates one datapoint using a given ResponseSurface
-function calc(row::Array, rs::ResponseSurface)
-    return map(m -> m(row), rs.monomials') * rs.β
 end
 
 """
     evaluate!(rs::ResponseSurface, data::DataFrame)
 
 evaluating data by using a previously trained ResponseSurface.
-
-
 
 
 # Examples
@@ -91,8 +61,9 @@ julia> df.y |> DisplayAs.withcontext(:compact => true)
 ```
 """
 function evaluate!(rs::ResponseSurface, data::DataFrame)
-    x = Matrix{Float64}(data[:, rs.names]) # convert to matrix, sort by rs.names
-    out = map(row -> (calc(convert(Array, row), rs)), eachrow(x)) # fill monomial, evaluate given data with ResponseSurface
+    x = transpose(Matrix{Float64}(data[:, rs.names])) # convert to matrix, sort by rs.names
+    out = map(x -> dot(x, rs.β), eachcol(rs.monomials(x)))
+
     data[!, rs.y] = out
     return nothing
 end
