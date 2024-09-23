@@ -3,22 +3,22 @@ To run tests, from top directory of UQ.jl either:
 using the package manager:
 
 ```julia
-julia --project
+shell> julia --project
 
-using Pkg
-Pkg.test()
+julia> using Pkg
+julia> Pkg.test()
 ```
 
 or using the package REPL
 
 ```julia
-julia --project
+shell> julia --project
 
-] test
+julia>] test
 ```
 
 or (one liner)
 
 ```
-julia --project -e 'using Pkg; Pkg.test()'
+shell> julia --project -e 'using Pkg; Pkg.test()'
 ```
