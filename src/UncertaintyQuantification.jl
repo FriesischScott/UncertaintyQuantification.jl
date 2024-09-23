@@ -9,7 +9,7 @@ using Distributed
 # using DynamicPolynomials
 using FastGaussQuadrature
 using FiniteDifferences
-using Formatting
+using Format
 using KernelDensity
 using LinearAlgebra
 using MeshAdaptiveDirectSearch

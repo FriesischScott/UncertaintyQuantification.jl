@@ -1,6 +1,6 @@
 using DataFrames
 using Distributed
-using Formatting
+using Format
 using HCubature
 using HypothesisTests
 using InteractiveUtils
