@@ -10,17 +10,17 @@ using StatsBase: fit, Histogram, corkendall
 using Test
 using UncertaintyQuantification
 
-# include("inputs/empericaldistribution.jl")
-# include("inputs/parameter.jl")
-# include("inputs/jointdistribution.jl")
-# include("inputs/imprecise/interval.jl")
-# include("inputs/imprecise/p-box.jl")
-# include("inputs/randomvariables/randomvariable.jl")
-# include("inputs/randomvariables/distributionparameters.jl")
-# include("inputs/jointdistribution.jl");
-# include("inputs/inputs.jl")
+include("inputs/empericaldistribution.jl")
+include("inputs/parameter.jl")
+include("inputs/jointdistribution.jl")
+include("inputs/imprecise/interval.jl")
+include("inputs/imprecise/p-box.jl")
+include("inputs/randomvariables/randomvariable.jl")
+include("inputs/randomvariables/distributionparameters.jl")
+include("inputs/jointdistribution.jl");
+include("inputs/inputs.jl")
+include("inputs/copulas/gaussian.jl")
 
-# include("inputs/copulas/gaussian.jl")
 include("models/external/solvers.jl")
 include("models/external/externalmodel.jl")
 include("models/model.jl")
