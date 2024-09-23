@@ -2,7 +2,7 @@
 using UncertaintyQuantification, DelimitedFiles
 
 # To run the model distributed add the desired workers and load the required packages with @everywhere
-# using Distributed, Format
+# using Distributed
 # addprocs(6; exeflags="--project")
 # @everywhere using UncertaintyQuantification, DelimitedFiles
 
