@@ -3,7 +3,7 @@
 
 ## Inverse eigenvalue problem
 
-The inverse eigenvalue problem is a classic engineering example. Here we will use bayesian updating to sample from a bivariate posterior distribution describing unknown quantities of a matrix
+The inverse eigenvalue problem is a classic engineering example. Here we will use Bayesian updating to sample from a bivariate posterior distribution describing unknown quantities of a matrix
 
 ```math
 \begin{bmatrix}
@@ -52,7 +52,7 @@ The a priori knowledge of $\theta_1$ and $\theta_2$ is that they take values bet
 P(\lambda|\theta) \propto \exp \left[-\frac{1}{2}\sum_{i=1}^2\sum_{n=1}^{15} {\left(\frac{\lambda_{i,n}^{data}-\lambda_i^{model}}{\sigma_i}\right)}^2\right]
 ```
 
-To begin the bayesian model updating procedure we start by defining the data, the models for the eigenvalues (without the noise term) and the likelihood function.
+To begin the Bayesian model updating procedure we start by defining the data, the models for the eigenvalues (without the noise term) and the likelihood function.
 
 ===#
 
