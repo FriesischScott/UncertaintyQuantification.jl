@@ -22,7 +22,15 @@ struct ExternalModel <: UQModel
     )
         sources, extractors, extras = wrap.([sources, extractors, extras])
         return new(
-            sourcedir, sources, extractors, solver, workdir, extras, formats, cleanup, scheduler
+            sourcedir,
+            sources,
+            extractors,
+            solver,
+            workdir,
+            extras,
+            formats,
+            cleanup,
+            scheduler,
         )
     end
 end

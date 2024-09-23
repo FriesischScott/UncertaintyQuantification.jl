@@ -35,7 +35,6 @@ function gradient_in_standard_normal_space(
     samples = copy(reference)
 
     random_names = names(filter(i -> isa(i, RandomUQInput), inputs))
-    to_standard_normal_space!(inputs, samples)
 
     function f(x)
         samples[:, random_names] .= x

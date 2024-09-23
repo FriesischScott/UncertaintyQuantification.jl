@@ -1,4 +1,4 @@
-abstract type AbstractSubSetSimulation end
+abstract type AbstractSubSetSimulation <: AbstractSimulation end
 
 """
     SubSetSimulation(n::Integer, target::Float64, levels::Integer, proposal::UnivariateDistribution)
@@ -94,21 +94,28 @@ end
 
 Implementation of: Papaioannou, Iason, et al. "MCMC algorithms for subset simulation." Probabilistic Engineering Mechanics 41 (2015): 89-103
 
-Defines the properties of a Subset-∞ adaptive where `n` is the number of initial samples,
+Defines the properties of a Subset-∞ adaptive where `n` are the number of samples per level,
 `target` is the target probability of failure at each level, `levels` is the maximum number
-of levels and `λ` (λ = 1 recommended) is the initial scaling parameter and `Na` is the number of
-times to update `λ` per subset level (number of partitions of seeds). The initial variance of the proposal distribution is `λ`.
+of levels, `λ` (λ = 1 recommended) is the initial scaling parameter, and `Na` is the number simulations that will be run before `λ`
+is updated. Note that Na must be a multiple of n * target: `mod(ceil(n * target), Na) == 0)`. The initial variance of the proposal distribution is `s`.
 
 
 Idea behind this algorithm is to adaptively select the correlation parameter of `s`
-at each intermediate level, by simulating a subset N_a of the chains
-(which must be choosen without replacement at random) and modifying the acceptance rate towards the optiming
-α_star = 0.44
+at each intermediate level, by simulating a subset Na of the chains
+(which must be choosen without replacement at random) and modifying the acceptance rate towards the optimal
+αstar = 0.44
 
 # Constructors
 * `SubSetInfinityAdaptive(n::Integer, target::Float64, levels::Integer, Na::Integer)`   (default: λ = s = 1)
 * `SubSetInfinityAdaptive(n::Integer, target::Float64, levels::Integer, Na::Integer, λ::Real)` (λ = s)
 * `SubSetInfinityAdaptive(n::Integer, target::Float64, levels::Integer, Na::Integer, λ::Real, s::Real)`
+
+# Note
+The following constructors will run the same number of samples, but SubSetInfinityAdaptive will update `s` after each chain:
+
+* `SubSetInfinityAdaptive(400, 0.1, 10, 40)`
+* `SubSetInfinity(400, 0.1, 10, 0.5)`
+
 
 # Examples
 
@@ -163,6 +170,10 @@ function probability_of_failure(
     inputs::Union{Vector{<:UQInput},UQInput},
     sim::AbstractSubSetSimulation,
 )
+    if isimprecise(inputs)
+        error("You must use DoubleLoop or RandomSlicing with imprecise inputs.")
+    end
+
     samples = [sample(inputs, sim)]
 
     evaluate!(models, samples[end])
@@ -250,8 +261,7 @@ function nextlevelsamples(
     number_of_chains = length(performance)
     samples_per_chain = Int64(floor(sim.n / number_of_chains))
 
-    d = length(rvs)
-    Φ = MvNormal(Diagonal(Matrix{Float64}(I, d, d)))
+    Φ = Normal()
 
     α_MCMC = zeros(samples_per_chain)
     α_ss = zeros(samples_per_chain)
@@ -266,12 +276,17 @@ function nextlevelsamples(
         θ = Matrix{Float64}(chainsamples[:, rvs])
 
         ξ = θ + rand(sim.proposal, size(θ)...)
-        α = pdf(Φ, transpose(ξ)) ./ pdf(Φ, transpose(θ))
+        α = pdf.(Φ, ξ) ./ pdf.(Φ, θ)
 
-        α_accept = α .>= rand(size(α)...)
-        chainsamples[α_accept, rvs] = ξ[α_accept, :]
+        α_accept_per_dim = α .>= rand(size(α)...)
 
-        α_MCMC[i] = mean(α_accept)
+        for (d, col) in enumerate(eachcol(α_accept_per_dim))
+            chainsamples[col, rvs[d]] = ξ[col, d]
+        end
+
+        α_MCMC[i] = mean(α_accept_per_dim)
+
+        α_accept = any(α_accept_per_dim; dims=2)[:]
 
         to_physical_space!(inputs, chainsamples)
 
@@ -286,11 +301,23 @@ function nextlevelsamples(
 
             α_ss[i] = 1 - mean(reject)
 
-            new_samples[reject, :] = nextlevelsamples[end][α_accept_indices[reject], :]
-            new_samplesperformance[reject] = nextlevelperformance[end][α_accept_indices[reject]]
+            if length(reject) == 1
+                # only a single chain moved forward in the MH step
+                if reject
+                    new_samples[1, :] = nextlevelsamples[end][α_accept_indices[1], :]
+                    new_samplesperformance = nextlevelperformance[end][α_accept_indices]
+                end
 
-            chainsamples[α_accept_indices, :] = new_samples
-            chainperformance[α_accept_indices] = new_samplesperformance
+                chainsamples[α_accept_indices[1], :] = new_samples[1, :]
+                chainperformance[α_accept_indices[1]] = new_samplesperformance[1]
+
+            else
+                new_samples[reject, :] = nextlevelsamples[end][α_accept_indices[reject], :]
+                new_samplesperformance[reject] = nextlevelperformance[end][α_accept_indices[reject]]
+
+                chainsamples[α_accept_indices, :] = new_samples
+                chainperformance[α_accept_indices] = new_samplesperformance
+            end
         end
 
         push!(nextlevelsamples, chainsamples)
