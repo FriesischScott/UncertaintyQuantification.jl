@@ -20,7 +20,7 @@
             ]
         end
 
-        logprior(df) = logpdf(prior, df.x)
+        logprior(df) = logpdf.(prior, df.x)
 
         mcmc_samples, _ = bayesianupdating(logprior, loglikelihood, UQModel[], sampler)
 
@@ -44,7 +44,7 @@
             return [sum(logpdf.(Normal.(df_i.x, std_fixed), Data)) for df_i in eachrow(df)]
         end
 
-        logprior(df) = logpdf(prior, df.x)
+        logprior(df) = logpdf.(prior, df.x)
 
         mcmc_samples, _ = bayesianupdating(logprior, loglikelihood, UQModel[], sampler)
 
@@ -77,7 +77,7 @@
             if df.x < 0
                 return -Inf
             end
-            return logpdf(prior, df.x)
+            return logpdf.(prior, df.x)
         end
 
         logprior(df) = [logprior1(df_i) for df_i in eachrow(df)]
