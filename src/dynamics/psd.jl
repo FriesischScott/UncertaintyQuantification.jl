@@ -30,3 +30,13 @@ function evaluate(kt::KanaiTajimi)
     return kt.S_0 .* (1 .+ 4 * kt.ζ^2 .* (kt.ω ./ kt.ω_0) .^ 2) ./
            ((1 .- (kt.ω ./ kt.ω_0) .^ 2) .^ 2 .+ 4 * kt.ζ^2 * (kt.ω ./ kt.ω_0) .^ 2)
 end
+
+struct ShinozukaDeodatis <: AbstractPowerSpectralDensity
+    ω::AbstractVector{<:Real}
+    σ::Real
+    b::Real
+end
+
+function evaluate(sd::ShinozukaDeodatis)
+    return 1/4 * sd.σ^2 * sd.b^3 .* sd.ω.^2 .* exp.(-sd.b * abs.(sd.ω))
+end

@@ -110,6 +110,7 @@ export ProbabilityBox
 export RandomVariable
 export RandomSlicing
 export ResponseSurface
+export ShinozukaDeodatis
 export SobolSampling
 export Solver
 export SpectralRepresentation
@@ -124,6 +125,7 @@ export TwoLevelFactorial
 export bayesianupdating
 export calc
 export count_rvs
+export dft
 export dimensions
 export distribution_parameters
 export doe_samples
@@ -131,6 +133,7 @@ export evaluate
 export evaluate!
 export gradient
 export gradient_in_standard_normal_space
+export idft
 export mean
 export multivariate_indices
 export polynomialchaos
@@ -194,6 +197,7 @@ include("reliability/probabilityoffailure.jl")
 include("reliability/probabilityoffailure_imprecise.jl")
 include("sensitivity/sobolindices.jl")
 
+include("util/fourier-transform.jl")
 include("util/wrap.jl")
 include("util/imprecise.jl")
 
