@@ -52,7 +52,7 @@ if Sys.islinux()
         HPC = true
         HPC_account = ARGS[2]
         HPC_partition = ARGS[3]
-        @warn "Running test with HPC=ON, using account $HPC_account and partition $HPC_partition. Several (20) small 1-task calculations will be submitted to slurm for testing in different job array configuations."
+        @warn "Running a slurm test with HPC=ON, using account $HPC_account and partition $HPC_partition. Several (20) small 1-task calculations will be submitted to slurm for testing in different job array configuations."
     end
 
     if HPC == false && !occursin("test/test_utilities", ENV["PATH"])
