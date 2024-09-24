@@ -35,23 +35,10 @@ and
 ```math
     \lim_{x\rightarrow \infty}  F_X(x) = 1.
 ```
-
-Consider a small interval of width $\Delta x$ on the real line $\mathbb{R}$. The probability that the value of a random variable $X$ falls in this interval is
-
-```math
-    P(x < X \leq (x + \Delta x)).
-```
-
-This probability varies with the magnitude of $\Delta x$, with a larger interval leading to a higher probability. Normalizing the probability as
+The probability density function (PDF) of a random variable can be obtained as the derivative of the CDF
 
 ```math
-    \frac{1}{\Delta x}P(x < X \leq (x + \Delta x))
-```
-
-gives the *density* of the probability over the interval. The limit of this density when the interval approaches $0$ gives the so-called probability density function (PDF) of$X$. The PDF of a random variable can be obtained as the derivative of the CDF
-
-```math
-    f_X(x) = \frac{dF_X(x)}{dx}
+    f_X(x) = \frac{dF_X(x)}{dx},
 ```
 
 if it exists. Conversely, the CDF can be defined as the integral of the PDF as
@@ -62,11 +49,11 @@ if it exists. Conversely, the CDF can be defined as the integral of the PDF as
 
 Using the PDF and CDF random variables subject to aleatory uncertainty can be described using well established probability theory.
 
-Ferson et al. [fersonConstructingProbabilityBoxes2015](@cite) introduced the notion of a *probability box* (p-box) for the representing variables witg both epistemic and aleatory uncertainty. Consider two CDFs $\underline{F}$ and $\overline{F}$ with $\underline{F}(x) \leq \overline{F}(x)$ for all $x \in \mathbb{R} $. Then, $[\underline{F}(x), \overline{F}(x)]$ is the set of CDFs $F$ such that $\underline{F}(x) \leq F(x) \leq \overline{F}(x)$. This set is called the p-box for an imprecisely known random variable $X$, where $\underline{F}(x)$ is the lower bound for the probability that $X$ is smaller than or equal to $x$, and $\overline{F}(x)$ is the upper bound of this probability. The density is difficult to define for a p-box, 
+Ferson et al. [fersonConstructingProbabilityBoxes2015](@cite) introduced the notion of a *probability box* (p-box) for the representing variables witg both epistemic and aleatory uncertainty. Consider two CDFs $\underline{F}$ and $\overline{F}$ with $\underline{F}(x) \leq \overline{F}(x)$ for all $x \in \mathbb{R} $. Then, $[\underline{F}(x), \overline{F}(x)]$ is the set of CDFs $F$ such that $\underline{F}(x) \leq F(x) \leq \overline{F}(x)$. This set is called the p-box for an imprecisely known random variable $X$, where $\underline{F}(x)$ is the lower bound for the probability that $X$ is smaller than or equal to $x$, and $\overline{F}(x)$ is the upper bound of this probability.
 
-The simplest way to construct a p-box is using a known parametric family (normal, exponential, ...) with intervals for their parameters (mean, variance, ...), and from this we can form the set $[\underline{F}(x), \overline{F}(x)]$. This is known as parametric p-box, only containing distributions following the specified distribution family. If no family information is available, but $[\underline{F}(x), \overline{F}(x)]$ are known, this is known as a _distribution-free_ p-box, where every possible CDF between the bounds is a valid random variable.
+The simplest way to construct a p-box is using a known parametric family (normal, exponential, ...) with intervals for their parameters (mean, variance, ...), and from this we can form the set $[\underline{F}(x), \overline{F}(x)]$. This is known as parametric p-box, only containing distributions following the specified distribution family. If no family information is available, but $[\underline{F}(x), \overline{F}(x)]$ are known, called a _distribution-free_ p-box, where every possible CDF between the bounds is a valid random variable.
 
-Special algorithms must be used to propagate the epistemic uncertainty through models. As a result, the analysis also returns upper and lower bounds. This propagation of the epistemic uncertainty comes with a significant increase in computational demand.
+Special algorithms must be used to propagate the epistemic uncertainty through models. As a result, the analysis also returns upper and lower bounds. This propagation of the epistemic uncertainty comes with a significant increase in computational demand, requiring specialised algorithms or perhaps surrogate modelling.
 
 In *UncertaintyQuantification.jl* the four categories of uncertainties are described using the following objects:
 
