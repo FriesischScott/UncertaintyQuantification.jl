@@ -127,7 +127,7 @@ include("../test_utilities/read_write_utils.jl")
                 sourcefile,
                 radius,
                 solver;
-                workdir=tempname(),
+                workdir="hpc/test_dir",
                 formats=numberformats,
                 extras="extra.txt",
                 scheduler=slurm,
@@ -158,7 +158,7 @@ include("../test_utilities/read_write_utils.jl")
                 sourcefile,
                 radius,
                 solver;
-                workdir=tempname(),
+                workdir="hpc/test_dir",
                 formats=numberformats,
                 extras="extra.txt",
                 scheduler=slurm,
