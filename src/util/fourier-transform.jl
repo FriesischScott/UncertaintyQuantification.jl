@@ -3,7 +3,7 @@ function dft(x::AbstractVector)
     X = zeros(ComplexF64, N)
 
     for n in 1:N
-        X += x[n] * exp.(-1im * 2 * pi .* (1:N) ./ N * n)
+        X += x[n] * exp.(-1im * 2 * pi .* (0:N-1) ./ N * (n-1))
     end
 
     return X
@@ -14,7 +14,7 @@ function idft(X::AbstractVector)
     x = zeros(ComplexF64, N)
 
     for k in 1:N
-        x += 1/N * X[k] * exp.(1im * 2 * pi * k / N .* (1:N))
+        x += 1/N * X[k] * exp.(1im * 2 * pi * (k-1) / N .* (0:N-1))
     end
 
     return x
