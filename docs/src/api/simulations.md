@@ -6,7 +6,6 @@ Various Monte Carlo based simulations for a wide range of applications.
 
 ```@index
 Pages = ["simulations.md"]
-Module = ["UncertaintyQuantification"]
 ```
 
 ## Types
