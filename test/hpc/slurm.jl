@@ -33,7 +33,7 @@ include("../test_utilities/read_write_utils.jl")
 
         @testset "unbatched" begin
             slurm = SlurmInterface(;
-                account="HPC_account_1", partition="CPU_partition", nodes=1, ntasks=32
+                account=HPC_account, partition=HPC_partition, nodes=1, ntasks=32
             )
 
             ext = ExternalModel(
@@ -52,8 +52,8 @@ include("../test_utilities/read_write_utils.jl")
             generated_file = joinpath(workdir, "slurm_array.sh")
 
             @test isfile(generated_file)
-            @test isline(generated_file, "#SBATCH -A HPC_account_1")
-            @test isline(generated_file, "#SBATCH -p CPU_partition")
+            @test isline(generated_file, "#SBATCH -A $HPC_account")
+            @test isline(generated_file, "#SBATCH -p $HPC_partition")
             @test isline(generated_file, "#SBATCH --nodes=1")
             @test isline(generated_file, "#SBATCH --ntasks=32")
             @test isline(generated_file, "#SBATCH --array=[1-100]")
@@ -66,8 +66,8 @@ include("../test_utilities/read_write_utils.jl")
         @testset "batched" begin
             slurm = SlurmInterface(;
                 jobname="my_test_job",
-                account="HPC_account_1",
-                partition="CPU_partition",
+                account=HPC_account,
+                partition=HPC_partition,
                 time="10:00:00",
                 nodes=2,
                 ntasks=50,
@@ -115,7 +115,11 @@ include("../test_utilities/read_write_utils.jl")
 
         @testset "unbatched" begin
             slurm = SlurmInterface(;
-                account="HPC_account_1", partition="CPU_partition", nodes=1, ntasks=32
+                account=HPC_account,
+                partition=HPC_partition,
+                nodes=1,
+                ntasks=1,
+                time="00:01:00",
             )
 
             ext = ExternalModel(
@@ -141,11 +145,12 @@ include("../test_utilities/read_write_utils.jl")
 
         @testset "batched" begin
             slurm = SlurmInterface(;
-                account="HPC_account_1",
-                partition="CPU_partition",
+                account=HPC_account,
+                partition=HPC_partition,
                 nodes=1,
-                ntasks=32,
+                ntasks=1,
                 batchsize=4,
+                time="00:01:00",
             )
 
             ext = ExternalModel(
