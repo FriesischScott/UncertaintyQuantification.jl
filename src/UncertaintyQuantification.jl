@@ -6,7 +6,6 @@ using DataFrames
 using Dates
 using Dierckx
 using Distributed
-# using DynamicPolynomials
 using FastGaussQuadrature
 using FiniteDifferences
 using Format
@@ -155,9 +154,6 @@ include("inputs/randomvariables/randomvariable.jl")
 include("inputs/randomvariables/distributionparameters.jl")
 include("inputs/copulas/gaussian.jl")
 include("inputs/jointdistribution.jl")
-
-include("hpc/slurm.jl")
-
 
 include("models/external/solver.jl")
 include("models/external/extractor.jl")
