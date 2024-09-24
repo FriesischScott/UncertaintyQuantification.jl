@@ -1,13 +1,16 @@
+
 @testset "Bayesian Updating" begin
+    N_binom = 15
+    data_binom = [1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 1] # p = 0.8
+
     function binomialinferencebenchmark(
-        sampler::AbstractBayesianMethod, prior::Beta{Float64}, p_true=0.8, N_data=15
+        sampler::AbstractBayesianMethod, prior::Beta{Float64}
     )
         alpha0 = prior.α
         beta0 = prior.β
-        Data = rand(N_data) .<= p_true
 
-        alpha_posterior = alpha0 + sum(Data)
-        beta_posterior = beta0 + N_data - sum(Data)
+        alpha_posterior = alpha0 + sum(data_binom)
+        beta_posterior = beta0 + N_binom - sum(data_binom)
 
         analytic_mean = alpha_posterior / (alpha_posterior + beta_posterior)
         analytic_var =
@@ -16,7 +19,8 @@
 
         function loglikelihood(df)
             return [
-                sum(logpdf.(Binomial.(N_data, df_i.x), sum(Data))) for df_i in eachrow(df)
+                sum(logpdf.(Binomial.(N_binom, df_i.x), sum(data_binom))) for
+                df_i in eachrow(df)
             ]
         end
 
@@ -90,7 +94,7 @@
     @testset "Single Component MH binomal inference analytical" begin
         proposal = Normal()
         x0 = (x=0.5,)
-        n = 2000
+        n = 4000
         burnin = 500
 
         prior = Beta(1, 1)
