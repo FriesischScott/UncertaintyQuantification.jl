@@ -6,11 +6,9 @@ using DataFrames
 using Dates
 using Dierckx
 using Distributed
-# using DynamicPolynomials
 using FastGaussQuadrature
 using FiniteDifferences
 using Formatting
-using GaussianProcesses
 using KernelDensity
 using LinearAlgebra
 using MeshAdaptiveDirectSearch
@@ -87,7 +85,6 @@ export ForwardFiniteDifferences
 export FractionalFactorial
 export FullFactorial
 export GaussianCopula
-export GaussianProcessRegressor # do I need that to be exported?
 export GaussQuadrature
 export HaltonSampling
 export HermiteBasis
@@ -129,12 +126,10 @@ export distribution_parameters
 export doe_samples
 export evaluate
 export evaluate!
-export gaussianprocess
 export gradient
 export gradient_in_standard_normal_space
 export mean
 export multivariate_indices
-export optimize_hyperparams! # Maybe rename this, so it is clear that this works on gaussianprocesses
 export polynomialchaos
 export probability_of_failure
 export propagate_intervals!
@@ -167,7 +162,6 @@ include("solvers/extractor.jl")
 include("hpc/slurm.jl")
 
 include("models/externalmodel.jl")
-include("models/gaussianprocess.jl")
 include("models/model.jl")
 include("models/imprecise/propagation.jl")
 include("models/polyharmonicspline.jl")
