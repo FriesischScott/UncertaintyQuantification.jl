@@ -61,13 +61,16 @@
         prior_shape = prior.invd.α
         prior_scale = prior.θ
 
-        posterior_shape = prior_shape + N_data/2
-        posterior_scale = prior_scale + sum(( Data .- mean_fixed) .^2 )/2
+        posterior_shape = prior_shape + N_data / 2
+        posterior_scale = prior_scale + sum((Data .- mean_fixed) .^ 2) / 2
 
         posterior_exact = InverseGamma(posterior_shape, posterior_scale)
 
         function loglikelihood(df)
-            return [sum(logpdf.(Normal.(mean_fixed, sqrt(df_i.x)), Data)) for df_i in eachrow(df)]
+            return [
+                sum(logpdf.(Normal.(mean_fixed, sqrt(df_i.x)), Data)) for
+                df_i in eachrow(df)
+            ]
         end
 
         function logprior1(df)  # Required because inverse gamma throws error for negative values
@@ -76,8 +79,8 @@
             end
             return logpdf(prior, df.x)
         end
-        
-        logprior(df) = [logprior1(df_i) for df_i in eachrow(df)]        
+
+        logprior(df) = [logprior1(df_i) for df_i in eachrow(df)]
 
         mcmc_samples, _ = bayesianupdating(logprior, loglikelihood, UQModel[], sampler)
 
