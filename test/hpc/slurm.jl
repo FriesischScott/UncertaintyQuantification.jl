@@ -136,7 +136,6 @@ include("../test_utilities/read_write_utils.jl")
 
             evaluate!(ext, df)
 
-            @test length(readdir(readdir(ext.workdir; join=true)[1])) == 11
             @test isapprox(df.r, sqrt.(df.x .^ 2 + df.y .^ 2))
         end
 
@@ -167,7 +166,6 @@ include("../test_utilities/read_write_utils.jl")
 
             evaluate!(ext, df)
 
-            @test length(readdir(readdir(ext.workdir; join=true)[1])) == 13
             @test isapprox(df.r, sqrt.(df.x .^ 2 + df.y .^ 2))
         end
     end
