@@ -148,7 +148,7 @@ extrafiles = String[]
 workdir = joinpath(pwd(), "supported-beam")
 ```
 
-Next, we must define where to inject values from the random variables and parameters into the input files. For this, we make use of the *Mustache.jl* and *Formatting.jl* modules. The values in the source file must be replaced by triple curly bracket expressions of the form `{{{ :x }}}`,  where `:x` is the identifier of the `RandomVariable` or `Parameter` to be injected. For example, to inject the Young's modulus and density of an elastic isotropic material in *OpenSees*, one could write the following.
+Next, we must define where to inject values from the random variables and parameters into the input files. For this, we make use of the *Mustache.jl* and *Format.jl* modules. The values in the source file must be replaced by triple curly bracket expressions of the form `{{{ :x }}}`,  where `:x` is the identifier of the `RandomVariable` or `Parameter` to be injected. For example, to inject the Young's modulus and density of an elastic isotropic material in *OpenSees*, one could write the following.
 
 ```tcl
 nDMaterial ElasticIsotropic 1 {{{ :E }}} 0.25 {{{ :rho }}}

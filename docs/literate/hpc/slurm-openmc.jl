@@ -21,7 +21,7 @@ sourcedir = joinpath(pwd(), "demo/models")
 # These files will be rendered through Mustache.jl and have values injected.
 sourcefile = "openmc_TBR.py"
 
-# Dictionary to map format Strings (Formatting.jl) to variables.
+# Dictionary to map format Strings (Format.jl) to variables.
 numberformats = Dict(:E => ".8e")
 
 # UQ will create subfolders in here to run the solver and store the results.

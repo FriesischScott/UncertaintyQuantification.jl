@@ -124,8 +124,9 @@ function evaluate!(
         makedirectory(m, df[i, :], path)
     end
 
-    generate_HPC_job(scheduler, m, n, datetime)
-    run_HPC_job(scheduler, m, datetime)
+    setup_hpc_jobs(scheduler, m, n, datetime)
+
+    run_hpc_jobs(scheduler, m, n, datetime)
 
     results = map(1:n) do i
         path = joinpath(m.workdir, datetime, "sample-$(lpad(i, digits, "0"))")
@@ -144,9 +145,9 @@ function formatinputs(row::DataFrameRow, formats::Dict{Symbol,String})
     values = []
     for symbol in names
         if haskey(formats, symbol)
-            push!(values, fmt(formats[symbol], row[symbol]))
+            push!(values, pyfmt(formats[symbol], row[symbol]))
         elseif haskey(formats, :*)
-            push!(values, fmt(formats[:*], row[symbol]))
+            push!(values, pyfmt(formats[:*], row[symbol]))
         else
             push!(values, row[symbol])
         end
