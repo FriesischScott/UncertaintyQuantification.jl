@@ -45,5 +45,9 @@ include("simulations/subset.jl")
 include("solvers/solvers.jl")
 
 if Sys.islinux()
+    if !occursin("test/test_utilities", ENV["PATH"])
+        @warn "For slurm test to pass on Linux, test_utilities/sbatch must be added to PATH"
+        @warn "sbatch command line tool may use the fake test_utilities/sbatch"
+    end
     include("hpc/slurm.jl")
 end
