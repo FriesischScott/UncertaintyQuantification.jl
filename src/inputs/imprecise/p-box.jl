@@ -48,8 +48,17 @@ end
 function ProbabilityBox{T}(
     p::AbstractVector{<:UQInput}, name::Symbol
 ) where {T<:UnivariateDistribution}
-    domain = support(T())
-    return ProbabilityBox{T}(p, name, domain.lb, domain.ub)
+    if isa(T(), Uniform)
+        v_ip = mapreduce(
+            x -> collect(bounds(x)), vcat, filter(x -> isa(x, ImpreciseUQInput), p)
+        )
+        v_p = map(x -> x.value, filter(x -> isa(x, Parameter), p))
+        values = vcat(v_ip, v_p)
+        return ProbabilityBox{T}(p, name, minimum(values), maximum(values))
+    else
+        domain = support(T())
+        return ProbabilityBox{T}(p, name, domain.lb, domain.ub)
+    end
 end
 
 function ProbabilityBox{T}(

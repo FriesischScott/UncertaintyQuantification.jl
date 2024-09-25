@@ -11,6 +11,8 @@
     p_box = ProbabilityBox{Uniform}(params, name)
     @test p_box.parameters == params
     @test p_box.name == name
+    @test p_box.lb == 0.14
+    @test p_box.ub == 0.23
 
     @test UncertaintyQuantification.bounds(p_box) == ([0.14, 0.21], [0.16, 0.23])
 
