@@ -173,8 +173,9 @@ include("models/pce/polynomialchaosexpansion.jl")
 
 include("modelupdating/bayesianupdating.jl")
 
-include("sensitivity/finitedifferences.jl")
-include("sensitivity/gradient.jl")
+include("sensitivity/local/finitedifferences.jl")
+include("sensitivity/local/gradient.jl")
+
 
 include("simulations/doe.jl")
 include("simulations/linesampling.jl")
@@ -185,7 +186,8 @@ include("reliability/form.jl")
 include("simulations/importancesampling.jl")
 include("reliability/probabilityoffailure.jl")
 include("reliability/probabilityoffailure_imprecise.jl")
-include("sensitivity/sobolindices.jl")
+include("sensitivity/local/sobolindices.jl")
+
 
 include("util/wrap.jl")
 include("util/imprecise.jl")
