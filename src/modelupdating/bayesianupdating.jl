@@ -320,3 +320,129 @@ function _beta_and_weights(β::Real, L::AbstractVector{<:Real})
 
     return x, w
 end
+
+
+"""
+Variational inference
+"""
+
+"""
+Maximum a posteriori estimate, uses optimization to find the most likely model parameters based on prior and likelihood
+"""
+## !TODO implement abstract variational inference for ez change of method?
+struct MaximumAPosteriori <: AbstractBayesianMethod # Gaussian approximation with variational inference
+    # ! TODO: find out how to optimize
+    prior::Vector{RandomVariable}
+    optimMethod::Any
+    x0::Vector{Float64}
+    islog::Bool
+
+    function MaximumAPosteriori(
+        prior::Vector{RandomVariable},
+        optimMethod::Any,
+        x0::Vector{Float64},
+        islog::Bool
+    )
+        return new(prior, optimMethod, x0, islog)
+    end
+end
+
+function bayesianupdating(prior::Function, likelihood::Function, models::Vector{<:UQModel}, approximation::MaximumAPosteriori)
+
+    posterior = if approximation.islog
+        df -> prior(df) .+ likelihood(df)
+    else
+        df -> log.(prior(df)) .+ log.(likelihood(df))
+    end
+
+    optimTarget = x -> begin 
+        names = collect(p.name for p in approximation.prior)
+        input = DataFrame(x',names)
+    
+        if !isempty(models)
+            evaluate!(models,input)
+        end
+        posterior(input)[1]*-1
+    end
+
+    result = optimize(optimTarget, approximation.x0, approximation.optimMethod)
+    return result.minimizer
+
+end
+
+function bayesianupdating(likelihood::Function, models::Vector{<:UQModel}, approximation::MaximumAPosteriori)
+
+    ## !TODO put prior-generation in extra function since its used multiple times
+
+    prior = if approximation.islog
+        df -> vec(
+            sum(hcat(map(rv -> logpdf.(rv.dist, df[:, rv.name]), approximation.prior)...); dims=2),
+        )
+    else
+        df -> vec(prod(hcat(map(rv -> pdf.(rv.dist, df[:, rv.name]), approximation.prior)...); dims=2))
+    end
+
+    bayesianupdating(prior, likelihood, models, approximation)
+
+end
+
+"""
+Maximum likelihood estimate, uses optimization to find the maximum of the likelihood
+"""
+## !TODO Currently the prior is used to get information about model parameters, maybe there is a better way. In MLE the prior is not needed
+
+struct MaximumLikelihood <: AbstractBayesianMethod # Gaussian approximation with variational inference
+    # ! TODO: find out how to optimize
+    prior::Vector{RandomVariable}
+    optimMethod::Any
+    x0::Vector{Float64}
+    islog::Bool
+
+    function MaximumLikelihood(
+        prior::Vector{RandomVariable},
+        optimMethod::Any,
+        x0::Vector{Float64},
+        islog::Bool
+    )
+        return new(prior, optimMethod, x0, islog)
+    end
+end
+
+function bayesianupdating(prior::Function, likelihood::Function, models::Vector{<:UQModel}, approximation::MaximumLikelihood)
+
+    target = if approximation.islog
+        df -> likelihood(df)
+    else
+        df -> log.(likelihood(df))
+    end
+
+    optimTarget = x -> begin 
+        names = collect(p.name for p in approximation.prior)
+        input = DataFrame(x',names)
+    
+        if !isempty(models)
+            evaluate!(models,input)
+        end
+        target(input)[1]*-1
+    end
+
+    result = optimize(optimTarget, approximation.x0, approximation.optimMethod)
+    return result.minimizer
+
+end
+
+function bayesianupdating(likelihood::Function, models::Vector{<:UQModel}, approximation::MaximumLikelihood)
+
+    ## !TODO put prior-generation in extra function since its used multiple times
+
+    prior = if approximation.islog
+        df -> vec(
+            sum(hcat(map(rv -> logpdf.(rv.dist, df[:, rv.name]), approximation.prior)...); dims=2),
+        )
+    else
+        df -> vec(prod(hcat(map(rv -> pdf.(rv.dist, df[:, rv.name]), approximation.prior)...); dims=2))
+    end
+
+    bayesianupdating(prior, likelihood, models, approximation)
+
+end

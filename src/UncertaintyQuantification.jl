@@ -15,6 +15,7 @@ using LinearAlgebra
 using MeshAdaptiveDirectSearch
 using Monomials
 using Mustache
+using Optim
 using Primes
 using QuasiMonteCarlo
 using Random
@@ -97,6 +98,8 @@ export LeastSquares
 export LegendreBasis
 export LineSampling
 export SingleComponentMetropolisHastings
+export MaximumAPosteriori
+export MaximumLikelihood
 export Model
 export MonteCarlo
 export ParallelModel

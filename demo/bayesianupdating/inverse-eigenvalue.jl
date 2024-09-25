@@ -1,5 +1,6 @@
  using UncertaintyQuantification
 using Plots
+using Optim
 
 Y = [
     1.51 0.33
@@ -23,13 +24,18 @@ Y = [
 λ2 = @. Model(df -> ((df.θ1 + 2 * df.θ2) - sqrt(df.θ1^2 + 4 * df.θ2^2)) / 2, :λ2)
 
 σ = [1.0 0.1]
+
 function likelihood(df)
     λ = [df.λ1 df.λ2]
 
     return log.(exp.([-0.5 * sum(((Y .- λ[n, :]') ./ σ) .^ 2) for n in axes(λ, 1)]))
 end
 
-prior = RandomVariable.(Uniform(0.01, 4), [:θ1, :θ2])
+x0 = [2., 2.]
+
+prior = RandomVariable.(Normal(2, .5), [:θ1, :θ2])
+MAP = MaximumAPosteriori(prior, LBFGS(), x0, true)
+MLE = MaximumLikelihood(prior, LBFGS(), x0, true)
 
 n = 1000
 burnin = 0
@@ -37,7 +43,11 @@ burnin = 0
 tmcmc = TransitionalMarkovChainMonteCarlo(prior, n, burnin)
 
 samples, evidence = bayesianupdating(likelihood, [λ1, λ2], tmcmc)
+MapEstimate = bayesianupdating(likelihood, [λ1, λ2], MAP)
+MLEstimate = bayesianupdating(likelihood, [λ1, λ2], MLE)
 
 scatter(samples.θ1, samples.θ2; lim=[0, 4], label="TMCMC", xlabel="θ1", ylabel="θ2")
+scatter!((MapEstimate[1], MapEstimate[2]), label="MAP")
+scatter!((MLEstimate[1], MLEstimate[2]), label="MLE")
 
 # This file was generated using Literate.jl, https://github.com/fredrikekre/Literate.jl
