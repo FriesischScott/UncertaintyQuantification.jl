@@ -59,10 +59,10 @@
 
         @test pf ≈ 0.159 rtol = 0.05
 
-        @test_logs (:warn, "No root found on initial line") probability_of_failure(
+        @test_throws "No root found on initial line" probability_of_failure(
             g, u, AdvancedLineSampling(1, [0, 0.1])
         )
-        @test_logs (:warn, "No root found on initial line") probability_of_failure(
+        @test_throws "No root found on initial line" probability_of_failure(
             g, u, AdvancedLineSampling(1, [10, 20])
         )
 

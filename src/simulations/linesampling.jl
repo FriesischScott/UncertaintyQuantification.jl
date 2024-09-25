@@ -21,7 +21,7 @@ function sample(inputs::Vector{<:UQInput}, sim::LineSampling)
     rv_names = names(random_inputs)
 
     α = map(n -> sim.direction[n], rv_names)
-    α /= norm(α)
+    normalize!(α)
 
     θ = rand(Normal(), n_rv, sim.lines)
 
@@ -40,4 +40,100 @@ function sample(inputs::Vector{<:UQInput}, sim::LineSampling)
     to_physical_space!(inputs, samples)
 
     return samples
+end
+
+mutable struct AdvancedLineSampling <: AbstractSimulation
+    lines::Integer
+    points::Vector{<:Real}
+    direction::NamedTuple
+    tolerance::Float64
+    stepsize::Float64
+    maxiterations::Int64
+
+    function AdvancedLineSampling(
+        lines::Integer,
+        points::Vector{<:Real}=collect(0.5:0.5:5),
+        direction::NamedTuple=NamedTuple(),
+        tolerance::Float64=1e-3,
+        stepsize::Float64=1e-5,
+        maxiterations::Int64=20
+    )
+        return new(lines, points, direction, tolerance, stepsize, maxiterations)
+    end
+end
+
+function AdvancedLineSampling(
+    lines::Integer,
+    tolerance::Float64,
+    stepsize::Float64,
+    maxiterations::Int64
+)
+    return AdvancedLineSampling(lines, collect(0.5:0.5:5), NamedTuple(), tolerance, stepsize, maxiterations)
+end
+
+function rootinterpolation(
+    x::Vector{<:Real},
+    y::Vector{<:Real},
+    i::Integer=0
+)
+    if all(y[:] .<= 0)
+        @warn "All samples for line $i are inside the failure domain"
+        return Inf
+    elseif all(y[:] .> 0)
+        @warn "All samples for line $i are outside the failure domain"
+        return -Inf
+    end
+    spl = Spline1D(x, y[:])
+    try
+        return Dierckx.roots(spl)[1]
+    catch e
+        @warn "Intersection with failure domain not found for line $i ($e)"
+        return Inf
+    end
+end
+
+function _grad1D(x::Float64, f::Function, stepsize::Float64)
+    fₓ = only(f(x))
+    fₓ₊ = only(f(x+stepsize))
+    ∇fₓ = (fₓ₊ - fₓ)/stepsize
+    return ∇fₓ, fₓ, fₓ₊
+end
+
+function newtonraphson(
+    x₀::Float64,
+    f::Function,
+    stepsize::Float64,
+    tolerance::Float64,
+    maxiterations::Integer
+)
+    # Initialize
+    err = Inf
+    steps = 0
+
+    # Vector to store samples
+    x = Float64[]
+    y = Float64[]
+
+    while abs(err) > tolerance
+        # One dimensional Netwon's method
+        ∇fₓ, fₓ, fₓ₊ = _grad1D(x₀, f, stepsize)
+        x₁ = x₀ - fₓ/∇fₓ
+
+        append!(x, [x₀, x₀+stepsize])
+        append!(y, [fₓ, fₓ₊])
+
+        # Calculate error
+        err = norm(x₁ - x₀)/x₀
+        x₀ = x₁
+
+        # Counter
+        steps +=1
+
+        if steps >= maxiterations
+            @warn "No root found after $steps iterations."
+            return Inf
+        end
+    end
+
+    return x₀, x, y
 end

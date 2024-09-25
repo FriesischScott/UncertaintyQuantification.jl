@@ -14,20 +14,23 @@ using UncertaintyQuantification
 # Input
 x = RandomVariable.(Normal(), [:x1, :x2])
 
+# Model
+y = Model(df -> df.x2 .+ 0.01 * df.x1.^3 .+ sin.(df.x1), :y)
+
 # Limit-state function
-limitstate(df) = 5 .- df.x2 .+ 0.01 * df.x1.^3 .+ sin.(df.x1)
+g(df) = 5 .- df.y
 
 # Simulation
 numberlines = 200
 
 # Perform Line Sampling
 LS = LineSampling(numberlines, collect(0.5:0.5:10))
-pf_ls, σ_pf_ls, samples_ls = probability_of_failure(limitstate, x, LS)
+pf_ls, σ_pf_ls, samples_ls = probability_of_failure([y], g, x, LS)
 cov_ls = σ_pf_ls/pf_ls
 
 # Perform Advanced Line Sampling
 ALS = AdvancedLineSampling(numberlines, collect(0.5:0.5:10))
-pf_als, σ_pf_als, samples_als = probability_of_failure(limitstate, x, ALS)
+pf_als, σ_pf_als, samples_als = probability_of_failure([y], g, x, ALS)
 cov_als = σ_pf_als/pf_als
 
 println("Line Sampling:")

@@ -41,30 +41,16 @@ function probability_of_failure(
     samples = sample(inputs, sim)
     evaluate!(models, samples)
 
-    p = reshape(performance(samples), length(sim.points), sim.lines)
+    # Evaluate performance function
+    p = reshape(performance(samples), length(sim.points), sim.lines)'
 
-    ϕ = Normal()
-    ξ = zeros(sim.lines)
-    x = median(sim.points)
-    for i in 1:(sim.lines)
-        if all(p[:, i] .< 0)
-            ξ[i] = 1.0
-            @warn "All samples for line $i are inside the failure domain"
-            continue
-        elseif all(p[:, i] .> 0)
-            ξ[i] = 0.0
-            @warn "All samples for line $i are outside the failure domain"
-            continue
-        end
-        spl = Spline1D(sim.points, p[:, i])
-        try
-            root = Dierckx.roots(spl)[1]
-            ξ[i] = cdf.(ϕ, -root)
-        catch e
-            @warn "Intersection with failure domain not found for line $i ($e)"
-        end
-    end
+    # Find roots using spline interpolation for each line
+    β = [rootinterpolation(sim.points, p[i,:], i) for i in 1:sim.lines]
 
+    # Determine pf along lines
+    ξ = cdf.(Normal(), -β)
+
+    # Estimators for pf and variance
     pf = mean(ξ)
     variance = var(ξ) / sim.lines
 
@@ -97,27 +83,28 @@ function probability_of_failure(
 
     # Get the important direction 𝜶
     α = map(n -> sim.direction[n], rv_names)
-    α /= norm(α)
+    normalize!(α)
 
     # Start a line from origin parallel to 𝜶, determine distance 𝛽
-    θ₀ = α * sim.points'
-    samples = DataFrame(rv_names .=> eachcol(θ₀'))
-    β⁺ = splinefit(performance, samples, sim)
+    θ₀ = sim.points * α'
+    samples = DataFrame(rv_names .=> eachcol(θ₀))
+    evaluate!(models, samples)
+
+    β⁺ = rootinterpolation(sim.points, performance(samples))
     βᵢ = copy(β⁺)
 
     if isinf(β⁺)
-        @warn "No root found on initial line"
-        return nothing
+        error("No root found on initial line")
     end
 
     # Generate samples in standard normal space
-    θ = rand(Normal(), n_rv, sim.lines)
+    θ = rand(Normal(), sim.lines, n_rv)
 
     # Project samples onto hyperplane orthogonal to 𝜶
-    θₚ = θ - α * (α' * θ)
+    θₚ = θ - (θ * α) * α'
 
     # Find the sample with smallest norm
-    idx = argmin(norm.(eachcol(θ)))
+    idx = argmin(norm.(eachrow(θ)))
 
     # Keep track of processed indices
     notprocessed = collect(1:sim.lines)
@@ -128,19 +115,23 @@ function probability_of_failure(
     # Loop over lines
     for i in 1:sim.lines
         # Calculate distance
-        θᵢ = θₚ[:,idx]
+        θᵢ = θₚ[idx,:]
 
         # Limit-state function along line
-        f = β -> performance(DataFrame(rv_names .=> eachcol((θᵢ .+ α * β)')))
-        β[i], x = newtonraphson(βᵢ, f, sim)
+        f = β -> begin
+            sample = DataFrame(rv_names .=> eachrow(θᵢ .+ α * β))
+            evaluate!(models, sample)
+            append!(samples, sample)
+            return performance(sample)
+        end
 
-        append!(samples, DataFrame(rv_names .=> eachcol((θᵢ .+ α * x')')))
+        β[i], x, y = newtonraphson(βᵢ, f, sim.stepsize, sim.tolerance, sim.maxiterations)
 
         # Update starting point for next iteration
         if isfinite(β[i]) βᵢ = β[i] end
 
         # Check if distance is smaller than previous distance
-        if β[i]+1e-6 < β⁺
+        if β[i] + 1e-6 < β⁺
             # Update β
             β⁺ = βᵢ
 
@@ -148,7 +139,7 @@ function probability_of_failure(
             α = normalize(θᵢ + α*βᵢ)
 
             # Project remaining samples onto new base
-            θₚ[:,notprocessed] = θ[:,notprocessed] - α * (α' * θ[:,notprocessed])
+            θₚ[notprocessed,:] = θ[notprocessed,:] - (θ[notprocessed,:] * α) * α'
         end
 
         # Remove processed line from list
@@ -156,13 +147,15 @@ function probability_of_failure(
 
         if i !== sim.lines
             # Find next line
-            idx = argmin(norm.(eachcol(θₚ[:,notprocessed]  .- θᵢ)))
+            idx = argmin(norm.(eachrow(θₚ[notprocessed,:]  .- θᵢ')))
             idx = notprocessed[idx]
         end
     end
 
     pf = mean(cdf.(Normal(), -β))
     variance = var(cdf.(Normal(), -β)) / sim.lines
+
+    to_physical_space!(inputs, samples)
 
     return pf, sqrt(variance), samples
 end
