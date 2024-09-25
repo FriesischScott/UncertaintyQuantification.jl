@@ -327,23 +327,44 @@ Variational inference
 """
 
 """
-Maximum a posteriori estimate, uses optimization to find the most likely model parameters based on prior and likelihood
+Maximum a posteriori and maximum likelihood estimates, uses optimization to find the most likely model parameters based on prior and/or likelihood.
+The user can provide the method for optimization. Optim has some methods implemented, both with gradient and gradient-free.
+It is possible to provide multiple initial values for optimization, MLE and MAP will return the maximum of the target function for each starting point
+so it is also possible to find approximations for multi-variate distributions.
 """
 ## !TODO implement abstract variational inference for ez change of method?
-struct MaximumAPosteriori <: AbstractBayesianMethod # Gaussian approximation with variational inference
-    # ! TODO: find out how to optimize
+
+struct MaximumAPosteriori <: AbstractBayesianMethod
+
     prior::Vector{RandomVariable}
-    optimMethod::Any
-    x0::Vector{Float64}
+    optimMethod::Optim.AbstractOptimizer
+    x0::Vector{Vector{Float64}}
     islog::Bool
 
     function MaximumAPosteriori(
         prior::Vector{RandomVariable},
-        optimMethod::Any,
+        optimMethod::String,
         x0::Vector{Float64},
         islog::Bool=true
     )
-        return new(prior, optimMethod, x0, islog)
+        return MaximumAPosteriori(prior, optimMethod, [x0], islog)
+    end
+
+    function MaximumAPosteriori(
+        prior::Vector{RandomVariable},
+        optimMethod::String,
+        x0::Vector{Vector{Float64}},
+        islog::Bool=true
+    )
+        if optimMethod=="LBFGS"
+            method = LBFGS()
+        elseif optimMethod=="NelderMead"
+            method = NelderMead()
+        else
+            error("Optimization method $(optimMethod) is not supported in UncertaintyQuantification.jl")
+        end
+
+        return new(prior, method, x0, islog)
     end
 end
 
@@ -365,8 +386,11 @@ function bayesianupdating(prior::Function, likelihood::Function, models::Vector{
         posterior(input)[1]*-1
     end
 
-    result = optimize(optimTarget, approximation.x0, approximation.optimMethod)
-    return result.minimizer, -result.minimum
+    result = map(x0 -> optimize(optimTarget, x0, approximation.optimMethod),approximation.x0)
+    x = map(x -> x.minimizer,result)
+    min = map(x -> -x.minimum,result)
+
+    return x, min
 
 end
 
@@ -387,24 +411,41 @@ function bayesianupdating(likelihood::Function, models::Vector{<:UQModel}, appro
 end
 
 """
-Maximum likelihood estimate, uses optimization to find the maximum of the likelihood
+Maximum likelihood estimate
 """
 ## !TODO Currently the prior is used to get information about model parameters, maybe there is a better way. In MLE the prior is not needed
 
-struct MaximumLikelihood <: AbstractBayesianMethod # Gaussian approximation with variational inference
-    # ! TODO: find out how to optimize
+struct MaximumLikelihood <: AbstractBayesianMethod
+
     prior::Vector{RandomVariable}
-    optimMethod::Any
-    x0::Vector{Float64}
+    optimMethod::Optim.AbstractOptimizer
+    x0::Vector{Vector{Float64}}
     islog::Bool
 
     function MaximumLikelihood(
         prior::Vector{RandomVariable},
-        optimMethod::Any,
+        optimMethod::String,
         x0::Vector{Float64},
         islog::Bool=true
     )
-        return new(prior, optimMethod, x0, islog)
+        return MaximumLikelihood(prior, optimMethod, [x0], islog)
+    end
+
+    function MaximumLikelihood(
+        prior::Vector{RandomVariable},
+        optimMethod::String,
+        x0::Vector{Vector{Float64}},
+        islog::Bool=true
+    )
+        if optimMethod=="LBFGS"
+            method = LBFGS()
+        elseif optimMethod=="NelderMead"
+            method = NelderMead()
+        else
+            error("Optimization method $(optimMethod) is not supported in UncertaintyQuantification.jl")
+        end
+
+        return new(prior, method, x0, islog)
     end
 end
 
@@ -426,8 +467,11 @@ function bayesianupdating(prior::Function, likelihood::Function, models::Vector{
         target(input)[1]*-1
     end
 
-    result = optimize(optimTarget, approximation.x0, approximation.optimMethod)
-    return result.minimizer, -result.minimum
+    result = map(x0 -> optimize(optimTarget, x0, approximation.optimMethod),approximation.x0)
+    x = map(x -> x.minimizer,result)
+    min = map(x -> -x.minimum,result)
+
+    return x, min
 
 end
 

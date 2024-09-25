@@ -90,19 +90,30 @@ function likelihood(df)
     return log.(exp.([-0.5 * sum(((Y .- λ[n, :]') ./ σ) .^ 2) for n in axes(λ, 1)]))
 end
 
-# We will solve this problem using the TMCMC algorithm. Therefore, the next step is to define the [`RandomVariable`](@ref) vector of the prior, followed by the [`TransitionalMarkovChainMonteCarlo`](@ref) object.
+# We will solve this problem using the TMCMC algorithm, as well as multi-objective maximum a priori (MAP) and maximum likelihood (ML) estimates. Therefore, the next step is to define the [`RandomVariable`](@ref) vector of the prior, followed by the objects for the estimaters ([`TransitionalMarkovChainMonteCarlo`](@ref), [`MaximumAPosteriori`](@ref), [`MaximumLikelihood`](@ref) ). We also have to choose number of samples and burn-in for TMCMC, as well as starting points for the optimization in ML and MAP.
 
 prior = RandomVariable.(Uniform(0.01, 4), [:θ1, :θ2])
 
 n = 1000
 burnin = 0
 
+x0 = [[1., 1.],[3.,.5]]
+
 tmcmc = TransitionalMarkovChainMonteCarlo(prior, n, burnin)
+MAP = MaximumAPosteriori(prior, "LBFGS", x0)
+MLE = MaximumLikelihood(prior, "LBFGS", x0)
 
 # With the prior, likelihood, models and  MCMC sampler defined, the last step is to call the [`bayesinupdating`](@ref) method.
 
 samples, evidence = bayesianupdating(likelihood, [λ1, λ2], tmcmc)
+MapEstimate, MapValues = bayesianupdating(likelihood, [λ1, λ2], MAP)
+MLEstimate, MLEValues = bayesianupdating(likelihood, [λ1, λ2], MLE)
+
+MapEstimate = mapreduce(x->x, hcat, MapEstimate)'
+MLEstimate = mapreduce(x->x, hcat, MLEstimate)'
 
 scatter(samples.θ1, samples.θ2; lim=[0, 4], label="TMCMC", xlabel="θ1", ylabel="θ2")
+scatter!((MapEstimate[:,1], MapEstimate[:,2]), label="MAP")
+scatter!((MLEstimate[:,1], MLEstimate[:,2]), label="MLE")
 
-#  A scatter plot of the resulting samples shows convergence to two distinct regions. Unlike the transitional Markov Chain Monte Carlo algorithm, the standard Metropolis-Hastings algorithm would have only identified one of the two regions.
+#  A scatter plot of the resulting samples shows convergence to two distinct regions. Unlike the transitional Markov Chain Monte Carlo algorithm, the standard Metropolis-Hastings algorithm would have only identified one of the two regions. Since we used a uniform prior distribution, ML and MAP estimates find the same estimates.

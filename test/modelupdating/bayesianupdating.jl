@@ -253,10 +253,8 @@
     end
 
     @testset "MAP normal mean analytical" begin
-        
-        using Optim
 
-        optMethod = LBFGS()
+        optMethod = "LBFGS"
         x0 = [0.]
 
         prior_mean = 2
@@ -270,15 +268,13 @@
 
         MAPEst, analytic_mean, analytic_std = normalmeanbenchmark(estimater, prior)
 
-        @test mean(MAPEst[1]) ≈ analytic_mean rtol = 0.05
+        @test mean(MAPEst[1][1]) ≈ analytic_mean rtol = 0.05
 
     end
 
-    @testset "MAP normal mean analytical" begin
-        
-        using Optim
+    @testset "MLE normal mean analytical" begin
 
-        optMethod = LBFGS()
+        optMethod = "LBFGS"
         x0 = [0.]
 
         prior_mean = 2
@@ -290,9 +286,9 @@
 
         estimater = MaximumLikelihood([prior_sample_], optMethod, x0)
 
-        MAPEst, analytic_mean, analytic_std = normalmeanbenchmark(estimater, prior)
+        MLEst, analytic_mean, analytic_std = normalmeanbenchmark(estimater, prior)
 
-        @test mean(MAPEst[1]) ≈ analytic_mean rtol = 0.05
+        @test mean(MLEst[1][1]) ≈ analytic_mean rtol = 0.05
 
     end
 end
