@@ -10,35 +10,41 @@ The `throttle` specifies the number of simulations in the job array which are ru
 
 # parameters
 
-    account   : the account to charge the computing time to
-    partition : the partition to use
-    nodes     : number of nodes per job
-    ntasks    : total number of cores
+    options   : SBATCH options to add to the slurm script
     throttle  : the number of jobs to be run at the same time
     batchsize : maximum size of the slurm array
-    jobname   : name of the job
-    mempercpu : string, amount of RAM to give per cpu (default MB)
-    extras    : instructions to be executed before the model is run, e.g. activating a python environment
-    time      : how long each job takes, e.g. 00:10:00 for 10 minutes per sample
+
+    extras    : instructions to be executed before the model is run, e.g. activating a python environment or loading modules
 
 # Examples
 ```jldoctest
-julia> slurm = SlurmInterface(account = "HPC_account_1", partition = "CPU_partition", nodes = 1, ntasks = 32, throttle = 200, extras = ["load python3"], time = "00:10:00")
-SlurmInterface("HPC_account_1", "CPU_partition", 1, 32, 200, "UQ_array", "", ["load python3"], "00:10:00")
+julia> slurm = SlurmInterface(Dict("account" => "HPC_account_1", "partition" => "CPU_partition"), extras = ["load python3"])
+SlurmInterface(Dict("account" => "HPC_account_1", "partition" => "CPU_partition"), 0, 0, ["load python3"])
 ```
 
 """
 Base.@kwdef struct SlurmInterface <: AbstractHPCScheduler
-    account::String
-    partition::String
-    nodes::Integer
-    ntasks::Integer
+    options::Dict{String,String}
     throttle::Integer = 0
     batchsize::Integer = 0
-    jobname::String = "UQ_array"
-    mempercpu::String = ""
     extras::Vector{String} = String[]
-    time::String = ""
+
+    function SlurmInterface(
+        options::Dict{String,String};
+        throttle::Integer=0,
+        batchsize::Integer=0,
+        extras::Vector{String}=String[],
+    )
+        if haskey(options, "array")
+            error("Do not pass array as an option.")
+        end
+
+        if !haskey(options, "account") || !haskey(options, "partition")
+            @warn "Omitting account or partition may cause your simulation to fail if your scheduler does not assign defaults."
+        end
+
+        return new(options, throttle, batchsize, extras)
+    end
 end
 
 function setup_hpc_jobs(si::SlurmInterface, m::ExternalModel, n::Integer, datetime::String)
@@ -97,21 +103,14 @@ function setup_slurm_array(
 
     open(fpath, "w") do file
         write(file, "#!/bin/bash -l\n")
-        write(file, "#SBATCH -A $(si.account)\n")
-        write(file, "#SBATCH -p $(si.partition)\n")
-        write(file, "#SBATCH -J $(si.jobname)\n")
-        write(file, "#SBATCH --nodes=$(si.nodes)\n")
-        write(file, "#SBATCH --ntasks=$(si.ntasks)\n")
+
+        for (k, v) in si.options
+            write(file, "SBATCH --$k=$v\n")
+        end
         write(
             file, "#SBATCH --output=sample-%$(digits)a/UncertaintyQuantification-%a.out\n"
         )
         write(file, "#SBATCH --error=sample-%$(digits)a/UncertaintyQuantification-%a.err\n")
-        if !isempty(si.mempercpu)
-            write(file, "#SBATCH --mem-per-cpu=$(si.mempercpu)\n")
-        end
-        if !isempty(si.time)
-            write(file, "#SBATCH --time=$(si.time)\n")
-        end
         write(file, array_command)
         write(file, "\n\n\n")
         write(file, "#### EXTRAS ####\n")
