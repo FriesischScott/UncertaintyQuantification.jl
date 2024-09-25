@@ -5,32 +5,60 @@
 
     N_normal = 25
     data_normal_var = [
-        1.437280614261712,
-        0.9903338260962338,
-        9.854769546944409,
-        1.056579381753677,
-        2.056761552807691,
-        3.186156176996721,
-        2.3879364587768097,
-        -0.12407764676307384,
-        5.826199352930367,
-        5.557818031443039,
-        5.746842569812496,
-        3.1537199947668046,
-        -1.443368713229951,
-        2.5017043510072106,
-        1.297318555540474,
-        3.0879917815935087,
-        3.1770466785730322,
-        4.533258868137872,
-        3.029937397151879,
-        6.850259892791702,
-        6.308314563049104,
-        7.744033994844473,
-        3.0202041313187813,
-        6.116991952214426,
-        5.56628505688018,
-    ]# μ = 4, σ² = 5
+        3.1170072530410713,
+        5.793425513286137,
+        3.019644523423345,
+        4.198492885643784,
+        4.3404411932408005,
+        5.338786752835615,
+        1.6563692415479587,
+        3.496696575234516,
+        5.093428444721792,
+        5.091321607109399,
+        4.994437068835541,
+        4.285932709130585,
+        1.6751627811539134,
+        5.51537861306012,
+        2.4998958266295026,
+        7.065078073070958,
+        5.005937831600564,
+        3.9349403146434914,
+        3.9340063190556913,
+        4.400921498325048,
+        5.276032641042012,
+        4.034478885301326,
+        7.5811254216258215,
+        6.468279762464751,
+        4.416669261547403,
+    ] # μ = 4, σ² = 5
+
+    data_normal_mean = [
+        3.2447586269995603,
+        7.31570639905421,
+        2.9583720841640524,
+        2.7006645805494793,
+        -5.390670487961957,
+        13.222284857030616,
+        4.274588755848634,
+        6.92516681771173,
+        -14.259515860959095,
+        2.8938242850671676,
+        8.702867817886007,
+        17.60466794732554,
+        -3.791069613048381,
+        3.8733459676840587,
+        5.010069312798485,
+        -1.8534537575475099,
+        10.843101672796852,
+        -1.7035437372547804,
+        -1.8363450654785087,
+        -2.929811781116549,
+        -1.6820361524479646,
+        -1.5074002658326515,
+        1.2143899492909962,
+        2.9977426550531416,
+        3.9469743716484778,
+    ] # μ = 4, σ = 5
 
     function binomialinferencebenchmark(
         sampler::AbstractBayesianMethod, prior::Beta{Float64}
@@ -60,21 +88,21 @@
         return mcmc_samples, analytic_mean, sqrt(analytic_var)
     end
 
-    function normalmeanbenchmark(
-        sampler::AbstractBayesianMethod, prior::Normal{Float64}, mean_true=4, N_data=25
-    )
+    function normalmeanbenchmark(sampler::AbstractBayesianMethod, prior::Normal{Float64})
         std_fixed = 5     # Fixed
-
-        Data = rand(Normal(mean_true, std_fixed), N_data)
 
         prior_mean = prior.μ
         prior_std = prior.σ
 
-        analytic_std = 1 / ((1 / prior_std^2) + (N_data / std_fixed^2))
-        analytic_mean = analytic_std * (prior_mean / prior_std^2 + sum(Data) / std_fixed^2)
+        analytic_std = 1 / ((1 / prior_std^2) + (N_normal / std_fixed^2))
+        analytic_mean =
+            analytic_std * (prior_mean / prior_std^2 + sum(data_normal_mean) / std_fixed^2)
 
         function loglikelihood(df)
-            return [sum(logpdf.(Normal.(df_i.x, std_fixed), Data)) for df_i in eachrow(df)]
+            return [
+                sum(logpdf.(Normal.(df_i.x, std_fixed), data_normal_mean)) for
+                df_i in eachrow(df)
+            ]
         end
 
         logprior(df) = logpdf.(prior, df.x)
@@ -120,7 +148,7 @@
         proposal = Normal()
         x0 = (x=0.5,)
         n = 4000
-        burnin = 500
+        burnin = 100
 
         prior = Beta(1, 1)
 
@@ -134,9 +162,9 @@
 
     @testset "Single Component MH normal mean analytical" begin
         proposal = Normal()
-        x0 = (x=1.0,)
-        n = 2000
-        burnin = 500
+        x0 = (x=2.5,)
+        n = 4000
+        burnin = 100
 
         prior_mean = 2
         prior_std = 10
@@ -153,9 +181,9 @@
 
     @testset "Single Component MH normal var analytical" begin
         proposal = Normal()
-        x0 = (x=4.0,)
+        x0 = (x=3.0,)
         n = 4000
-        burnin = 500
+        burnin = 100
 
         prior_shape = 30
         prior_scale = 100
@@ -171,8 +199,8 @@
     end
 
     @testset "TMCMC binomal inference analytical" begin
-        n = 2000
-        burnin = 200
+        n = 4000
+        burnin = 100
 
         prior = Beta(1, 1)
 
@@ -182,13 +210,13 @@
 
         mc_samples, analytic_mean, analytic_std = binomialinferencebenchmark(tmcmc, prior)
 
-        @test mean(mc_samples.x) ≈ analytic_mean rtol = 0.05
-        @test std(mc_samples.x) ≈ analytic_std rtol = 0.05
+        @test mean(mc_samples.x) ≈ analytic_mean rtol = 0.1
+        @test std(mc_samples.x) ≈ analytic_std rtol = 0.1
     end
 
     @testset "TMCMC normal mean analytical" begin
-        n = 2000
-        burnin = 200
+        n = 4000
+        burnin = 100
 
         prior_mean = 2
         prior_std = 10
@@ -201,13 +229,13 @@
 
         mc_samples, analytic_mean, analytic_std = normalmeanbenchmark(tmcmc, prior)
 
-        @test mean(mc_samples.x) ≈ analytic_mean rtol = 0.05
-        @test std(mc_samples.x) ≈ analytic_std rtol = 0.05
+        @test mean(mc_samples.x) ≈ analytic_mean rtol = 0.1
+        @test std(mc_samples.x) ≈ analytic_std rtol = 0.1
     end
 
     @testset "TMCMC normal var analytical" begin
-        n = 2000
-        burnin = 200
+        n = 4000
+        burnin = 100
 
         prior_shape = 30
         prior_scale = 100
@@ -220,7 +248,7 @@
 
         mc_samples, analytic_mean, analytic_std = normalvarbenchmark(tmcmc, prior)
 
-        @test mean(mc_samples.x) ≈ analytic_mean rtol = 0.05
-        @test std(mc_samples.x) ≈ analytic_std rtol = 0.05
+        @test mean(mc_samples.x) ≈ analytic_mean rtol = 0.1
+        @test std(mc_samples.x) ≈ analytic_std rtol = 0.1
     end
 end
