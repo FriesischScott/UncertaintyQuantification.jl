@@ -1,0 +1,25 @@
+#!/bin/bash
+
+if [ "$1" != "--wait" ]; then
+    printf '%s\n' "Must be called with --wait" >&2
+    exit 1
+fi
+
+filename="$2"
+
+echo "$filename"
+
+while read -r line; do
+    if [[ "$line" =~ (--array=\[)[0-9]+(-)[0-9]+(\]) ]]; then
+        a=`echo "$line" | grep -oP "(?<=\\[)[0-9]+(?=-)"`
+        b=`echo "$line" | grep -oP "(?<=-)[0-9]+(?=\\])"`
+
+        for ((i=$a; i<=$b; i++)); do
+            export SLURM_ARRAY_TASK_ID=$i
+            bash "$filename"
+        done
+        exit 0
+    fi
+done < "$filename"
+
+

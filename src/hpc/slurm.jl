@@ -6,7 +6,7 @@ When `SlurmInterface` is passed to an `ExternalModel`, model evaluations are exe
 When using `SlurmInterface`, you no longer need to load workers into Julia with `addprocs(N)`, and the requested nodes / tasks those required by individual model evaluations. Use `extras` to specify anything that must be preloaded for your models to be executed (for example loading modules).
 
 The `throttle` specifies the number of simulations in the job array which are run concurrently. I.e., if you perform
-`MonteCarlo` simulation with `N=1000` samples, with `throttle=200`, it will run 1000 simulations in total, but only 200 at the same time. Your HPC scheduler (and admin) may be unhappy if you request too many concurrent jobs. If left empty, you scheduler's default throttle will be used.
+`MonteCarlo` simulation with `N=1000` samples, with `throttle=200`, it will run 1000 simulations in total, but only 200 at the same time. Your HPC scheduler (and admin) may be unhappy if you request too many concurrent jobs. If left empty, you scheduler's default throttle will be used. If your scheduler restricts the maximum size of a slurm job array, you can use `batchsize` to split the work into smaller batches.
 
 # parameters
 
@@ -15,6 +15,7 @@ The `throttle` specifies the number of simulations in the job array which are ru
     nodes     : number of nodes per job
     ntasks    : total number of cores
     throttle  : the number of jobs to be run at the same time
+    batchsize : maximum size of the slurm array
     jobname   : name of the job
     mempercpu : string, amount of RAM to give per cpu (default MB)
     extras    : instructions to be executed before the model is run, e.g. activating a python environment
@@ -33,48 +34,83 @@ Base.@kwdef struct SlurmInterface <: AbstractHPCScheduler
     nodes::Integer
     ntasks::Integer
     throttle::Integer = 0
+    batchsize::Integer = 0
     jobname::String = "UQ_array"
     mempercpu::String = ""
     extras::Vector{String} = String[]
     time::String = ""
 end
 
-function generate_HPC_job(SI::SlurmInterface, m, n, path)
+function setup_hpc_jobs(si::SlurmInterface, m::ExternalModel, n::Integer, datetime::String)
+    if si.batchsize == 0
+        setup_slurm_array(si, m::ExternalModel, n::Integer, datetime::String)
+    else
+        for batch in 1:ceil(Integer, n / si.batchsize)
+            setup_slurm_array(si, m, n, datetime, batch)
+        end
+    end
+end
+
+function run_hpc_jobs(si::SlurmInterface, m::ExternalModel, n::Integer, datetime::String)
+    if si.batchsize == 0
+        run_slurm_array(si, m::ExternalModel, datetime::String)
+    else
+        for batch in 1:ceil(Integer, n / si.batchsize)
+            run_slurm_array(si, m, datetime, batch)
+        end
+    end
+end
+
+function setup_slurm_array(
+    si::SlurmInterface, m::ExternalModel, n::Integer, path::String, batch::Integer=0
+)
     binary = m.solver.path
     source = m.solver.source
     args = m.solver.args
 
-    extras = SI.extras
+    extras = si.extras
 
     run_command = !isempty(args) ? "$binary $args $source" : "$binary $source"
-    array_command = if iszero(SI.throttle)
-        "#SBATCH --array=[1-$(n)]\n"
+
+    a, b = if batch > 0
+        (batch - 1) * si.batchsize + 1, min(batch * si.batchsize, n)
     else
-        "#SBATCH --array=[1-$(n)]%$(SI.throttle)\n"
+        1, n
+    end
+
+    array_command = if iszero(si.throttle)
+        "#SBATCH --array=[$a-$b]\n"
+    else
+        "#SBATCH --array=[$a-$b]%$(si.throttle)\n"
     end
 
     digits = ndigits(n)
 
-    fname = "slurm_array.sh"
+    fname = if iszero(batch)
+        "slurm_array.sh"
+    else
+        "slurm_array-$batch.sh"
+    end
+
     dirpath = joinpath(m.workdir, path)
     fpath = joinpath(dirpath, fname)
 
     open(fpath, "w") do file
         write(file, "#!/bin/bash -l\n")
-        write(file, "#SBATCH -A $(SI.account)\n")
-        write(file, "#SBATCH -p $(SI.partition)\n")
-        write(file, "#SBATCH -J $(SI.jobname)\n")
-        write(file, "#SBATCH --nodes=$(SI.nodes)\n")
-        write(file, "#SBATCH --ntasks=$(SI.ntasks)\n")
+        write(file, "#SBATCH -A $(si.account)\n")
+        write(file, "#SBATCH -p $(si.partition)\n")
+        write(file, "#SBATCH -J $(si.jobname)\n")
+        write(file, "#SBATCH --nodes=$(si.nodes)\n")
+        write(file, "#SBATCH --ntasks=$(si.ntasks)\n")
         write(
             file, "#SBATCH --output=sample-%$(digits)a/UncertaintyQuantification-%a.out\n"
         )
         write(file, "#SBATCH --error=sample-%$(digits)a/UncertaintyQuantification-%a.err\n")
-        if !isempty(SI.mempercpu)
-            write(file, "#SBATCH --mem-per-cpu=$(SI.mempercpu)\n")
+        if !isempty(si.mempercpu)
+            write(file, "#SBATCH --mem-per-cpu=$(si.mempercpu)\n")
         end
-        if !isempty(SI.time)
-            write(file, "#SBATCH --time=$(SI.time)\n")
+        if !isempty(si.time)
+            write(file, "#SBATCH --time=$(si.time)\n")
         end
         write(file, array_command)
         write(file, "\n\n\n")
@@ -126,10 +162,17 @@ function generate_HPC_job(SI::SlurmInterface, m, n, path)
 end
 
 # Slurm interface is passed to dispatch function for slurm. Perhaps there is a more elegant solution using parametric typing.
-function run_HPC_job(slurm::SlurmInterface, m, path)
+function run_slurm_array(
+    si::SlurmInterface, m::ExternalModel, path::String, batch::Integer=0
+)
     dirpath = joinpath(m.workdir, path)
 
-    p = pipeline(`sbatch --wait slurm_array.sh`)
+    p = if iszero(batch)
+        pipeline(`sbatch --wait slurm_array.sh`)
+    else
+        pipeline(`sbatch --wait slurm_array-$batch.sh`)
+    end
+
     cd(() -> run(p), dirpath)
 
     return nothing
