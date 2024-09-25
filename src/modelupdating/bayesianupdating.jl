@@ -341,7 +341,7 @@ struct MaximumAPosteriori <: AbstractBayesianMethod # Gaussian approximation wit
         prior::Vector{RandomVariable},
         optimMethod::Any,
         x0::Vector{Float64},
-        islog::Bool
+        islog::Bool=true
     )
         return new(prior, optimMethod, x0, islog)
     end
@@ -366,7 +366,7 @@ function bayesianupdating(prior::Function, likelihood::Function, models::Vector{
     end
 
     result = optimize(optimTarget, approximation.x0, approximation.optimMethod)
-    return result.minimizer
+    return result.minimizer, -result.minimum
 
 end
 
@@ -402,7 +402,7 @@ struct MaximumLikelihood <: AbstractBayesianMethod # Gaussian approximation with
         prior::Vector{RandomVariable},
         optimMethod::Any,
         x0::Vector{Float64},
-        islog::Bool
+        islog::Bool=true
     )
         return new(prior, optimMethod, x0, islog)
     end
@@ -427,7 +427,7 @@ function bayesianupdating(prior::Function, likelihood::Function, models::Vector{
     end
 
     result = optimize(optimTarget, approximation.x0, approximation.optimMethod)
-    return result.minimizer
+    return result.minimizer, -result.minimum
 
 end
 
