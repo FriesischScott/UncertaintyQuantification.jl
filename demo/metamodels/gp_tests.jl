@@ -1,55 +1,73 @@
 using UncertaintyQuantification
-using GaussianProcesses # do we reexport for mean and kernel functions etc.?
-using DataFrames
+using ParameterHandling
+using AbstractGPs
 using Random
-using Statistics
+using DataFrames
+
+using Zygote
+using Optim
+using Plots
 
 Random.seed!(20140430)
-# Training data
-n=10;                          #number of training points
-x = 2π * rand(n);              #predictors
-y = sin.(x) + 0.05*randn(n) .+ 1e3;   #regressors
 
-#Select mean and covariance function
-mZero = MeanZero()                   #Zero mean function
-mConst = MeanConst(1.0)
-kern = SE(0.0,0.0)                   #Sqaured exponential kernel (note that hyperparameters are on the log scale)
+## Training data
+n = 10
 
-inputs = :x
-output = :y
-df = DataFrame(inputs => x)
-df[!, output] = y
+# For interface with random input and model
+x = RandomVariable(Uniform(0, 2π), :x)
+y = Model(
+    df ->
+        (sin.(df.x) + 0.05*randn(length(df.x))),
+    :y,
+)
+exp_design = ExperimentalDesign(MonteCarlo(n))
 
-logObsNoise = -1.0                        # log standard deviation of observation noise (this is optional)
+# For interface with DataFrame
+df = sample(x, n)
+evaluate!(y, df) 
 
-gp, = gaussianprocess(df, [inputs], output, kern, mZero, logObsNoise)
+## Set up mean, kernel and noise
+# mean
+mean_params = (;)
+mZero(θ) = ZeroMean() #Zero mean function
 
-# gp = GP(x,y,mConst,kern,logObsNoise)       #Fit the GP
-# gp_scaled = GP(x,y_scaled,mZero,kern,logObsNoise-log(std(y))) 
+# kernel
+kernel_params = (;
+    σ = positive(.9),
+    ℓ = positive(.9)
+)
+kern(θ) = θ.σ^2 * with_lengthscale(SqExponentialKernel(), θ.ℓ) #Squared exponential kernel (note that hyperparameters are on the log scale)
 
-# gp = GP(x,y,mConst,kern)       #Fit the GP
-# gp_scaled = GP(x,y_scaled,mZero,kern, -2-log(std(y))) 
+# noise
+noise_params = (;noise = fixed(exp(-2.)))   
 
-# μ, σ² = predict_y(gp,range(0,stop=2π,length=100))
-# a, b = predict_y(gp_scaled,range(0,stop=2π,length=100))
-# a_ = a .* std(y) .+ mean(y)
-# b_ = b .* std(y)
+θ = (;mean = mean_params, kernel = kernel_params, noise = noise_params)
+flat_params, unflatten = value_flatten(θ)
 
-using Optim
+random_inputs = filter(i -> isa(i, RandomUQInput), [x])
+random_names = names(random_inputs)
 
-optimize_hyperparams!(gp; method=ConjugateGradient(), noise=false)   # Optimise the hyperparameters
-# optimize!(gp_scaled; method=ConjugateGradient(), noise=false)
+gpr = gaussianprocess(
+    [x],
+    y,
+    :y,
+    kern,
+    mZero,
+    kernel_params,
+    mean_params,
+    noise_params,
+    exp_design,
+    LBFGS()
+)
 
-# plot(gp; legend=false, fmt=:png)   #Plot the GP after the hyperparameters have been optimised 
+y_gp = gpr.gp(sample(x, 10)[:, 1])
 
-# optimize!(gp; kern = false)   # Don't optimize kernel hyperparameters
-# optimize!(gp; kernbounds = [[-1, -1], [1, 1]]) # Optimize the kernel parameters in a box with lower bounds [-1, -1] and upper bounds [1, 1]
+function plotdata()
+    plot(; xlabel="x", ylabel="y", legend=:bottomright)
+    return scatter!(df[:, 1], df[:, 2]; label="training data", ms=2, markerstrokewidth=0)
+end
 
-# using Plots  #Load Plots.jl package
+plot_gp!(f; label) = plot!(f(sort!(sample(x, 100)[:, 1])); ribbon_scale=2, linewidth=1, label)
 
-# scatter(x, y)
-# plot!(range(0,stop=2π,length=100), μ, ribbon=σ²)
-# plot!(range(0,stop=2π,length=100), a_, ribbon=b_)
-
-# plot(gp; xlabel="x", ylabel="y", title="Gaussian process", legend=false, fmt=:png)      # Plot the GP
-# plot(gp_scaled; xlabel="x", ylabel="y", title="Gaussian process", legend=false, fmt=:png)
+plotdata()
+plot_gp!(gpr.gp; label="posterior f(⋅)")
