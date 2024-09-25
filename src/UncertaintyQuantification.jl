@@ -136,6 +136,7 @@ export gradient_in_standard_normal_space
 export idft
 export mean
 export multivariate_indices
+export periodogram
 export polynomialchaos
 export probability_of_failure
 export propagate_intervals!
