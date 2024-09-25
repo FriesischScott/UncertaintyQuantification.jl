@@ -1,4 +1,4 @@
-include("../test_utilities/read_write_utils.jl")
+include("../../test_utilities/read_write_utils.jl")
 
 @testset "ExternalModel" begin
     sourcedir = tempdir()
