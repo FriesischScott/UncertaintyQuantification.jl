@@ -42,7 +42,7 @@ Any commands in `extras` will be executed before you model is run, for example l
 
 The job array task throttle, which is the number of samples that will be run concurrently at any given time, is specified by `throttle`. For example, when running a `MonteCarlo` simulation with 2000 samples, and `throttle = 50`, 2000 model evaluations will be run in total, but only 50 at the same time. If left empty, your scheduler's default throttle will be used.
 
-### Testing your HPC configuration
+## Testing your HPC configuration
 
 Slurm is tested _only_ on linux systems, not Mac or Windows. When testing `UncertaintyQuantification.jl` locally, we use a dummy function `test/test_utilities/sbatch` to mimic an HPC scheduler.
 
