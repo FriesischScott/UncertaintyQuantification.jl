@@ -3,6 +3,35 @@
     N_binom = 15
     data_binom = [1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 1] # p = 0.8
 
+    N_normal = 25
+    data_normal_var = [
+        1.437280614261712,
+        0.9903338260962338,
+        9.854769546944409,
+        1.056579381753677,
+        2.056761552807691,
+        3.186156176996721,
+        2.3879364587768097,
+        -0.12407764676307384,
+        5.826199352930367,
+        5.557818031443039,
+        5.746842569812496,
+        3.1537199947668046,
+        -1.443368713229951,
+        2.5017043510072106,
+        1.297318555540474,
+        3.0879917815935087,
+        3.1770466785730322,
+        4.533258868137872,
+        3.029937397151879,
+        6.850259892791702,
+        6.308314563049104,
+        7.744033994844473,
+        3.0202041313187813,
+        6.116991952214426,
+        5.56628505688018,
+    ]# μ = 4, σ² = 5
+
     function binomialinferencebenchmark(
         sampler::AbstractBayesianMethod, prior::Beta{Float64}
     )
@@ -55,24 +84,20 @@
         return mcmc_samples, analytic_mean, analytic_std
     end
 
-    function normalvarbenchmark(
-        sampler::AbstractBayesianMethod, prior::InverseGamma, var_true=5, N_data=25
-    )
+    function normalvarbenchmark(sampler::AbstractBayesianMethod, prior::InverseGamma)
         mean_fixed = 4     # Fixed
-
-        Data = rand(Normal(mean_fixed, sqrt(var_true)), N_data)
 
         prior_shape = prior.invd.α
         prior_scale = prior.θ
 
-        posterior_shape = prior_shape + N_data / 2
-        posterior_scale = prior_scale + sum((Data .- mean_fixed) .^ 2) / 2
+        posterior_shape = prior_shape + N_normal / 2
+        posterior_scale = prior_scale + sum((data_normal_var .- mean_fixed) .^ 2) / 2
 
         posterior_exact = InverseGamma(posterior_shape, posterior_scale)
 
         function loglikelihood(df)
             return [
-                sum(logpdf.(Normal.(mean_fixed, sqrt(df_i.x)), Data)) for
+                sum(logpdf.(Normal.(mean_fixed, sqrt(df_i.x)), data_normal_var)) for
                 df_i in eachrow(df)
             ]
         end
@@ -129,7 +154,7 @@
     @testset "Single Component MH normal var analytical" begin
         proposal = Normal()
         x0 = (x=4.0,)
-        n = 2000
+        n = 4000
         burnin = 500
 
         prior_shape = 30
