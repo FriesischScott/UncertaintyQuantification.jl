@@ -6,7 +6,7 @@ include("../test_utilities/read_write_utils.jl")
         "account" => HPC_account,
         "partition" => HPC_partition,
         "time" => "10:00:00",
-        "mempercpu" => "100",
+        "mem-per-cpu" => "100",
         "nodes" => "2",
         "ntasks" => "32",
     )
