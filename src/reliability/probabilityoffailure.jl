@@ -75,6 +75,102 @@ function probability_of_failure(
     models::Union{Vector{<:UQModel},UQModel},
     performance::Function,
     inputs::Union{Vector{<:UQInput},UQInput},
+    sim::AdvancedLineSampling,
+)
+    if isimprecise(inputs)
+        error("You must use DoubleLoop or RandomSlicing with imprecise inputs.")
+    end
+
+    if isempty(sim.direction)
+        sim.direction = gradient_in_standard_normal_space(
+            [models..., Model(x -> -1 * performance(x), :performance)],
+            inputs,
+            sns_zero_point(inputs),
+            :performance,
+        )
+    end
+
+    random_inputs = filter(i -> isa(i, RandomUQInput), inputs)
+
+    n_rv = count_rvs(random_inputs)
+    rv_names = names(random_inputs)
+
+    # Get the important direction 𝜶
+    α = map(n -> sim.direction[n], rv_names)
+    α /= norm(α)
+
+    # Start a line from origin parallel to 𝜶, determine distance 𝛽
+    θ₀ = α * sim.points'
+    samples = DataFrame(rv_names .=> eachcol(θ₀'))
+    β⁺ = splinefit(performance, samples, sim)
+    βᵢ = copy(β⁺)
+
+    if isinf(β⁺)
+        @warn "No root found on initial line"
+        return nothing
+    end
+
+    # Generate samples in standard normal space
+    θ = rand(Normal(), n_rv, sim.lines)
+
+    # Project samples onto hyperplane orthogonal to 𝜶
+    θₚ = θ - α * (α' * θ)
+
+    # Find the sample with smallest norm
+    idx = argmin(norm.(eachcol(θ)))
+
+    # Keep track of processed indices
+    notprocessed = collect(1:sim.lines)
+
+    # Vector of β
+    β = zeros(sim.lines)
+
+    # Loop over lines
+    for i in 1:sim.lines
+        # Calculate distance
+        θᵢ = θₚ[:,idx]
+
+        # Limit-state function along line
+        f = β -> performance(DataFrame(rv_names .=> eachcol((θᵢ .+ α * β)')))
+        β[i], x = newtonraphson(βᵢ, f, sim)
+
+        append!(samples, DataFrame(rv_names .=> eachcol((θᵢ .+ α * x')')))
+
+        # Update starting point for next iteration
+        if isfinite(β[i]) βᵢ = β[i] end
+
+        # Check if distance is smaller than previous distance
+        if β[i]+1e-6 < β⁺
+            # Update β
+            β⁺ = βᵢ
+
+            # Update α
+            α = normalize(θᵢ + α*βᵢ)
+
+            # Project remaining samples onto new base
+            θₚ[:,notprocessed] = θ[:,notprocessed] - α * (α' * θ[:,notprocessed])
+        end
+
+        # Remove processed line from list
+        filter!(x -> x != idx, notprocessed)
+
+        if i !== sim.lines
+            # Find next line
+            idx = argmin(norm.(eachcol(θₚ[:,notprocessed]  .- θᵢ)))
+            idx = notprocessed[idx]
+        end
+    end
+
+    pf = mean(cdf.(Normal(), -β))
+    variance = var(cdf.(Normal(), -β)) / sim.lines
+
+    return pf, sqrt(variance), samples
+end
+
+function probability_of_failure(
+    models::Union{Vector{<:UQModel},UQModel},
+    performance::Function,
+    inputs::Union{Vector{<:UQInput},UQInput},
     sim::ImportanceSampling,
 )
     if isimprecise(inputs)

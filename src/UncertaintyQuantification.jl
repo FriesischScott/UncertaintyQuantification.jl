@@ -69,6 +69,7 @@ export UQInput
 export UQModel
 
 # Structs
+export AdvancedLineSampling
 export AdaptiveMetropolisHastings
 export EmpiricalDistribution
 export BackwardFiniteDifferences
@@ -176,6 +177,7 @@ include("modelupdating/bayesianupdating.jl")
 include("sensitivity/finitedifferences.jl")
 include("sensitivity/gradient.jl")
 
+include("simulations/advancedlinesampling.jl")
 include("simulations/doe.jl")
 include("simulations/linesampling.jl")
 include("simulations/montecarlo.jl")
