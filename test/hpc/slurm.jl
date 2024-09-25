@@ -1,16 +1,6 @@
 include("../test_utilities/read_write_utils.jl")
 
 @testset "Slurm" begin
-    options = Dict(
-        "job-name" => "my_test_job",
-        "account" => HPC_account,
-        "partition" => HPC_partition,
-        "time" => "10:00:00",
-        "mem-per-cpu" => "100",
-        "nodes" => "2",
-        "ntasks" => "32",
-    )
-
     sourcedir = tempdir()
     sourcefile = ["radius.jl"]
 
@@ -36,6 +26,57 @@ include("../test_utilities/read_write_utils.jl")
     open(joinpath(sourcedir, "extra.txt"), "w") do input
         println(input, "This is an extra file")
     end
+
+    options = Dict(
+        "job-name" => "my_test_job",
+        "partition" => HPC_partition,
+        "time" => "10:00:00",
+        "mem-per-cpu" => "100",
+        "nodes" => "2",
+        "ntasks" => "32",
+    )
+
+    @test_logs (
+        :warn,
+        "Omitting account or partition may cause your simulation to fail if your scheduler does not assign defaults.",
+    ) SlurmInterface(options)
+
+    options = Dict(
+        "job-name" => "my_test_job",
+        "account" => HPC_account,
+        "time" => "10:00:00",
+        "mem-per-cpu" => "100",
+        "nodes" => "2",
+        "ntasks" => "32",
+    )
+
+    @test_logs (
+        :warn,
+        "Omitting account or partition may cause your simulation to fail if your scheduler does not assign defaults.",
+    ) SlurmInterface(options)
+
+    options = Dict(
+        "job-name" => "my_test_job",
+        "account" => HPC_account,
+        "partition" => HPC_partition,
+        "array" => "[1-199]%2",
+        "time" => "10:00:00",
+        "mem-per-cpu" => "100",
+        "nodes" => "2",
+        "ntasks" => "32",
+    )
+
+    @test_throws ErrorException("Do not pass array as an option.") SlurmInterface(options)
+
+    options = Dict(
+        "job-name" => "my_test_job",
+        "account" => HPC_account,
+        "partition" => HPC_partition,
+        "time" => "10:00:00",
+        "mem-per-cpu" => "100",
+        "nodes" => "2",
+        "ntasks" => "32",
+    )
 
     @testset "Setup jobs" begin
         workdir = tempname()
