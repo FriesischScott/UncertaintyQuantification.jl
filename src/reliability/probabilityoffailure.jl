@@ -125,7 +125,7 @@ function probability_of_failure(
             return performance(sample)
         end
 
-        β[i], x, y = newtonraphson(βᵢ, f, sim.stepsize, sim.tolerance, sim.maxiterations)
+        β[i] = newtonraphson(βᵢ, f, sim.stepsize, sim.tolerance, sim.maxiterations)
 
         # Update starting point for next iteration
         if isfinite(β[i]) βᵢ = β[i] end

@@ -110,17 +110,10 @@ function newtonraphson(
     err = Inf
     steps = 0
 
-    # Vector to store samples
-    x = Float64[]
-    y = Float64[]
-
     while abs(err) > tolerance
         # One dimensional Netwon's method
-        ∇fₓ, fₓ, fₓ₊ = _grad1D(x₀, f, stepsize)
+        ∇fₓ, fₓ, _ = _grad1D(x₀, f, stepsize)
         x₁ = x₀ - fₓ/∇fₓ
-
-        append!(x, [x₀, x₀+stepsize])
-        append!(y, [fₓ, fₓ₊])
 
         # Calculate error
         err = norm(x₁ - x₀)/x₀
@@ -135,5 +128,5 @@ function newtonraphson(
         end
     end
 
-    return x₀, x, y
+    return x₀
 end
