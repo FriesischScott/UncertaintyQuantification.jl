@@ -105,8 +105,9 @@ function setup_slurm_array(
         write(file, "#!/bin/bash -l\n")
 
         for (k, v) in si.options
-            write(file, "SBATCH --$k=$v\n")
+            write(file, "#SBATCH --$k=$v\n")
         end
+
         write(
             file, "#SBATCH --output=sample-%$(digits)a/UncertaintyQuantification-%a.out\n"
         )

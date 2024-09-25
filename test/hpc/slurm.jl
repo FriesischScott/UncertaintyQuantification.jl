@@ -97,7 +97,7 @@ include("../test_utilities/read_write_utils.jl")
                 b = min(batch * 10, 100)
 
                 @test isfile(generated_file)
-                @test isline(generated_file, "#SBATCH--job-name=my_test_job")
+                @test isline(generated_file, "#SBATCH --job-name=my_test_job")
                 @test isline(generated_file, "#SBATCH --array=[$a-$b]%2")
                 @test isline(generated_file, "#SBATCH --nodes=2")
                 @test isline(generated_file, "#SBATCH --ntasks=32")
