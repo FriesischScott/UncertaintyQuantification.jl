@@ -1,4 +1,4 @@
-@testset "SpectralRepresentation" begin
+@testset "Spectral Representation" begin
     N = 128
     ω_u = 4π
     Δω = ω_u / N
