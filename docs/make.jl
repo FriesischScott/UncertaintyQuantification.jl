@@ -26,6 +26,7 @@ makedocs(;
             "Metamodelling" => "manual/metamodels.md",
             "Bayesian Updating" => "manual/bayesianupdating.md",
             "High Performance Computing" => "manual/hpc.md",
+            "Stochastic Dynamics" => "manual/dynamics.md",
         ],
         "Examples" => [
             "Metamodels" => "examples/metamodels.md",
