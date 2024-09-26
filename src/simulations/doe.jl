@@ -63,10 +63,10 @@ end
 
 function bounds(r::RandomVariable, σ::Int)
     lb = minimum(r)
-    lb = isinf(lb) ? -std(r.dist) * σ : lb
+    lb = isinf(lb) ? mean(r.dist) -std(r.dist) * σ : lb
 
     ub = maximum(r)
-    ub = isinf(ub) ? std(r.dist) * σ : ub
+    ub = isinf(ub) ? mean(r.dist) +std(r.dist) * σ : ub
 
     return [lb ub]
 end
