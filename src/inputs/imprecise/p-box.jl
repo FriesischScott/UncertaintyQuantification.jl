@@ -49,11 +49,11 @@ function ProbabilityBox{T}(
     p::AbstractVector{<:UQInput}, name::Symbol
 ) where {T<:UnivariateDistribution}
     if isa(T(), Uniform)
-        v_ip = mapreduce(
-            x -> collect(bounds(x)), vcat, filter(x -> isa(x, ImpreciseUQInput), p)
-        )
-        v_p = map(x -> x.value, filter(x -> isa(x, Parameter), p))
-        values = vcat(v_ip, v_p)
+        bounds_intervals = mapreduce(
+            x -> collect(bounds(x)), vcat, p[isimprecise.(p)]
+            )  # collecting bounds of the intervals used for describing the Uniform distribution
+        values_parameters = map(x -> x.value, p[.!isimprecise.(p)]) # collecting values of Parameters used for describinf the Uniform distribution
+        values = vcat(bounds_intervals, values_parameters)
         return ProbabilityBox{T}(p, name, minimum(values), maximum(values))
     else
         domain = support(T())
