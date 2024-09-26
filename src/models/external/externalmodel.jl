@@ -124,8 +124,9 @@ function evaluate!(
         makedirectory(m, df[i, :], path)
     end
 
-    generate_HPC_job(scheduler, m, n, datetime)
-    run_HPC_job(scheduler, m, datetime)
+    setup_hpc_jobs(scheduler, m, n, datetime)
+
+    run_hpc_jobs(scheduler, m, n, datetime)
 
     results = map(1:n) do i
         path = joinpath(m.workdir, datetime, "sample-$(lpad(i, digits, "0"))")
@@ -144,9 +145,15 @@ function formatinputs(row::DataFrameRow, formats::Dict{Symbol,String})
     values = []
     for symbol in names
         if haskey(formats, symbol)
+<<<<<<< HEAD:src/models/externalmodel.jl
             push!(values, formatinput(row[symbol], formats[symbol]))
         elseif haskey(formats, :*)
             push!(values, formatinput(row[symbol], formats[:*]))
+=======
+            push!(values, pyfmt(formats[symbol], row[symbol]))
+        elseif haskey(formats, :*)
+            push!(values, pyfmt(formats[:*], row[symbol]))
+>>>>>>> master:src/models/external/externalmodel.jl
         else
             push!(values, row[symbol])
         end

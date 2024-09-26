@@ -2,7 +2,7 @@
 using UncertaintyQuantification, DelimitedFiles
 
 # To run the model distributed add the desired workers and load the required packages with @everywhere
-# using Distributed, Formatting
+# using Distributed
 # addprocs(6; exeflags="--project")
 # @everywhere using UncertaintyQuantification, DelimitedFiles
 
@@ -14,7 +14,7 @@ sourcedir = joinpath(pwd(), "demo/models")
 # These files will be rendere through Mustach.jl and have values injected
 sourcefile = "supported-beam.tcl"
 
-# Dictionary to map format Strings (Formatting.jl) to variables
+# Dictionary to map format Strings (Format.jl) to variables
 numberformats = Dict(:E => ".8e")
 
 # UQ will create subfolders in here to run the solver and store the results

@@ -6,13 +6,13 @@ using DataFrames
 using Dates
 using Dierckx
 using Distributed
-using DynamicPolynomials
 using FastGaussQuadrature
 using FiniteDifferences
-using Formatting
+using Format
 using KernelDensity
 using LinearAlgebra
 using MeshAdaptiveDirectSearch
+using Monomials
 using Mustache
 using Primes
 using QuasiMonteCarlo
@@ -68,6 +68,7 @@ export UQInput
 export UQModel
 
 # Structs
+export AdvancedLineSampling
 export AdaptiveMetropolisHastings
 export EmpiricalDistribution
 export BackwardFiniteDifferences
@@ -164,6 +165,7 @@ include("inputs/randomvariables/distributionparameters.jl")
 include("inputs/copulas/gaussian.jl")
 include("inputs/jointdistribution.jl")
 
+<<<<<<< HEAD
 include("dynamics/psd.jl")
 include("inputs/stochasticprocesses/spectralrepresentation.jl")
 include("inputs/stochasticprocesses/models.jl")
@@ -174,11 +176,18 @@ include("solvers/extractor.jl")
 include("hpc/slurm.jl")
 
 include("models/externalmodel.jl")
+=======
+include("models/external/solver.jl")
+include("models/external/extractor.jl")
+include("models/external/externalmodel.jl")
+>>>>>>> master
 include("models/model.jl")
 include("models/imprecise/propagation.jl")
 include("models/polyharmonicspline.jl")
 include("models/responsesurface.jl")
 include("models//slicingmodel.jl")
+
+include("hpc/slurm.jl")
 
 include("models/pce/pcebases.jl")
 include("models/pce/polynomialchaosexpansion.jl")

@@ -1,6 +1,5 @@
 using DataFrames
 using Distributed
-using Formatting
 using HCubature
 using HypothesisTests
 using InteractiveUtils
@@ -19,9 +18,10 @@ include("inputs/randomvariables/randomvariable.jl")
 include("inputs/randomvariables/distributionparameters.jl")
 include("inputs/jointdistribution.jl");
 include("inputs/inputs.jl")
-
 include("inputs/copulas/gaussian.jl")
-include("models/externalmodel.jl")
+
+include("models/external/solvers.jl")
+include("models/external/externalmodel.jl")
 include("models/model.jl")
 include("models/polyharmonicspline.jl")
 include("models/pce/pcebases.jl")
@@ -42,8 +42,20 @@ include("simulations/doe.jl")
 include("simulations/montecarlo.jl")
 include("simulations/subset.jl")
 
-include("solvers/solvers.jl")
-
 if Sys.islinux()
+    HPC = false
+    HPC_account = "HPC_account_1"
+    HPC_partition = "CPU_partition"
+    if "HPC" in ARGS
+        HPC = true
+        HPC_account = ARGS[2]
+        HPC_partition = ARGS[3]
+        @warn "Running a slurm test with HPC=ON, using account $HPC_account and partition $HPC_partition. Several (20) small 1-task calculations will be submitted to slurm for testing in different job array configuations."
+    end
+
+    if HPC == false && !occursin("test/test_utilities", ENV["PATH"])
+        @warn "For slurm test to pass on Linux, test_utilities/sbatch must be added to PATH"
+        @warn "sbatch command line tool may use the fake test_utilities/sbatch"
+    end
     include("hpc/slurm.jl")
 end
