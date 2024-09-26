@@ -97,17 +97,20 @@ prior = RandomVariable.(Uniform(0.01, 4), [:θ1, :θ2])
 n = 1000
 burnin = 0
 
-x0 = [[1., 1.],[3.,.5]]
+x0 = [[1., 1.],[3.,.5],[2.,2.]]
 
 tmcmc = TransitionalMarkovChainMonteCarlo(prior, n, burnin)
 MAP = MaximumAPosteriori(prior, "LBFGS", x0)
 MLE = MaximumLikelihood(prior, "LBFGS", x0)
+GaussApprox = VIGaussianApproximation(prior, "LBFGS", x0)
 
 # With the prior, likelihood, models and  MCMC sampler defined, the last step is to call the [`bayesinupdating`](@ref) method.
 
 samples, evidence = bayesianupdating(likelihood, [λ1, λ2], tmcmc)
 MapEstimate, MapValues = bayesianupdating(likelihood, [λ1, λ2], MAP)
 MLEstimate, MLEValues = bayesianupdating(likelihood, [λ1, λ2], MLE)
+
+elelele = bayesianupdating(likelihood,[λ1,λ2],GaussApprox)
 
 MapEstimate = mapreduce(x->x, hcat, MapEstimate)'
 MLEstimate = mapreduce(x->x, hcat, MLEstimate)'
