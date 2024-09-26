@@ -145,9 +145,9 @@ function formatinputs(row::DataFrameRow, formats::Dict{Symbol,String})
     values = []
     for symbol in names
         if haskey(formats, symbol)
-            push!(values, pyfmt(formats[symbol], row[symbol]))
+            push!(values, formatinput(row[symbol], formats[symbol]))
         elseif haskey(formats, :*)
-            push!(values, pyfmt(formats[:*], row[symbol]))
+            push!(values, formatinput(row[symbol], formats[[:*]]))
         else
             push!(values, row[symbol])
         end
@@ -156,9 +156,9 @@ function formatinputs(row::DataFrameRow, formats::Dict{Symbol,String})
 end
 
 function formatinput(data::Real, formatstring::String)
-    return fmt(formatstring, data)
+    return pyfmt(formatstring, data)
 end
 
 function formatinput(data::AbstractVector{<:Real}, formatstring::String)
-    return fmt.(formatstring, data)
+    return pyfmt.(formatstring, data)
 end
