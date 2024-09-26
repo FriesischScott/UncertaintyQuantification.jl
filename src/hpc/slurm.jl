@@ -13,7 +13,6 @@ The `throttle` specifies the number of simulations in the job array which are ru
     options   : SBATCH options to add to the slurm script
     throttle  : the number of jobs to be run at the same time
     batchsize : maximum size of the slurm array
-
     extras    : instructions to be executed before the model is run, e.g. activating a python environment or loading modules
 
 # Examples
