@@ -27,14 +27,63 @@ include("../test_utilities/read_write_utils.jl")
         println(input, "This is an extra file")
     end
 
+    options = Dict(
+        "job-name" => "my_test_job",
+        "partition" => HPC_partition,
+        "time" => "10:00:00",
+        "mem-per-cpu" => "100",
+        "nodes" => "2",
+        "ntasks" => "32",
+    )
+
+    @test_logs (
+        :warn,
+        "Omitting account or partition may cause your simulation to fail if your scheduler does not assign defaults.",
+    ) SlurmInterface(options)
+
+    options = Dict(
+        "job-name" => "my_test_job",
+        "account" => HPC_account,
+        "time" => "10:00:00",
+        "mem-per-cpu" => "100",
+        "nodes" => "2",
+        "ntasks" => "32",
+    )
+
+    @test_logs (
+        :warn,
+        "Omitting account or partition may cause your simulation to fail if your scheduler does not assign defaults.",
+    ) SlurmInterface(options)
+
+    options = Dict(
+        "job-name" => "my_test_job",
+        "account" => HPC_account,
+        "partition" => HPC_partition,
+        "array" => "[1-199]%2",
+        "time" => "10:00:00",
+        "mem-per-cpu" => "100",
+        "nodes" => "2",
+        "ntasks" => "32",
+    )
+
+    @test_throws ErrorException("Do not pass array as an option.") SlurmInterface(options)
+
+    options = Dict(
+        "job-name" => "my_test_job",
+        "account" => HPC_account,
+        "partition" => HPC_partition,
+        "time" => "10:00:00",
+        "mem-per-cpu" => "100",
+        "nodes" => "2",
+        "ntasks" => "32",
+    )
+
     @testset "Setup jobs" begin
         workdir = tempname()
         mkdir(workdir)
 
         @testset "unbatched" begin
-            slurm = SlurmInterface(;
-                account=HPC_account, partition=HPC_partition, nodes=1, ntasks=32
-            )
+            slurm = SlurmInterface(options)
 
             ext = ExternalModel(
                 sourcedir,
@@ -52,28 +101,20 @@ include("../test_utilities/read_write_utils.jl")
             generated_file = joinpath(workdir, "slurm_array.sh")
 
             @test isfile(generated_file)
-            @test isline(generated_file, "#SBATCH -A $HPC_account")
-            @test isline(generated_file, "#SBATCH -p $HPC_partition")
-            @test isline(generated_file, "#SBATCH --nodes=1")
+            @test isline(generated_file, "#SBATCH --account=$HPC_account")
+            @test isline(generated_file, "#SBATCH --partition=$HPC_partition")
+            @test isline(generated_file, "#SBATCH --nodes=2")
             @test isline(generated_file, "#SBATCH --ntasks=32")
             @test isline(generated_file, "#SBATCH --array=[1-100]")
-            @test isnotanywhere(generated_file, "#SBATCH --time=")
-            @test isnotanywhere(generated_file, "#SBATCH --mem-per-cpu=")
 
             @test isline(generated_file, "$(solver.path) $(solver.source)")
         end
 
         @testset "batched" begin
-            slurm = SlurmInterface(;
-                jobname="my_test_job",
-                account=HPC_account,
-                partition=HPC_partition,
-                time="10:00:00",
-                nodes=2,
-                ntasks=50,
+            slurm = SlurmInterface(
+                options;
                 throttle=2,
                 batchsize=10,
-                mempercpu="100",
                 extras=["load something", "load something else"],
             )
 
@@ -97,10 +138,10 @@ include("../test_utilities/read_write_utils.jl")
                 b = min(batch * 10, 100)
 
                 @test isfile(generated_file)
-                @test isline(generated_file, "#SBATCH -J my_test_job")
+                @test isline(generated_file, "#SBATCH --job-name=my_test_job")
                 @test isline(generated_file, "#SBATCH --array=[$a-$b]%2")
                 @test isline(generated_file, "#SBATCH --nodes=2")
-                @test isline(generated_file, "#SBATCH --ntasks=50")
+                @test isline(generated_file, "#SBATCH --ntasks=32")
                 @test isline(generated_file, "#SBATCH --time=10:00:00")
                 @test isline(generated_file, "#SBATCH --mem-per-cpu=100")
                 @test isline(generated_file, "load something")
@@ -109,18 +150,20 @@ include("../test_utilities/read_write_utils.jl")
         end
     end
 
+    options = Dict(
+        "job-name" => "my_test_job",
+        "account" => HPC_account,
+        "partition" => HPC_partition,
+        "time" => "00:01:00",
+        "mem-per-cpu" => "100",
+        "nodes" => "1",
+        "ntasks" => "1",
+    )
+
     @testset "Run jobs" begin
 
-        # Note, the run_HPC_job function has been overwritten in tests/test_utilities/slurm_test_utils.jl
-
         @testset "unbatched" begin
-            slurm = SlurmInterface(;
-                account=HPC_account,
-                partition=HPC_partition,
-                nodes=1,
-                ntasks=1,
-                time="00:01:00",
-            )
+            slurm = SlurmInterface(options)
 
             ext = ExternalModel(
                 sourcedir,
@@ -144,14 +187,7 @@ include("../test_utilities/read_write_utils.jl")
         end
 
         @testset "batched" begin
-            slurm = SlurmInterface(;
-                account=HPC_account,
-                partition=HPC_partition,
-                nodes=1,
-                ntasks=1,
-                batchsize=4,
-                time="00:01:00",
-            )
+            slurm = SlurmInterface(options; batchsize=4)
 
             ext = ExternalModel(
                 sourcedir,
