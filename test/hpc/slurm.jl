@@ -150,9 +150,17 @@ include("../test_utilities/read_write_utils.jl")
         end
     end
 
-    @testset "Run jobs" begin
+    options = Dict(
+        "job-name" => "my_test_job",
+        "account" => HPC_account,
+        "partition" => HPC_partition,
+        "time" => "00:01:00",
+        "mem-per-cpu" => "100",
+        "nodes" => "1",
+        "ntasks" => "1",
+    )
 
-        # Note, the run_HPC_job function has been overwritten in tests/test_utilities/slurm_test_utils.jl
+    @testset "Run jobs" begin
 
         @testset "unbatched" begin
             slurm = SlurmInterface(options)
