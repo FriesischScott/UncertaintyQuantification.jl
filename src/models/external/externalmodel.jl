@@ -145,12 +145,26 @@ function formatinputs(row::DataFrameRow, formats::Dict{Symbol,String})
     values = []
     for symbol in names
         if haskey(formats, symbol)
+<<<<<<< HEAD:src/models/externalmodel.jl
+            push!(values, formatinput(row[symbol], formats[symbol]))
+        elseif haskey(formats, :*)
+            push!(values, formatinput(row[symbol], formats[:*]))
+=======
             push!(values, pyfmt(formats[symbol], row[symbol]))
         elseif haskey(formats, :*)
             push!(values, pyfmt(formats[:*], row[symbol]))
+>>>>>>> master:src/models/external/externalmodel.jl
         else
             push!(values, row[symbol])
         end
     end
     return (; zip(names, values)...)
+end
+
+function formatinput(data::Real, formatstring::String)
+    return fmt(formatstring, data)
+end
+
+function formatinput(data::AbstractVector{<:Real}, formatstring::String)
+    return fmt.(formatstring, data)
 end
