@@ -25,9 +25,11 @@ makedocs(;
             "Reliability Analysis" => "manual/reliability.md",
             "Metamodelling" => "manual/metamodels.md",
             "Bayesian Updating" => "manual/bayesianupdating.md",
+            "Parallelisation" => "manual/parallelisation.md",
             "High Performance Computing" => "manual/hpc.md",
         ],
         "Examples" => [
+            "External Models" => "examples/external.md",
             "Metamodels" => "examples/metamodels.md",
             "Bayesian Updating" => "examples/bayesianupdating.md",
             "High Performance Computing" => "examples/hpc.md",
