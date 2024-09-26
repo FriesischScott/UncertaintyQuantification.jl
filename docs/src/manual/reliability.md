@@ -2,7 +2,7 @@
 
 In the context of structural engineering and risk assessment, the term reliability is used to describe the ability of system to perform its intended function under varying conditions over time.
 
-The state of a system is identified by its *performance function* $g(\boldsymbol{x})$ such that:
+There, the performance of a system is identified by its *performance function* $g(\boldsymbol{x})$ such that:
 
 $$ g(\boldsymbol{x}) =
 \begin{cases}
@@ -21,16 +21,15 @@ Here, $f_{\boldsymbol{X}}(\boldsymbol{x})$ denotes the joint probability density
 
 ## Definition of the Input, Model and Performance
 
-The first step of implementing a reliability analysis in `UncertaintyQuantification.jl` is the definition of the probabilistic input and the model.
+The first step of the implementation of a reliability analysis in `UncertaintyQuantification.jl` is the definition of the probabilistic input and the model which is shown exemplarily.
 
-In order to show the input and model definition, an example from [dangEstimation2023](@cite) is used. The model has a probabilistic input $\boldsymbol{X} = [X_1, \ X_2]$ with  $X_i \sim \mathcal{N}(0,1)$.
-The model is given as:
+Using an example from [dangEstimation2023](@cite) with a probabilistic input $\boldsymbol{X} = [X_1, X_2]$ which are both standard normal random variables and a model
 
 $$
 y(\boldsymbol{X}) = X_2 + 0.01 X_1^3 + \sin(X_1).
 $$
 
-Using that model, the performance function is defined such that a failure is given when the model output exceeds $5$:
+Using that model, the performance function is defined as
 
 $$
 g(\boldsymbol{X}) = 5 - y(\boldsymbol{X}).
@@ -44,7 +43,7 @@ using Random # hide
 x = RandomVariable.(Normal(), [:x1, :x2])
 ```
 
-Next, we define the model for the response $y(\boldsymbol{X})$ as
+Next we define the model for the response $y(\boldsymbol{X})$ as
 
 ```@example reliability
 y = Model(df -> df.x2 .+ 0.01 * df.x1.^3 .+ sin.(df.x1), :y)
@@ -65,7 +64,7 @@ nothing # hide
 The First Order Reliability Method (FORM) [rackwitzStructuralReliability1978](@cite) estimates the failure probability by finding a linear approximation of the performance function at the so-called *design point* $\boldsymbol{U}^*$.
 The design point represents the point on the surface of the performance function $g(\boldsymbol{X}) = 0$ that is closest to the origin in the standard normal space.
 
-That distance from the design point to the origin is referred to as the *reliability index*, given as $\beta^* = ||\boldsymbol{U}^*||$.
+That distance from the design point to the origin is referred to as the *reliability index* given as $\beta^* = ||\boldsymbol{U}^*||$.
 Due to the transformation to the standard normal space, the probability of failure is simply given as
 
 $$
@@ -74,7 +73,7 @@ $$
 
 where $\Phi()$ denotes the standard normal CDF.
 
-In addition to $\beta^*$, the location of the design point is specified by the *important direction*
+In addition to the $\beta^*$, the location of the design point is specified by the *important direction* defined as:
 
 $$
 \boldsymbol{\alpha}^* = \frac{\boldsymbol{U}^*}{||\boldsymbol{U}^*||}.
@@ -149,7 +148,7 @@ Based on the standard MCS method, a class of advanced method exist that have to 
 Importance Sampling [melchersImportanceSampling1989](@cite) introduces a second density that is *biased* in a way that it generates more samples in the failure domain.
 Typically such a density is constructed around the design point obtained in a preceding FORM analysis.
 
-In order to perform a reliability analysis using Importance Sampling, we again have to specify the number of samples and then call `probability_of_failure()`:
+In order to perform a reliability analysis using Importance Sampling, we again have to specify the number of samples and then can `probability_of_failure()`.
 
 ```@example reliability
 is = ImportanceSampling(1000)
@@ -166,14 +165,14 @@ Since Importance Sampling relies on FORM, the results are similar to those of FO
 Another advanced Monte Carlo method for reliability analysis is Line Sampling [koutsourelakisReliability2004](@cite).
 Its main idea is to use parallel lines for sampling rather than points.
 
-Therefore first the problem is transformed into the standard normal space to make use of the invariance under rotation.
+Therefore first the problem is transformed into the standard normal space to make use of the invariance of rotation.
 The important direction $\boldsymbol{\alpha}$ is determined, e.g., using FORM or the gradient at the origin.
 Then, samples are generated and projected onto the hyperplane orthogonal to $\boldsymbol{\alpha}$.
 From each point on the hyperplane, a line is drawn parallel to $\boldsymbol{\alpha}$ and its intersection with the performance function is determined using root finding based on a spline interpolation scheme, giving the set of distances $\{\beta^{(i)}\}_{i=1}^N$ from the hyperplane to the intersection with the performance function.
 Due to working in the standard normal space, the *failure probability along each line* is given as
 
 $$
-p_{f, \mathrm{line}}^{(i)} = \Phi(-\beta^{(i)}).
+p_{f, \mathrm{line}}^{(i)} = \Phi(-\beta^{(i)})
 $$
 
 Finally, the probability of failure is obtained as the mean of the failure probabilities along the lines
@@ -189,7 +188,7 @@ $$
 $$
 
 Similar to standard MCS, we have to pass $N$ to the Line Sampling method. However, here we pass the number of lines.
-Optionally, we can pass a vector of the points along each line that are used to evaluate the performance function and a pre-determined direction $\boldsymbol{\alpha}$:
+Optionally, we can pass a vector of the points along each line that are used to evaluate the performance function and a per-determined direction $\boldsymbol{\alpha}$:
 
 ```@example reliability
 ls = LineSampling(200, collect(0.5:0.5:10))
@@ -203,10 +202,10 @@ println("Coefficient of variation: $(std_ls/pf_ls)")
 
 Advanced Line Sampling [deangelisAdvances2015](@cite) is a further enhancement of the standard line sampling methods due to two main features:
 
-1. The important direction $\boldsymbol{\alpha}$ is adapted once a more probable point is found.
+1. The important direction $\boldsymbol{\alpha}$ is adapted once a more probable point is found
 2. The lines are processed sorted by proximity of the points on the hyperplane.
 
-Especially, the second point enables the use of an iterative root finder using Newton's method.
+Especially the second point enables the use of an iterative root finder using Newton's method.
 
 The definition of the `AdvancedLineSampling` simulation method is similar to that of regular Line Sampling.
 The number of lines has to be given to the constructor and we can optionally give the number of points along the line which is only used to find the starting point of the iterative root search.
@@ -227,19 +226,33 @@ Subset simulation [auEstimationSmallFailure2001](@cite) is an advanced simulatio
 This approach involves decomposing the problem into a sequence of conditional probabilities that are estimated using Markov Chain Monte Carlo.
 
 Here we solve a simple problem taken from [zuevSubsetSimulationMethod2013](@cite) where the response $y(\boldsymbol{X})$ depends on two independent random variables $X_1$ and $X_2$ following a standard normal distribution. The simple linear model is defined by
+Subset simulation [auEstimationSmallFailure2001](@cite) is an advanced simulation technique for the estimation of small failure probabilities.
+This approach involves decomposing the problem into a sequence of conditional probabilities that are estimated using Markov Chain Monte Carlo.
 
+Here we solve a simple problem taken from [zuevSubsetSimulationMethod2013](@cite) where the response $y(\boldsymbol{X})$ depends on two independent random variables $X_1$ and $X_2$ following a standard normal distribution. The simple linear model is defined by
+
+$$
+y(\boldsymbol{X})= X_1 + X_2
+$$
 $$
 y(\boldsymbol{X})= X_1 + X_2
 $$
 
 with the performance function
+with the performance function
 
+$$
+g(\boldsymbol{X}) = 9 - y(\boldsymbol{X}).
+$$
 $$
 g(\boldsymbol{X}) = 9 - y(\boldsymbol{X}).
 $$
 
 The analytical probability of failure can be calculated as
 
+$$
+p_f = 1 - \Phi\Bigg(\frac{9}{\sqrt(2)}\Bigg) \approx 1 \times 10^{-10}.
+$$
 $$
 p_f = 1 - \Phi\Bigg(\frac{9}{\sqrt(2)}\Bigg) \approx 1 \times 10^{-10}.
 $$
