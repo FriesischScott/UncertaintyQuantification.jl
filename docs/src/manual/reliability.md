@@ -1,20 +1,247 @@
 # Reliability Analysis
 
+In the context of structural engineering and risk assessment, the term reliability is used to describe the ability of system to perform its intended function under varying conditions over time.
+
+There, the performance of a system is identified by its *performance function* $g(\boldsymbol{x})$ such that:
+
+$$ g(\boldsymbol{x}) =
+\begin{cases}
+    > 0 & \text{safe\ domain}\\
+    \leq 0 & \text{failure \ domain}\\
+\end{cases}.
+$$
+
+Then the *probability of failure* is defined as the likelihood of the system being in the failed state, given as
+
+$$
+p_f = \int_{g(\boldsymbol{x}) \leq 0} f_{\boldsymbol{X}}(\boldsymbol{x}) \mathrm{d} \boldsymbol{x}.
+$$
+
+Here, $f_{\boldsymbol{X}}(\boldsymbol{x})$ denotes the joint probability density function (PDF) of the input $\boldsymbol{X}$.
+
+## Definition of the Input, Model and Performance
+
+The first step of the implementation of a reliability analysis in `UncertaintyQuantification.jl` is the definition of the probabilistic input and the model which is shown exemplarily.
+
+Using an example from [dangEstimation2023](@cite) with a probabilistic input $\boldsymbol{X} = [X_1, X_2]$ which are both standard normal random variables and a model
+
+$$
+y(\boldsymbol{X}) = X_2 + 0.01 X_1^3 + \sin(X_1).
+$$
+
+Using that model, the performance function is defined as
+
+$$
+g(\boldsymbol{X}) = 5 - y(\boldsymbol{X}).
+$$
+
+The probabilistic input containing the two standard normal random variables is implemented as
+
+```@example reliability
+using UncertaintyQuantification, DataFrames # hide
+using Random # hide
+x = RandomVariable.(Normal(), [:x1, :x2])
+```
+
+Next we define the model for the response $y(\boldsymbol{X})$ as
+
+```@example reliability
+y = Model(df -> df.x2 .+ 0.01 * df.x1.^3 .+ sin.(df.x1), :y)
+nothing # hide
+```
+
+where the first input is the function $y$ (which must accept a `DataFrame`) and the second argument is the `Symbol` for the output variable. With the help of the model, we can define the performance function $g$ which again takes a `DataFrame` as an input:
+
+```@example reliability
+g(df) = 5 .- df.y
+nothing # hide
+```
+
+## Approximation Methods
+
+### First Order Reliability Method
+
+The First Order Reliability Method (FORM) [rackwitzStructuralReliability1978](@cite) estimates the failure probability by finding a linear approximation of the performance function at the so-called *design point* $\boldsymbol{U}^*$.
+The design point represents the point on the surface of the performance function $g(\boldsymbol{X}) = 0$ that is closest to the origin in the standard normal space.
+
+That distance from the design point to the origin is referred to as the *reliability index* given as $\beta^* = ||\boldsymbol{U}^*||$.
+Due to the transformation to the standard normal space, the probability of failure is simply given as
+
+$$
+\hat{p}_{f, \mathrm{FORM}} = \Phi(-\beta^*)
+$$
+
+where $\Phi()$ denotes the standard normal CDF.
+
+In addition to the $\beta^*$, the location of the design point is specified by the *important direction* defined as:
+
+$$
+\boldsymbol{\alpha}^* = \frac{\boldsymbol{U}^*}{||\boldsymbol{U}^*||}.
+$$
+
+In `UncertaintyQuantification.jl` a FORM analysis can be performed calling `probability_of_failure(model, performance, input, simulation)` where `FORM()` is passed as the simulation method:
+
+```@example reliability
+pf_form, β, dp = probability_of_failure(y, g, x, FORM())
+
+println("Probability of failure: $pf_form")
+```
+
+## Simulation Methods
+
+### Monte Carlo Simulation
+
+Monte Carlo Simulation (MCS) offers an approximation of the failure probability using stochastic simulation.
+
+It utilizes an indicator function of the failure domain
+
+$$
+\mathbb{I}[g(\boldsymbol{x})] =
+\begin{cases}
+    0 & \text{when} \ g(\boldsymbol{x}) > 0\\
+    1 & \text{when} \ g(\boldsymbol{x}) \leq 0\\
+\end{cases}.
+$$
+
+This allows for the failure probability to be interpreted as the expected value of the indicator function
+
+$$
+p_f = \int_{\boldsymbol{X}} \mathbb{I}[g(\boldsymbol{x})]\ f_{\boldsymbol{X}}(\boldsymbol{x}) \mathrm{d} \boldsymbol{x} = \mathbb{E}\big[\mathbb{I}[g(\boldsymbol{x})]\big].
+$$
+
+The Monte Carlo estimate of the failure probability is given as
+
+$$
+p_f \approx \hat{p}_f = \frac{1}{N} \sum_{i=1}^N \mathbb{I}[g(\boldsymbol{x}_i)]
+$$
+
+where $\{\boldsymbol{x}_i\}_{i=1}^N$ represents a set of $N$ samples drawn from the input PDF $f_{\boldsymbol{X}}(\boldsymbol{x})$.
+The variance of the estimator is given as
+
+$$
+\operatorname{Var}[\hat{p}_f] = \frac{\hat{p}_f (1-\hat{p}_f)}{N}.
+$$
+
+In `UncertaintyQuantification.jl` we can perform a Monte Carlo Simulation by defining the analysis as `MonteCarlo(n)`  where `n` is the number of samples
+
+```@example reliability
+Random.seed!(42) # hide
+mc = MonteCarlo(10^7)
+nothing
+```
+
+Then the reliability analysis is performed by calling `probability_of_failure(model, performance, input, simulation)`.
+
+```@example reliability
+pf_mc, std_mc, samples = probability_of_failure(y, g, x, mc)
+
+println("Probability of failure: $pf_mc")
+println("Coefficient of variation: $(std_mc/pf_mc)")
+```
+
+A comparison to the result obtained using FORM highlights the limitation imposed by the linear approximation of the limit-state surface.
+
+### Importance Sampling
+
+Based on the standard MCS method, a class of advanced method exist that have to goal to accelerate the estimation of the failure probability by requiring fewer model calls.
+
+Importance Sampling [melchersImportanceSampling1989](@cite) introduces a second density that is *biased* in a way that it generates more samples in the failure domain.
+Typically such a density is constructed around the design point obtained in a preceding FORM analysis.
+
+In order to perform a reliability analysis using Importance Sampling, we again have to specify the number of samples and then can `probability_of_failure()`.
+
+```@example reliability
+is = ImportanceSampling(1000)
+pf_is, std_is, samples = probability_of_failure(y, g, x, is)
+
+println("Probability of failure: $pf_is")
+println("Coefficient of variation: $(std_is/pf_is)")
+```
+
+Since Importance Sampling relies on FORM, the results are similar to those of FORM.
+
+### Line Sampling
+
+Another advanced Monte Carlo method for reliability analysis is Line Sampling [koutsourelakisReliability2004](@cite).
+Its main idea is to use parallel lines for sampling rather than points.
+
+Therefore first the problem is transformed into the standard normal space to make use of the invariance of rotation.
+The important direction $\boldsymbol{\alpha}$ is determined, e.g., using FORM or the gradient at the origin.
+Then, samples are generated and projected onto the hyperplane orthogonal to $\boldsymbol{\alpha}$.
+From each point on the hyperplane, a line is drawn parallel to $\boldsymbol{\alpha}$ and its intersection with the performance function is determined using root finding based on a spline interpolation scheme, giving the set of distances $\{\beta^{(i)}\}_{i=1}^N$ from the hyperplane to the intersection with the performance function.
+Due to working in the standard normal space, the *failure probability along each line* is given as
+
+$$
+p_{f, \mathrm{line}}^{(i)} = \Phi(-\beta^{(i)})
+$$
+
+Finally, the probability of failure is obtained as the mean of the failure probabilities along the lines
+
+$$
+\hat{p}_{f,\mathrm{LS}} = \frac{1}{N} \sum_{i=1}^N p_{f, \mathrm{line}}^{(i)}.
+$$
+
+The variance of $\hat{p}_{f,\mathrm{LS}}$ is given by the variance of the line failure probabilities:
+
+$$
+\operatorname{Var}[\hat{p}_{f,\mathrm{LS}}] = \frac{1}{N(N-1)} \sum_{i=1}^N \Big(p_{f, \mathrm{line}}^{(i)} - \hat{p}_{f,\mathrm{LS}}\Big)^2.
+$$
+
+Similar to standard MCS, we have to pass $N$ to the Line Sampling method. However, here we pass the number of lines.
+Optionally, we can pass a vector of the points along each line that are used to evaluate the performance function and a per-determined direction $\boldsymbol{\alpha}$:
+
+```@example reliability
+ls = LineSampling(200, collect(0.5:0.5:10))
+pf_ls, std_ls, samples = probability_of_failure([y], g, x, ls)
+
+println("Probability of failure: $pf_ls")
+println("Coefficient of variation: $(std_ls/pf_ls)")
+```
+
+### Advanced Line Sampling
+
+Advanced Line Sampling [deangelisAdvances2015](@cite) is a further enhancement of the standard line sampling methods due to two main features:
+
+1. The important direction $\boldsymbol{\alpha}$ is adapted once a more probable point is found
+2. The lines are processed sorted by proximity of the points on the hyperplane.
+
+Especially the second point enables the use of an iterative root finder using Newton's method.
+
+The definition of the `AdvancedLineSampling` simulation method is similar to that of regular Line Sampling.
+The number of lines has to be given to the constructor and we can optionally give the number of points along the line which is only used to find the starting point of the iterative root search.
+
+```@example reliability
+als = AdvancedLineSampling(200, collect(0.5:0.5:10))
+pf_als, std_als, samples = probability_of_failure([y], g, x, als)
+
+println("Probability of failure: $pf_als")
+println("Coefficient of variation: $(std_als/pf_als)")
+```
+
+For `AdvancedLineSampling`, we can also define the (initial) direction and options of the iterative root finding, i.e., the `tolerance`, `stepsize` of the gradient and `maxiterations`.
+
 ## Subset Simulation
 
-Subset simulation [auEstimationSmallFailure2001](@cite) is an advanced simulation technique for the estimation of small failure probabilities. Here we solve a simple problem where the response $y$ depends on two independent random variables $x_1$ and $x_2$ following a standard normal distribution. The simple linear model is defined by
+Subset simulation [auEstimationSmallFailure2001](@cite) is an advanced simulation technique for the estimation of small failure probabilities.
+This approach involves decomposing the problem into a sequence of conditional probabilities that are estimated using Markov Chain Monte Carlo.
 
-$y(x_1,x_2) = x_1 + x_2$
+Here we solve a simple problem taken from [zuevSubsetSimulationMethod2013](@cite) where the response $y(\boldsymbol{X})$ depends on two independent random variables $X_1$ and $X_2$ following a standard normal distribution. The simple linear model is defined by
 
-with the failure domain
+$$
+y(\boldsymbol{X})= X_1 + X_2
+$$
 
-$F = \{(x_1, x_2) : x_1 + x_2 > 9\}.$
+with the performance function
+
+$$
+g(\boldsymbol{X}) = 9 - y(\boldsymbol{X}).
+$$
 
 The analytical probability of failure can be calculated as
 
-$pf = 1 - \Phi(\frac{9}{\sqrt(2)}) \approx 1 \times 10^{-10}.$
-
-This example is taken from [zuevSubsetSimulationMethod2013](@cite).
+$$
+p_f = 1 - \Phi\Bigg(\frac{9}{\sqrt(2)}\Bigg) \approx 1 \times 10^{-10}.
+$$
 
 In order to solve this, we start by creating the two random variables and group them in a vector `inputs`.
 
