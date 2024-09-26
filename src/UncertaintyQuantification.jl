@@ -76,6 +76,7 @@ export CentralComposite
 export CentralFiniteDifferences
 export CloughPenzien
 export DoubleLoop
+export EmpiricalPSD
 export ExternalModel
 export SlurmInterface
 export Extractor

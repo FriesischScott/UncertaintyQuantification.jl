@@ -40,3 +40,12 @@ end
 function evaluate(sd::ShinozukaDeodatis)
     return 1/4 * sd.σ^2 * sd.b^3 .* sd.ω.^2 .* exp.(-sd.b * abs.(sd.ω))
 end
+
+struct EmpiricalPSD <: AbstractPowerSpectralDensity
+    ω::AbstractVector{<:Real}
+    p::AbstractVector{<:Real}
+end
+
+function evaluate(ep::EmpiricalPSD)
+    return ep.p
+end
