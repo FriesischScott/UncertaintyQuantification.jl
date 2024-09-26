@@ -65,7 +65,6 @@
         @test_throws "No root found on initial line" probability_of_failure(
             g, u, AdvancedLineSampling(1, [10, 20])
         )
-
     end
 
     # Kontantin Zuev - Subset Simulation Method for Rare Event Estimation: An Introduction

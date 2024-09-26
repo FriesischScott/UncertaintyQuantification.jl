@@ -45,7 +45,7 @@ function probability_of_failure(
     p = reshape(performance(samples), length(sim.points), sim.lines)'
 
     # Find roots using spline interpolation for each line
-    β = [rootinterpolation(sim.points, p[i,:], i) for i in 1:sim.lines]
+    β = [rootinterpolation(sim.points, p[i, :], i) for i in 1:(sim.lines)]
 
     # Determine pf along lines
     ξ = cdf.(Normal(), -β)
@@ -107,15 +107,15 @@ function probability_of_failure(
     idx = argmin(norm.(eachrow(θ)))
 
     # Keep track of processed indices
-    notprocessed = collect(1:sim.lines)
+    notprocessed = collect(1:(sim.lines))
 
     # Vector of β
     β = zeros(sim.lines)
 
     # Loop over lines
-    for i in 1:sim.lines
+    for i in 1:(sim.lines)
         # Calculate distance
-        θᵢ = θₚ[idx,:]
+        θᵢ = θₚ[idx, :]
 
         # Limit-state function along line
         f = β -> begin
@@ -128,6 +128,14 @@ function probability_of_failure(
         β[i] = newtonraphson(βᵢ, f, sim.stepsize, sim.tolerance, sim.maxiterations)
 
         # Update starting point for next iteration
+        if isinf(β[i])
+            # Find root using interpolation if iteration does not converge
+            sample = DataFrame(rv_names .=> eachcol((θᵢ .+ α * sim.points')'))
+            evaluate!(models, sample)
+            append!(samples, sample)
+            β[i] = rootinterpolation(sim.points, performance(sample),i)
+        end
+
         if isfinite(β[i]) βᵢ = β[i] end
 
         # Check if distance is smaller than previous distance
@@ -136,10 +144,10 @@ function probability_of_failure(
             β⁺ = βᵢ
 
             # Update α
-            α = normalize(θᵢ + α*βᵢ)
+            α = normalize(θᵢ + α * βᵢ)
 
             # Project remaining samples onto new base
-            θₚ[notprocessed,:] = θ[notprocessed,:] - (θ[notprocessed,:] * α) * α'
+            θₚ[notprocessed, :] = θ[notprocessed, :] - (θ[notprocessed, :] * α) * α'
         end
 
         # Remove processed line from list
@@ -147,7 +155,7 @@ function probability_of_failure(
 
         if i !== sim.lines
             # Find next line
-            idx = argmin(norm.(eachrow(θₚ[notprocessed,:]  .- θᵢ')))
+            idx = argmin(norm.(eachrow(θₚ[notprocessed, :] .- θᵢ')))
             idx = notprocessed[idx]
         end
     end

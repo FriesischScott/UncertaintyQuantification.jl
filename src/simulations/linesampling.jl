@@ -56,26 +56,21 @@ mutable struct AdvancedLineSampling <: AbstractSimulation
         direction::NamedTuple=NamedTuple(),
         tolerance::Float64=1e-3,
         stepsize::Float64=1e-5,
-        maxiterations::Int64=20
+        maxiterations::Int64=20,
     )
         return new(lines, points, direction, tolerance, stepsize, maxiterations)
     end
 end
 
 function AdvancedLineSampling(
-    lines::Integer,
-    tolerance::Float64,
-    stepsize::Float64,
-    maxiterations::Int64
+    lines::Integer, tolerance::Float64, stepsize::Float64, maxiterations::Int64
 )
-    return AdvancedLineSampling(lines, collect(0.5:0.5:5), NamedTuple(), tolerance, stepsize, maxiterations)
+    return AdvancedLineSampling(
+        lines, collect(0.5:0.5:5), NamedTuple(), tolerance, stepsize, maxiterations
+    )
 end
 
-function rootinterpolation(
-    x::Vector{<:Real},
-    y::Vector{<:Real},
-    i::Integer=0
-)
+function rootinterpolation(x::Vector{<:Real}, y::Vector{<:Real}, i::Integer=0)
     if all(y[:] .<= 0)
         @warn "All samples for line $i are inside the failure domain"
         return Inf
@@ -94,17 +89,13 @@ end
 
 function _grad1D(x::Float64, f::Function, stepsize::Float64)
     fₓ = only(f(x))
-    fₓ₊ = only(f(x+stepsize))
-    ∇fₓ = (fₓ₊ - fₓ)/stepsize
+    fₓ₊ = only(f(x + stepsize))
+    ∇fₓ = (fₓ₊ - fₓ) / stepsize
     return ∇fₓ, fₓ, fₓ₊
 end
 
 function newtonraphson(
-    x₀::Float64,
-    f::Function,
-    stepsize::Float64,
-    tolerance::Float64,
-    maxiterations::Integer
+    x₀::Float64, f::Function, stepsize::Float64, tolerance::Float64, maxiterations::Integer
 )
     # Initialize
     err = Inf
@@ -113,14 +104,14 @@ function newtonraphson(
     while abs(err) > tolerance
         # One dimensional Netwon's method
         ∇fₓ, fₓ, _ = _grad1D(x₀, f, stepsize)
-        x₁ = x₀ - fₓ/∇fₓ
+        x₁ = x₀ - fₓ / ∇fₓ
 
         # Calculate error
-        err = norm(x₁ - x₀)/x₀
+        err = norm(x₁ - x₀) / x₀
         x₀ = x₁
 
         # Counter
-        steps +=1
+        steps += 1
 
         if steps >= maxiterations
             @warn "No root found after $steps iterations."
