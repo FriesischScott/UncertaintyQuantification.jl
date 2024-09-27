@@ -48,7 +48,7 @@ end
 function (transformer::UQInputTransformer)(df::DataFrame)
     if transformer.normalize
         uqinput_names = names(transformer.uqinputs)
-        data = df[:, uqinput_names]
+        data = copy(df)
         to_standard_normal_space!(transformer.uqinputs, data)
         # X is a Matrix for multiple inputs, else it is a Vector 
         X = _dataframe_to_array(data, uqinput_names)
