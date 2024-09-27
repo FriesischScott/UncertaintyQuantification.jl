@@ -11,104 +11,95 @@ julia> rs = ResponseSurface(data, :y, 2) |> DisplayAs.withcontext(:compact => tr
 ResponseSurface([0.483333, -0.238636, 1.01894], :y, [:x], 2, Monomial{Commutative{CreationOrder}, Graded{LexOrder}}[1, x₁, x₁²])
 ```
 """
-struct GaussianProcessRegressor <: UQModel
-    gp::AbstractGPs.AbstractGP
-    input::Union{Vector{<:UQInput}, Vector{Symbol}}
-    output::Symbol
-    data::DataFrame
-end
-
-default_optimizer = LBFGS()
+# default_optimizer = LBFGS()
 NoiseTypes = Union{
     ParameterHandling.Positive, 
     ParameterHandling.Bounded, 
     ParameterHandling.Fixed
     }
-default_mean() = ZeroMean()
+# default_mean() = ZeroMean()
 
-function normalize!(
-    input::Union{Vector{<:Real}, Matrix{<:Real}},
-    output::Vector{<:Real},
-    normalize_input::Bool,
-    normalize_output::Bool,
-    log_noise::Real
+struct GaussianProcess <: UQModel
+    gp::AbstractGPs.AbstractGP
+    input::Union{Vector{<:UQInput}, Vector{Symbol}}
+    output::Symbol
+    inp_transformer::AbstractInputTransformer # not sure if these should transform hyperparams as well
+    out_transformer::AbstractOutputTransformer
+end
+
+function GaussianProcess(    
+    gp::AbstractGPs.AbstractGP,
+    input::Union{UQInput, Symbol},
+    output::Symbol,
+    inp_transformer::AbstractInputTransformer, # not sure if these should transform hyperparams as well
+    out_transformer::AbstractOutputTransformer, # leaving that for later
 )
-    if normalize_input
-        input_normalizer = fit(ZScoreTransform, input)
-        input[:] = StatsBase.transform(input_normalizer, input)
+    GaussianProcess(gp, [input], output, inp_transformer, out_transformer)
+end
+
+# Custom meanfunctions will break Zygote autodiff for multidimensional inputs
+# Create from DataFrame
+function gaussianprocess(
+    data::DataFrame,
+    inputs::Vector{Symbol},
+    output::Symbol,
+    mean_f::Function, # should provide a default mean
+    mean_params::NamedTuple,
+    kernel_f::Function,
+    kernel_params::NamedTuple, # could be more specific than NamedTuple
+    noise::NoiseTypes=positive(exp(-2.0)), # could support functions for noise as well...
+    normalize_inp::Bool=false,
+    normalize_out::Bool=false,
+    optimizer::Union{Optim.AbstractOptimizer, Nothing}=nothing
+)
+    inp_transformer = InputTransformer(data, inputs, normalize_inp)
+    out_transformer = OutputTransformer(data, output, normalize_out)
+
+    θ = (;
+        mean = mean_params,
+        kernel = kernel_params,
+        noise = (;noise_params = noise)
+    )
+
+    # Turn DataFrame samples into X and Y arrays for GP
+    X = inp_transformer(data, inputs)
+    Y = out_transformer(data, output)
+
+    if isnothing(optimizer)
+        # If no optimizer is given we just conditionalize on output
+        gp = GP(
+            mean_f(ParameterHandling.value(θ.mean)), 
+            kernel_f(ParameterHandling.value(θ.kernel))
+            )
+        fx = gp(X, ParameterHandling.value(θ.noise)[:noise_params]^2) # this should be possible to do in a better way...
+        gp = posterior(fx, Y)
     else
-        input_normalizer = nothing
+        # Use the passed optimizer to maximize marginal log likelihood
+        θ_opt, logml_ = maximize_logml(logml, θ, X, Y, mean_f, kernel_f; optimizer=optimizer) # should I return the logml?
+        gp = GP(
+            mean_f(ParameterHandling.value(θ_opt.mean)), 
+            kernel_f(ParameterHandling.value(θ_opt.kernel))
+            )
+        fx = gp(X, ParameterHandling.value(θ_opt.noise)[:noise_params]^2) # this should be possible to do in a better way...
+        gp = posterior(fx, Y)
     end
 
-    if normalize_output
-        output_normalizer = fit(ZScoreTransform, output)
-        output[:] = StatsBase.transform(output_normalizer, output)
-        log_noise -= log(output_normalizer.scale[1])
-    else
-        output_normalizer = nothing
-    end
-
-    return input_normalizer, output_normalizer, log_noise
+    return GaussianProcess(gp, random_inputs, output, inp_transformer, out_transformer)
 end
 
-struct ExperimentalDesign # not sure about the name
-    sim::AbstractMonteCarlo # could also allow doe
-end
-
-function logml(θ, input, output, mean_f, kernel_f)
-    gp = GP(
-        mean_f(ParameterHandling.value(θ.mean)), 
-        kernel_f(ParameterHandling.value(θ.kernel))
-        )
-    f = gp(
-        input, 
-        ParameterHandling.value(θ.noise)[1]^2 # same as in gaussianprocess...
-        )
-    return -logpdf(f, output)
-end
-
-function maximize_logml(logml, θ, input, output, mean_f, kernel_f; optimizer, maxiter=1_000)
-    options = Optim.Options(; iterations=maxiter, show_trace=true)
-
-    θ_flat, unflatten = ParameterHandling.value_flatten(θ)
-
-    ## https://julianlsolvers.github.io/Optim.jl/stable/#user/tipsandtricks/#avoid-repeating-computations
-    function fg!(F, G, x)
-        if F !== nothing && G !== nothing
-            val, grad = Zygote.withgradient(
-                x -> logml(unflatten(x), input, output, mean_f, kernel_f), 
-                x
-                )
-            G .= only(grad)
-            return val
-        elseif G !== nothing
-            grad = Zygote.gradient(
-                x -> logml(unflatten(x), input, output, mean_f, kernel_f), 
-                x
-                )
-            G .= only(grad)
-            return nothing
-        elseif F !== nothing
-            return logml(unflatten(x), input, output, mean_f, kernel_f)
-        end
-    end
-
-    result = optimize(Optim.only_fg!(fg!), θ_flat, optimizer, options; inplace=false)
-
-    return unflatten(result.minimizer), result
-end
-
+# This creates a DataFrame and the calls the method above
 function gaussianprocess(
     inputs::Vector{<:UQInput},
     model::UQModel,
     output::Symbol,
-    kernel_f::Function,
     mean_f::Function, # should provide a default mean
-    kernel_params::NamedTuple, # could be more specific than NamedTuple
     mean_params::NamedTuple,
-    noise::NamedTuple, # how to do default value? (=positive(exp(-2.0)))
-    exp_design::ExperimentalDesign,
-    optimizer::Union{Optim.AbstractOptimizer, Nothing}=default_optimizer
+    kernel_f::Function,
+    kernel_params::NamedTuple, # could be more specific than NamedTuple
+    noise::NoiseTypes=positive(exp(-2.0)), # could support functions for noise as well...
+    normalize_inp::Bool=false,
+    normalize_out::Bool=false,
+    optimizer::Union{Optim.AbstractOptimizer, Nothing}=nothing
 )
     samples = sample(inputs, exp_design.sim) # need to be able to pass experimental design
     evaluate!(model, samples)
@@ -148,12 +139,7 @@ function gaussianprocess(
         gp = posterior(fx, Y)
     end
 
-    # to_physical_space!(random_inputs, samples)
-
-    # not sure if i need to return samples
-    # maybe return the log marginal likelihood
-
-    return GaussianProcessRegressor(gp, random_inputs, output, samples)
+    return GaussianProcess(gp, random_inputs, output, samples)
 end
 
 function gaussianprocess(
@@ -177,17 +163,17 @@ function gaussianprocess(
 end
 
 # what should this return?
-function evaluate!(gpr::GaussianProcessRegressor, df::DataFrame) # this now gives mean and variance at input
+function evaluate!(gpr::GaussianProcess, df::DataFrame) # this now gives mean and variance at input
     data = Matrix(df[:, names(gpr.input)])'
-    if !isnothing(gpr.input_normalizer)
-        μ, Σ = predict_y(gpr.gp, StatsBase.transform!(grp.input_normalizer, data))
+    if !isnothing(gpr.input_transformer)
+        μ, Σ = predict_y(gpr.gp, StatsBase.transform!(grp.input_transformer, data))
     else
         μ, Σ = predict_y(gpr.gp, data)
     end
 
-    if !isnothing(grp.output_normalizer)
-        μ[:] = μ .* gpr.output_normalizer.scale[1] .+ gpr.output_normalizer.mean[1] 
-        Σ[:] = Σ .* gpr.output_normalizer.scale[1]^2
+    if !isnothing(grp.output_transformer)
+        μ[:] = μ .* gpr.output_transformer.scale[1] .+ gpr.output_transformer.mean[1] 
+        Σ[:] = Σ .* gpr.output_transformer.scale[1]^2
     end
 
     df[!, Symbol(gpr.output, "_mean")] = μ
@@ -195,15 +181,50 @@ function evaluate!(gpr::GaussianProcessRegressor, df::DataFrame) # this now give
     return nothing
 end
 
-# Not sure how to design a similar function for gps, or if this is even desirable
-# function sample(pce::PolynomialChaosExpansion, n::Integer)
-#     samps = hcat(sample.(n, pce.Ψ.bases)...)
-#     out = map(row -> dot(pce.y, evaluate(pce.Ψ, collect(row))), eachrow(samps))
+struct ExperimentalDesign # not sure about the name
+    sim::AbstractMonteCarlo # could also allow doe
+end
 
-#     samps = DataFrame(map_from_bases(pce.Ψ, samps), names(pce.input))
-#     to_physical_space!(pce.input, samps)
+function logml(θ, input, output, mean_f, kernel_f)
+    gp = GP(
+        mean_f(ParameterHandling.value(θ.mean)), 
+        kernel_f(ParameterHandling.value(θ.kernel))
+        )
+    f = gp(
+        input, 
+        ParameterHandling.value(θ.noise)[:noise_params]^2 # same as in gaussianprocess...
+        )
+    return -logpdf(f, output)
+end
 
-#     samps[!, pce.output] = out
-#     return samps
-# end
+function maximize_logml(logml, θ, input, output, mean_f, kernel_f; optimizer, maxiter=1_000)
+    options = Optim.Options(; iterations=maxiter, show_trace=true)
+
+    θ_flat, unflatten = ParameterHandling.value_flatten(θ)
+
+    ## https://julianlsolvers.github.io/Optim.jl/stable/#user/tipsandtricks/#avoid-repeating-computations
+    function fg!(F, G, x)
+        if F !== nothing && G !== nothing
+            val, grad = Zygote.withgradient(
+                x -> logml(unflatten(x), input, output, mean_f, kernel_f), 
+                x
+                )
+            G .= only(grad)
+            return val
+        elseif G !== nothing
+            grad = Zygote.gradient(
+                x -> logml(unflatten(x), input, output, mean_f, kernel_f), 
+                x
+                )
+            G .= only(grad)
+            return nothing
+        elseif F !== nothing
+            return logml(unflatten(x), input, output, mean_f, kernel_f)
+        end
+    end
+
+    result = optimize(Optim.only_fg!(fg!), θ_flat, optimizer, options; inplace=false)
+
+    return unflatten(result.minimizer), result
+end
 
