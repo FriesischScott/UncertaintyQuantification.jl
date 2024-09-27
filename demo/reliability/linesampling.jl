@@ -47,7 +47,7 @@ println("Pf = $pf_als")
 println("CoV = $cov_als")
 println("Model Calls = $(length(samples_als.x1))\n")
 
-println("Advanced Line Sampling:")
+println("Monte Carlo:")
 println("Pf = $pf_MC")
 println("CoV = $cov_MC")
 println("Model Calls = $(length(samples_MC.x1))")
