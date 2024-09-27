@@ -14,7 +14,7 @@ function InputTransformer(
     normalize::Bool
 )
     if normalize
-        X = df_to_array(df, input_names)
+        X = _dataframe_to_array(df, input_names)
         normalization = fit(ZScoreTransform, X; dims=1)
         InputTransformer(
             normalization, 
@@ -31,11 +31,11 @@ function InputTransformer(
 end
 
 function (transformer::InputTransformer)(df::DataFrame)
-    if !isnothing(transformer.input_transform)
-        X = df_to_array(df, transformer.input_names)
+    if !isnothing(transformer.transform)
+        X = _dataframe_to_array(df, transformer.input_names)
         return StatsBase.transform(transformer.transform, X)
     else
-        X = df_to_array(df, transformer.input_names)
+        X = _dataframe_to_array(df, transformer.input_names)
         return X
     end
 end
@@ -51,17 +51,17 @@ function (transformer::UQInputTransformer)(df::DataFrame)
         data = df[:, uqinput_names]
         to_standard_normal_space!(transformer.uqinputs, data)
         # X is a Matrix for multiple inputs, else it is a Vector 
-        X = df_to_array(data, uqinput_names)
+        X = _dataframe_to_array(data, uqinput_names)
         return X
     else
         uqinput_names = names(transformer.uqinputs)
         # X is a Matrix for multiple inputs, else it is a Vector 
-        X = df_to_array(df, uqinput_names)
+        X = _dataframe_to_array(df, uqinput_names)
         return X
     end
 end
 
-struct Outputtransformer <: AbstractOutputTransformer
+struct OutputTransformer <: AbstractOutputTransformer
     transform::Union{ZScoreTransform, Nothing} # there is probably a better way to do this
     output_names::Union{Symbol, Vector{<:Symbol}}
     normalize::Bool
@@ -74,7 +74,7 @@ function OutputTransformer(
     normalize::Bool
 )
     if normalize
-        Y = df_to_array(df, output_names)
+        Y = _dataframe_to_array(df, output_names)
         normalization = fit(ZScoreTransform, Y; dims=1)
         OutputTransformer(
             normalization, 
@@ -90,12 +90,12 @@ function OutputTransformer(
     end
 end
 
-function (transformer::OutputTransformer)(df::DataFrame)
+function (transformer::AbstractOutputTransformer)(df::DataFrame)
     if !isnothing(transformer.transform)
-        Y = df_to_array(df, transformer.output_names)
+        Y = _dataframe_to_array(df, transformer.output_names)
         return StatsBase.transform(transformer.transform, Y)
     else
-        Y = df_to_array(df, transformer.output_names)
+        Y = _dataframe_to_array(df, transformer.output_names)
         return Y
     end
 end
@@ -108,18 +108,89 @@ function inverse_transform(Y::Array, transformer::AbstractOutputTransformer)
     end
 end
 
-function df_to_array(  # That name sucks
+function _dataframe_to_array(  # That name sucks
     df::DataFrame, 
     name::Union{Symbol, String} # do we use Strings? 
 )
     return df[:, name]
 end
 
-function df_to_array(  # That name sucks
+function _dataframe_to_array(  # That name sucks
     df::DataFrame, 
     names::Union{Vector{<:Symbol}, Vector{<:String}} # do we use Strings? 
 )
     # check for the case where we want a single column but the name is given in a Vector
-    length(names) == 1 ? X = df_to_array(df, names[1]) : X = Matrix(df[:, names])
+    length(names) == 1 ? X = _dataframe_to_array(df, names[1]) : X = Matrix(df[:, names])
     return X
+end
+
+function _handle_gp_input(
+    data::DataFrame,
+    input::Symbol,
+    output::Symbol,
+    normalize_inp::Bool=false,
+    normalize_out::Bool=false
+)
+    inp_dim = 1
+    out_dim = 1
+    inp_transformer = InputTransformer(data, input, normalize_inp)
+    out_transformer = OutputTransformer(data, output, normalize_out)
+
+    # Turn DataFrame samples into X and Y arrays for GP
+    x = inp_transformer(data)
+    y = out_transformer(data)
+
+    return (
+        inp_dim, out_dim, 
+        inp_transformer, out_transformer, 
+        x, y)
+end
+
+function _handle_gp_input(
+    data::DataFrame,
+    inputs::Vector{Symbol},
+    outputs::Vector{Symbol},
+    normalize_inp::Bool=false,
+    normalize_out::Bool=false
+)
+    inp_dim = length(inputs)
+    out_dim = length(outputs)
+    inp_transformer = InputTransformer(data, inputs, normalize_inp)
+    out_transformer = OutputTransformer(data, output, normalize_out)
+
+    # Turn DataFrame samples into X and Y arrays for GP
+    X = inp_transformer(data)
+    Y = out_transformer(data)
+    x, y = prepare_isotopic_multi_output_data(RowVecs(X), RowVecs(Y))
+
+    return (
+        inp_dim, out_dim, 
+        inp_transformer, out_transformer, 
+        x, y)
+end
+
+function _handle_gp_input(
+    data::DataFrame,
+    inputs::Vector{Symbol},
+    output::Symbol,
+    normalize_inp::Bool=false,
+    normalize_out::Bool=false
+)
+    return _handle_gp_input(
+        data, inputs, [output],
+        normalize_inp, normalize_out
+        )
+end
+
+function _handle_gp_input(
+    data::DataFrame,
+    input::Symbol,
+    outputs::Vector{Symbol},
+    normalize_inp::Bool=false,
+    normalize_out::Bool=false
+)
+    return _handle_gp_input(
+        data, [input], outputs,
+        normalize_inp, normalize_out
+        )
 end
