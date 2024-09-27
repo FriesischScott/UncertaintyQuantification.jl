@@ -147,7 +147,7 @@ function formatinputs(row::DataFrameRow, formats::Dict{Symbol,String})
         if haskey(formats, symbol)
             push!(values, formatinput(row[symbol], formats[symbol]))
         elseif haskey(formats, :*)
-            push!(values, formatinput(row[symbol], formats[[:*]]))
+            push!(values, formatinput(row[symbol], formats[:*]))
         else
             push!(values, row[symbol])
         end
