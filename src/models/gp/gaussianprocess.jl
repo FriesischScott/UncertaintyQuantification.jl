@@ -13,7 +13,7 @@ ResponseSurface([0.483333, -0.238636, 1.01894], :y, [:x], 2, Monomial{Commutativ
 """
 struct GaussianProcess <: UQModel
     gp::AbstractGPs.AbstractGP
-    input::Union{Vector{<:UQInput}, Vector{Symbol}}
+    input::Vector{Symbol}
     output::Vector{Symbol}
     inp_dim::Int
     out_dim::Int
@@ -23,7 +23,7 @@ end
 
 function GaussianProcess(    
     gp::AbstractGPs.AbstractGP,
-    input::Union{UQInput, Symbol},
+    input::Symbol,
     output::Symbol,
     inp_dim::Int,
     out_dim::Int,
@@ -39,7 +39,7 @@ end
 
 function GaussianProcess(    
     gp::AbstractGPs.AbstractGP,
-    input::Union{Vector{<:UQInput}, Vector{Symbol}},
+    input::Vector{Symbol},
     output::Symbol,
     inp_dim::Int,
     out_dim::Int,
@@ -55,7 +55,7 @@ end
 
 function GaussianProcess(    
     gp::AbstractGPs.AbstractGP,
-    input::Union{UQInput, Symbol},
+    input::Symbol,
     output::Vector{Symbol},
     inp_dim::Int,
     out_dim::Int,
@@ -65,20 +65,6 @@ function GaussianProcess(
     GaussianProcess(
         gp, [input], output, 
         inp_dim, out_dim, 
-        inp_transformer, out_transformer
-        )
-end
-
-function GaussianProcess(    
-    gp::AbstractGPs.AbstractGP,
-    input::Union{Vector{<:UQInput}, Vector{Symbol}},
-    output::Symbol,
-    inp_transformer::AbstractInputTransformer, # not sure if these should transform hyperparams as well
-    out_transformer::AbstractOutputTransformer, # leaving that for later
-)
-    GaussianProcess(
-        gp, [input], [output], 
-        1, 1, 
         inp_transformer, out_transformer
         )
 end
@@ -217,11 +203,27 @@ function GaussianProcess(
     data = sample(inputs, exp_design.sim) # need to be able to pass experimental design
     evaluate!(model, data)
 
-    return GaussianProcess(
+    # random_inputs = filter(i -> isa(i, RandomUQInput), inputs)
+    # random_input_names = names(random_inputs) 
+
+    (inp_dim, out_dim, 
+    inp_transformer, out_transformer, 
+    x, y) = _handle_gp_input(
         data, inputs, outputs,
-        build_gp, params, noise,
-        normalize_inp, normalize_out, 
-        optimizer
+        normalize_inp, normalize_out
+        )
+
+    θ = (;
+        mean_and_kernel = params,
+        noise = (;noise_params = noise)
+    )
+
+    gp = build_gp_posterior(build_gp, θ, x, y, optimizer)
+
+    return GaussianProcess(
+        gp, inputs.name, outputs, 
+        inp_dim, out_dim, 
+        inp_transformer, out_transformer
         )
 end
 

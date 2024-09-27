@@ -126,14 +126,19 @@ end
 
 function _handle_gp_input(
     data::DataFrame,
-    input::Symbol,
+    input::Union{Symbol, UQInput},
     output::Symbol,
     normalize_inp::Bool=false,
     normalize_out::Bool=false
 )
     inp_dim = 1
     out_dim = 1
-    inp_transformer = InputTransformer(data, input, normalize_inp)
+
+    if isa(input, Symbol)
+        inp_transformer = InputTransformer(data, input, normalize_inp)
+    else
+        inp_transformer = UQInputTransformer(input, normalize_inp)
+    end
     out_transformer = OutputTransformer(data, output, normalize_out)
 
     # Turn DataFrame samples into X and Y arrays for GP
@@ -148,14 +153,19 @@ end
 
 function _handle_gp_input(
     data::DataFrame,
-    inputs::Vector{Symbol},
+    inputs::Union{Vector{Symbol}, Vector{UQInput}},
     outputs::Vector{Symbol},
     normalize_inp::Bool=false,
     normalize_out::Bool=false
 )
     inp_dim = length(inputs)
     out_dim = length(outputs)
-    inp_transformer = InputTransformer(data, inputs, normalize_inp)
+    
+    if isa(input, Symbol)
+        inp_transformer = InputTransformer(data, input, normalize_inp)
+    else
+        inp_transformer = UQInputTransformer(input, normalize_inp)
+    end
     out_transformer = OutputTransformer(data, output, normalize_out)
 
     # Turn DataFrame samples into X and Y arrays for GP
@@ -171,7 +181,7 @@ end
 
 function _handle_gp_input(
     data::DataFrame,
-    inputs::Vector{Symbol},
+    inputs::Union{Vector{Symbol}, Vector{UQInput}},
     output::Symbol,
     normalize_inp::Bool=false,
     normalize_out::Bool=false
@@ -184,7 +194,7 @@ end
 
 function _handle_gp_input(
     data::DataFrame,
-    input::Symbol,
+    input::Union{Symbol, UQInput},
     outputs::Vector{Symbol},
     normalize_inp::Bool=false,
     normalize_out::Bool=false
