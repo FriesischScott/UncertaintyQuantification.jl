@@ -75,6 +75,7 @@ export UQModel
 export AdvancedLineSampling
 export AdaptiveMetropolisHastings
 export EmpiricalDistribution
+export ExperimentalDesign # Currently used for gps
 export BackwardFiniteDifferences
 export BoxBehnken
 export CentralComposite
@@ -89,6 +90,7 @@ export ForwardFiniteDifferences
 export FractionalFactorial
 export FullFactorial
 export GaussianCopula
+export GaussianProcess
 export GaussQuadrature
 export HaltonSampling
 export HermiteBasis
@@ -168,6 +170,8 @@ include("models/imprecise/propagation.jl")
 include("models/polyharmonicspline.jl")
 include("models/responsesurface.jl")
 include("models//slicingmodel.jl")
+include("models/gp/datamanipulation.jl")
+include("models/gp/gaussianprocess.jl")
 
 include("hpc/slurm.jl")
 
