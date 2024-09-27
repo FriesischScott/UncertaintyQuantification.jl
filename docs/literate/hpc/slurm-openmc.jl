@@ -21,7 +21,7 @@ sourcedir = joinpath(pwd(), "demo/models")
 # These files will be rendered through Mustache.jl and have values injected.
 sourcefile = "openmc_TBR.py"
 
-# Dictionary to map format Strings (Formatting.jl) to variables.
+# Dictionary to map format Strings (Format.jl) to variables.
 numberformats = Dict(:E => ".8e")
 
 # UQ will create subfolders in here to run the solver and store the results.
@@ -47,16 +47,20 @@ openmc = Solver(
     args="", # (optional) extra arguments passed to the solver
 )
 
+# slurm  sbatch options
+options = Dict(
+    "job-name" => "UQ_slurm",
+    "account" => "EXAMPLE-0001-CPU",
+    "partition" => "cpu_partition",
+    "nodes" => "1",
+    "ntasks" => "1",
+    "time" => "00:05:00",
+)
 # Slurm interface, passing required machine information. Note in `extras`, we specify the commands we require to run the model (for example, loading modulefiles or data).
 
-slurm = SlurmInterface(;
-    jobname="UQ_slurm",
-    account="EXAMPLE-0001-CPU",
-    partition="cpu_partition",
-    nodes=1,
-    ntasks=1,
+slurm = SlurmInterface(
+    options;
     throttle=50,
-    time="00:05:00", # Maximum time per simulation
     extras=["module load openmc", "source ~/.virtualenvs/openmc/bin/activate"],
 )
 
