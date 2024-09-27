@@ -370,27 +370,25 @@ function GaussianProcess(
         )
 end
 
-# what should this return?
+# what should this calculate? Calculates mean for now
 function evaluate!(gp::GaussianProcess, df::DataFrame) # this now gives mean and variance at input
-    if gp.inp_dim != 1 || gp.out_dim != 1 # at the moment we only support out_dim = 1
-        XX = MOInput(RowVecs(X), gp.out_dim)
+    x = gp.inp_transformer(df)
+
+    if gp.inp_dim != 1 || gp.out_dim != 1 # here we have to reformat the input
+        x = MOInput(RowVecs(x), gp.out_dim)
     end
 
-    # data = Matrix(df[:, names(gpr.input)])'
-    # if !isnothing(gpr.input_transformer)
-    #     μ, Σ = predict_y(gpr.gp, StatsBase.transform!(grp.input_transformer, data))
-    # else
-    #     μ, Σ = predict_y(gpr.gp, data)
-    # end
+    y = mean(gp.gp(x))
 
-    # if !isnothing(grp.output_transformer)
-    #     μ[:] = μ .* gpr.output_transformer.scale[1] .+ gpr.output_transformer.mean[1] 
-    #     Σ[:] = Σ .* gpr.output_transformer.scale[1]^2
-    # end
+    if gp.out_dim == 1
+        y = inverse_transform(y, gp.out_transformer)
+    else
+        y = reshape(mean(gp.gp(x)), :, gp.out_dim)
+        y = inverse_transform(y, gp.out_transformer)
+    end
 
-    # df[!, Symbol(gpr.output, "_mean")] = μ
-    # df[!, Symbol(gpr.output, "_var")] = Σ
-    # return nothing
+    insertcols!(df, (gp.output .=> eachcol(y))...)
+    return nothing
 end
 
 """ maximize_logml(logml, θ, x, y, build_gp; optimizer=optimizer) """
