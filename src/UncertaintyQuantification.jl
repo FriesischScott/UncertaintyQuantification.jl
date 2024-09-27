@@ -1,5 +1,6 @@
 module UncertaintyQuantification
 
+using AbstractGPs
 using Bootstrap
 using CovarianceEstimation
 using DataFrames
@@ -15,11 +16,13 @@ using MeshAdaptiveDirectSearch
 using Monomials
 using Mustache
 using Optim # needed for GPs to support other optimizers + settings
+using ParameterHandling
 using Primes
 using QuasiMonteCarlo
 using Random
 using Reexport
 using StatsBase
+using Zygote
 
 @reexport using Distributions
 
