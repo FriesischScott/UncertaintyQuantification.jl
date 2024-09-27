@@ -120,7 +120,7 @@ function _dataframe_to_array(  # That name sucks
     names::Union{Vector{<:Symbol}, Vector{<:String}} # do we use Strings? 
 )
     # check for the case where we want a single column but the name is given in a Vector
-    length(names) == 1 ? X = _dataframe_to_array(df, names[1]) : X = Matrix(df[:, names])
+    length(names) == 1 ? X = _dataframe_to_array(df, only(names)) : X = Matrix(df[:, names])
     return X
 end
 
@@ -160,7 +160,7 @@ function _handle_gp_input(
 )
     inp_dim = length(inputs)
     out_dim = length(outputs)
-    
+
     if isa(input, Symbol)
         inp_transformer = InputTransformer(data, input, normalize_inp)
     else
