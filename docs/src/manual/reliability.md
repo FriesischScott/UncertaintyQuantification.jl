@@ -218,7 +218,7 @@ println("Coefficient of variation: $(std_als/pf_als)")
 
 For `AdvancedLineSampling`, we can also define the (initial) direction and options of the iterative root finding, i.e., the `tolerance`, `stepsize` of the gradient and `maxiterations`.
 
-!!!note "Parallelism"
+!!! note "Parallelism"
     We note that Advanced Line Sampling is a serial algorithm, although much fewer samples (order of magnitude) are required. If a large amount of parallel compute is available, standard Line Sampling may be more attractive, which is "embarrassingly" parallel like Monte Carlo.
 
 ## Subset Simulation
