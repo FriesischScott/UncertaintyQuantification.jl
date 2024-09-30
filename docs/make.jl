@@ -2,6 +2,7 @@ using DataFrames
 using Documenter
 using DocumenterCitations
 using UncertaintyQuantification
+using DocumenterVitepress
 
 DocMeta.setdocmeta!(
     UncertaintyQuantification,
@@ -14,7 +15,9 @@ bib = CitationBibliography(joinpath(@__DIR__, "references.bib"))
 makedocs(;
     modules=[UncertaintyQuantification],
     plugins=[bib],
-    format=Documenter.HTML(; prettyurls=get(ENV, "CI", nothing) == "true"),
+    format=DocumenterVitepress.MarkdownVitepress(repo = "https://github.com/FriesischScott/UncertaintyQuantification.jl", 
+    devbranch = "master",
+    build_vitepress = true),
     sitename="UncertaintyQuantification.jl",
     authors="Jasper Behrensdorf and Ander Gray",
     pages=[
