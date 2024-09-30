@@ -31,7 +31,7 @@ function probability_of_failure(
 
     if isempty(sim.direction)
         sim.direction = gradient_in_standard_normal_space(
-            [models..., Model(x -> -1 * performance(x), :performance)],
+            [wrap(models)..., Model(x -> -1 * performance(x), :performance)],
             inputs,
             sns_zero_point(inputs),
             :performance,
@@ -69,7 +69,7 @@ function probability_of_failure(
 
     if isempty(sim.direction)
         sim.direction = gradient_in_standard_normal_space(
-            [models..., Model(x -> -1 * performance(x), :performance)],
+            [wrap(models)..., Model(x -> -1 * performance(x), :performance)],
             inputs,
             sns_zero_point(inputs),
             :performance,
