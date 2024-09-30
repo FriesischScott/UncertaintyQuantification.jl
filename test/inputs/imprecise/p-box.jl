@@ -54,7 +54,7 @@
         @test a.ub == quantile(Normal(0, 0.1), 0.25)
 
         a = UncertaintyQuantification.quantile(p_box, 0.5)
-        @test a == 0.0
+        @test a == Interval(0.0, 0.0, :l)
 
         a = UncertaintyQuantification.quantile(p_box, 0.75)
         @test a.lb == quantile(Normal(0, 0.1), 0.75)
