@@ -41,18 +41,6 @@ inputs = [gm, m, k, c]
 
 models = [gm_model, displacement]
 
-# samples = sample(inputs, 10)
-
-# evaluate!(models, samples)
-
-# p = plot()
-
-# for i in 1:size(samples, 1)
-#     t = range(ex.time[1], ex.time[end], length(samples[i, :d]))
-
-#     plot!(p, t, samples[i, :d])
-# end
-
 function g(df)
     return map(eachrow(df)) do s
         1.5 - maximum(abs.(s.d))
