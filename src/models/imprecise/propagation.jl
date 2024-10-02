@@ -12,9 +12,15 @@ function propagate_intervals!(
     output = isa(m, AbstractVector) ? m[end].name : m.name
 
     y = map(eachrow(df)) do row
-        lb = getproperty.(collect(row[interval_names]), :lb)
 
-        ub = getproperty.(collect(row[interval_names]), :ub)
+        degenerates = isdegenerate.(collect(row[interval_names]))
+        pure = .!degenerates
+
+        lb, ub = if any(degenerates)
+            getproperty.(collect(row[interval_names[pure]]), :lb), getproperty.(collect(row[interval_names[pure]]), :ub)
+        else
+            getproperty.(collect(row[interval_names]), :lb), getproperty.(collect(row[interval_names]), :ub)
+        end
 
         x0 = middle.(lb, ub)
 
@@ -24,8 +30,13 @@ function propagate_intervals!(
             select(DataFrame(row), Not(interval_names)),
         )
 
+        # set degenerate intervals to their precise value
+        if any(degenerates)
+            precise_df[1, interval_names[degenerates]] .= getproperty.(collect(row[interval_names[degenerates]]), :lb)
+        end
+
         function f(x)
-            precise_df[1, interval_names] .= x
+            precise_df[1, interval_names[pure]] .= x
 
             evaluate!(m, precise_df)
 

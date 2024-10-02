@@ -8,6 +8,10 @@ mutable struct LineSampling <: AbstractSimulation
         points::Vector{<:Real}=collect(0.5:0.5:5),
         direction::NamedTuple=NamedTuple(),
     )
+
+    if maximum(points) > 8.12
+        error("LineSampling does not support lines longer than 8.12.")
+    end
         return new(lines, points, direction)
     end
 end

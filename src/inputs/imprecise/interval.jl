@@ -42,3 +42,7 @@ function bounds(i::Interval)
 end
 
 Base.in(u, i::Interval) = i.lb <= u <= i.ub
+
+function isdegenerate(i::Interval)
+    return i.lb == i.ub
+end
