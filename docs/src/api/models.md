@@ -9,6 +9,7 @@ Pages = ["models.md"]
 ## Types
 
 ```@docs
+UQModel
 Model
 ParallelModel
 ```
