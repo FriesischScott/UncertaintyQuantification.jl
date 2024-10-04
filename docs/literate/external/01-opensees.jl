@@ -5,7 +5,7 @@
 
 In this example we will perform the reliability analysis of a supported beam using the open-source finite element software [OpenSees](https://opensees.berkeley.edu/).
 The example definition can be found [here](https://opensees.berkeley.edu/wiki/index.php/Simply_supported_beam_modeled_with_two_dimensional_solid_elements)
-We will be modeling the Young's modulus of the ElasticIsotropic in the OpenSees model as a  [`RandomVariable`](@ref).
+We will be modeling the Young's modulus of the `ElasticIsotropic` material in the OpenSees model as a [`RandomVariable`](@ref).
 ===#
 
 using UncertaintyQuantification
@@ -25,8 +25,8 @@ numberformats = Dict(:E => ".8e")
 # UQ will create subfolders in here to run the solver and store the results
 workdir = joinpath(pwd(), "supported-beam")
 
-# Read output file and compute maximum (absolute) displacement
-# An extractor is passed the working directory for the current sample as `base`
+# Read output file and compute maximum (absolute) displacement.
+# The input `base` of the function used to construct the [`Extractor`](@ref) is the working directory for the current sample.
 disp = Extractor(base -> begin
     file = joinpath(base, "displacement.out")
     data = readdlm(file, ' ')
