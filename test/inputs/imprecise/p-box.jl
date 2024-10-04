@@ -11,6 +11,8 @@
     p_box = ProbabilityBox{Uniform}(params, name)
     @test p_box.parameters == params
     @test p_box.name == name
+    @test p_box.lb == 0.14
+    @test p_box.ub == 0.23
 
     @test UncertaintyQuantification.bounds(p_box) == ([0.14, 0.21], [0.16, 0.23])
 
@@ -54,7 +56,7 @@
         @test a.ub == quantile(Normal(0, 0.1), 0.25)
 
         a = UncertaintyQuantification.quantile(p_box, 0.5)
-        @test a == 0.0
+        @test a == Interval(0.0, 0.0, :l)
 
         a = UncertaintyQuantification.quantile(p_box, 0.75)
         @test a.lb == quantile(Normal(0, 0.1), 0.75)

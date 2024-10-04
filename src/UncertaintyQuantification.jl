@@ -71,6 +71,7 @@ export UQInput
 export UQModel
 
 # Structs
+export AdvancedLineSampling
 export AdaptiveMetropolisHastings
 export EmpiricalDistribution
 export BackwardFiniteDifferences
