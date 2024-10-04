@@ -37,6 +37,7 @@ makedocs(;
         "Benchmarks" => ["Subset Simulation" => "benchmarks/subset.md"],
         "API" => [
             "Inputs" => "api/inputs.md",
+            "Models" => "api/models.md",
             "ResponseSurface" => "api/responsesurface.md",
             "PolyharmonicSpline" => "api/polyharmonicspline.md",
             "Simulations" => "api/simulations.md",
