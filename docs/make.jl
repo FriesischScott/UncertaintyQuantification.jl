@@ -25,9 +25,11 @@ makedocs(;
             "Reliability Analysis" => "manual/reliability.md",
             "Metamodelling" => "manual/metamodels.md",
             "Bayesian Updating" => "manual/bayesianupdating.md",
+            "Parallelisation" => "manual/parallelisation.md",
             "High Performance Computing" => "manual/hpc.md",
         ],
         "Examples" => [
+            "External Models" => "examples/external.md",
             "Metamodels" => "examples/metamodels.md",
             "Bayesian Updating" => "examples/bayesianupdating.md",
             "High Performance Computing" => "examples/hpc.md",
@@ -35,6 +37,7 @@ makedocs(;
         "Benchmarks" => ["Subset Simulation" => "benchmarks/subset.md"],
         "API" => [
             "Inputs" => "api/inputs.md",
+            "Models" => "api/models.md",
             "ResponseSurface" => "api/responsesurface.md",
             "PolyharmonicSpline" => "api/polyharmonicspline.md",
             "Simulations" => "api/simulations.md",

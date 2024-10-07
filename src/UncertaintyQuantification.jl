@@ -31,6 +31,9 @@ abstract type DeterministicUQInput <: UQInput end
 abstract type ImpreciseUQInput <: UQInput end
 abstract type RandomUQInput <: UQInput end
 
+"""
+Abstract supertype for all model types
+"""
 abstract type UQModel end
 
 abstract type Copula end

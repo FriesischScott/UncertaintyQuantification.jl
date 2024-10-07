@@ -11,7 +11,7 @@ The ones implemented here are `TwoLevelFactorial`, `FullFactorial`, `FractionalF
 #===
 ## Response Surface
 
-A Response Surface is a structure used for modeling. 
+A Response Surface is a structure used for modeling.
     It can be trained by providing it with evaluated points of a function.
     It will then, using polynomial regression, compute a model of that function.
 ===#
@@ -60,7 +60,7 @@ That functions degree is set as an Integer in the constructor.
 ===#
 
 #md # !!! note
-#md #     The choice of the degree and the design and its parameters may be crucial to obtaining a sufficient model. 
+#md #     The choice of the degree and the design and its parameters may be crucial to obtaining a sufficient model.
 
 training_data = sample(x, design)
 evaluate!(himmelblau, training_data)
@@ -70,13 +70,12 @@ test_data = sample(x, 1000)
 evaluate!(rs, test_data)
 
 #===
-To evaluate the `ResponseSurface`use `evaluate!(rs::ResponseSurface, data::DataFrame)` with the dataframe containing the points you want to evaluate.
+To evaluate the `ResponseSurface`use `evaluate!(rs::ResponseSurface, data::DataFrame)` with the `DataFrame` containing the points you want to evaluate.
 
 The model in this case has an mse of about 1e-26 and looks like this in comparison to the original:
 ===#
 
-#md f(x1, x2) = map(m -> m([x1, x2]), rs.monomials') * rs.β #hide
-#md 
+#md f(x1, x2) = sum(rs.monomials([x1, x2]) .* rs.β) #hide
 #md s2 = surface(a, b, f; plot_title="Response Surface", plot_titlefontsize=16) #hide
 #md surface(s1, s2; layout=(1, 2), legend=false, size=(800, 400))  #hide
 

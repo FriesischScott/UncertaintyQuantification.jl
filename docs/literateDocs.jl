@@ -36,7 +36,7 @@ end
 
 for (r, d, f) in walkdir("./docs/literate/")
     for dir in d
-        if dir == "hpc"
+        if dir == "hpc" || dir == "external"
             fuseConvert(r, dir; documenter=false)
         else
             fuseConvert(r, dir)
