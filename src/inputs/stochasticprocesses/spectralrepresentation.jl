@@ -3,7 +3,30 @@ abstract type AbstractStochasticProcess <: RandomUQInput end
 struct SpectralRepresentation <: AbstractStochasticProcess
     psd::AbstractPowerSpectralDensity
     time::AbstractVector{<:Real}
+    ωt::AbstractMatrix{<:Real}
+    Δω::Real
+    A::AbstractVector{<:Real}
     name::Symbol
+    ϕnames::Vector{Symbol}
+end
+
+function SpectralRepresentation(
+    psd::AbstractPowerSpectralDensity, time::AbstractVector{<:Real}, name::Symbol
+)
+    Δω = psd.ω[2] - psd.ω[1]
+
+    A = sqrt.(2 * psd.p * Δω)
+    A[iszero.(psd.ω)] .= 0.0
+
+    return SpectralRepresentation(
+        psd,
+        time,
+        psd.ω * time',
+        Δω,
+        A,
+        name,
+        [Symbol("$(name)_$i") for i in 1:length(psd.ω)],
+    )
 end
 
 function sample(sr::SpectralRepresentation, n::Integer=1)
@@ -11,17 +34,7 @@ function sample(sr::SpectralRepresentation, n::Integer=1)
 end
 
 function evaluate(sr::SpectralRepresentation, ϕ::AbstractVector{<:Real})
-    S = evaluate(sr.psd)
-
-    Δω = sr.psd.ω[2] - sr.psd.ω[1]
-    A = sqrt.(2 * S * Δω)
-
-    A[sr.psd.ω .== 0.0] .= 0.0
-
-    return reduce(
-        +,
-        [sqrt(2) * an .* cos.(ωn .* sr.time .+ ϕn) for (an, ωn, ϕn) in zip(A, sr.psd.ω, ϕ)],
-    )
+    return sqrt(2) * vec(sr.A' * cos.(sr.ωt .+ ϕ))
 end
 
 function (sr::SpectralRepresentation)(ϕ::AbstractVector{<:Real})
@@ -29,9 +42,7 @@ function (sr::SpectralRepresentation)(ϕ::AbstractVector{<:Real})
 end
 
 function evaluate(sr::SpectralRepresentation, row::DataFrameRow)
-    ϕ = collect(row[[Symbol("$(sr.name)_$i") for i in 1:length(sr.psd.ω)]])
-
-    return evaluate(sr, ϕ)
+    return evaluate(sr, collect(row[sr.ϕnames]))
 end
 
 function (sr::SpectralRepresentation)(row::DataFrameRow)
@@ -57,5 +68,5 @@ function dimensions(sr::SpectralRepresentation)
 end
 
 function names(sr::SpectralRepresentation)
-    return [Symbol("$(sr.name)_$i") for i in 1:dimensions(sr)]
+    return sr.ϕnames
 end
