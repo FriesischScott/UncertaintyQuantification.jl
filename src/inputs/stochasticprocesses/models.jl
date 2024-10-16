@@ -8,9 +8,13 @@ function StochasticProcessModel(proc::AbstractStochasticProcess)
 end
 
 function evaluate!(m::StochasticProcessModel, df::DataFrame)
-    timeseries = map(eachrow(df)) do row
-        return m.proc(row)
+    df[!, m.name] = missings(Vector{eltype(m.proc.time)}, size(df, 1))
+
+    ϕ = Matrix(df[:, m.proc.ϕnames])
+
+    for i in axes(ϕ, 1)
+        df[i, m.name] = evaluate(m.proc, ϕ[i, :])
     end
 
-    return df[!, m.name] .= timeseries
+    return nothing
 end

@@ -34,6 +34,11 @@ function sample(sr::SpectralRepresentation, n::Integer=1)
 end
 
 function evaluate(sr::SpectralRepresentation, ϕ::AbstractVector{<:Real})
+    # return sqrt(2) .* [
+    #     dot(sr.A, [cos(sr.ωt[n, t] + ϕ[n]) for n in eachindex(ϕ)]) for
+    #     t in eachindex(sr.time)
+    # ]
+
     return sqrt(2) * vec(sr.A' * cos.(sr.ωt .+ ϕ))
 end
 
@@ -41,13 +46,17 @@ function (sr::SpectralRepresentation)(ϕ::AbstractVector{<:Real})
     return evaluate(sr, ϕ)
 end
 
-function evaluate(sr::SpectralRepresentation, row::DataFrameRow)
-    return evaluate(sr, collect(row[sr.ϕnames]))
-end
+# function evaluate(sr::SpectralRepresentation, row::DataFrameRow)
+#     return evaluate(sr, collect(row[sr.ϕnames]))
+# end
 
-function (sr::SpectralRepresentation)(row::DataFrameRow)
-    return evaluate(sr, row)
-end
+# function evaluate(sr::SpectralRepresentation, row::DataFrameRow)
+#     return evaluate(sr, collect(row[sr.ϕnames]))
+# end
+
+# function (sr::SpectralRepresentation)(row::DataFrameRow)
+#     return evaluate(sr, row)
+# end
 
 function to_standard_normal_space!(sr::SpectralRepresentation, df::DataFrame)
     for v in names(sr)
