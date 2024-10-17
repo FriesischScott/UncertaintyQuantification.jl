@@ -88,7 +88,7 @@ function polynomialchaos(
     to_physical_space!(random_inputs, samples)
 
     if !isempty(deterministic_inputs)
-        samples = hcat(samples, sample(deterministic_inputs, size(nodes, 1)))
+        DataFrames.hcat!(samples, sample(deterministic_inputs, size(nodes, 1)))
     end
 
     evaluate!(model, samples)

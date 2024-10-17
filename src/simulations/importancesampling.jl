@@ -44,7 +44,7 @@ function sample(inputs::Vector{<:UQInput}, sim::ImportanceSampling)
         deterministic_samples = sample(
             filter(i -> isa(i, DeterministicUQInput), inputs), sim.n
         )
-        samples = hcat(deterministic_samples, samples)
+        DataFrames.hcat!(samples, deterministic_samples)
     end
 
     return samples, weights

@@ -8,10 +8,9 @@ mutable struct LineSampling <: AbstractSimulation
         points::Vector{<:Real}=collect(0.5:0.5:5),
         direction::NamedTuple=NamedTuple(),
     )
-
-    if maximum(points) > 8.12
-        error("LineSampling does not support lines longer than 8.12.")
-    end
+        if maximum(points) > 8.12
+            error("LineSampling does not support lines longer than 8.12.")
+        end
         return new(lines, points, direction)
     end
 end
@@ -38,7 +37,7 @@ function sample(inputs::Vector{<:UQInput}, sim::LineSampling)
     samples = DataFrame(rv_names .=> eachcol(samples))
 
     if !isempty(deterministic_inputs)
-        samples = hcat(samples, sample(deterministic_inputs, n_samples))
+        DataFrames.hcat!(samples, sample(deterministic_inputs, n_samples))
     end
 
     to_physical_space!(inputs, samples)

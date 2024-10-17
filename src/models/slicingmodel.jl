@@ -16,7 +16,7 @@ function evaluate!(m::SlicingModel, df::DataFrame)
     to_physical_space!(m.inputs, physical)
 
     if !isempty(intervals)
-        physical = hcat(physical, sample(intervals, size(df, 1)))
+        DataFrames.hcat!(physical, sample(intervals, size(df, 1)))
     end
 
     perf = m.models[end].name
