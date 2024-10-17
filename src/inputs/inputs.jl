@@ -51,7 +51,7 @@ function sns_zero_point(inputs::AbstractVector{<:UQInput})
     sns = DataFrame(names(random_inputs) .=> zeros(count_rvs(random_inputs)))
 
     if !isempty(deterministic_inputs)
-        sns = hcat(sns, sample(deterministic_inputs, 1))
+        DataFrames.hcat!(sns, sample(deterministic_inputs, 1))
     end
 
     return sns

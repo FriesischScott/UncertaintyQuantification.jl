@@ -18,18 +18,18 @@ x = RandomVariable.(Normal(), [:x1, :x2])
 y = Model(df -> df.x2 .+ 0.01 * df.x1 .^ 3 .+ sin.(df.x1), :y)
 
 # Limit-state function
-g(df) = 5 .- df.y
+g(df) = 3 .- df.y
 
 # Simulation
 numberlines = 200
 
 # Perform Line Sampling
-LS = LineSampling(numberlines, collect(0.5:0.5:10))
+LS = LineSampling(numberlines, collect(0.5:0.5:8))
 pf_ls, σ_pf_ls, samples_ls = probability_of_failure([y], g, x, LS)
 cov_ls = σ_pf_ls / pf_ls
 
 # Perform Advanced Line Sampling
-ALS = AdvancedLineSampling(numberlines, collect(0.5:0.5:10))
+ALS = AdvancedLineSampling(numberlines, collect(0.5:0.5:8))
 pf_als, σ_pf_als, samples_als = probability_of_failure([y], g, x, ALS)
 cov_als = σ_pf_als / pf_als
 
@@ -61,20 +61,20 @@ x_pbox = ProbabilityBox{Normal}.(Ref([mean, std]), [:x1, :x2])
 
 # Perform Line Sampling
 @time pf_ls_DL = probability_of_failure(
-    [y], g, x_pbox, DoubleLoop(LineSampling(numberlines, collect(0.5:0.5:10)))
+    [y], g, x_pbox, DoubleLoop(LineSampling(numberlines, collect(0.5:0.5:8)))
 )
-# @time pf_ls_RS, σ_pf_ls_RS, samples_ls_RS = probability_of_failure([y], g, x_pbox, RandomSlicing(LineSampling(numberlines, collect(0.5:0.5:10))))
+@time pf_ls_RS, σ_pf_ls_RS, samples_ls_RS = probability_of_failure([y], g, x_pbox, RandomSlicing(LineSampling(numberlines, collect(0.5:0.5:8))))
 
 # Perform Advanced Line Sampling
 @time pf_als_DL = probability_of_failure(
-    [y], g, x_pbox, DoubleLoop(AdvancedLineSampling(numberlines, collect(0.5:0.5:10)))
+    [y], g, x_pbox, DoubleLoop(AdvancedLineSampling(numberlines, collect(0.5:0.5:8)))
 )
-# @time pf_als_RS, σ_pf_als_RS, samples_als_RS = probability_of_failure([y], g, x_pbox, RandomSlicing(AdvancedLineSampling(numberlines, collect(0.5:0.5:10))))
+@time pf_als_RS, σ_pf_als_RS, samples_als_RS = probability_of_failure([y], g, x_pbox, RandomSlicing(AdvancedLineSampling(numberlines, collect(0.5:0.5:8))))
 
 println("Double Loop:")
 println("Line Sampling pf = [$(pf_ls_DL.lb), $(pf_ls_DL.ub)]")
 println("Advanced Line Sampling pf = [$(pf_als_DL.lb), $(pf_als_DL.ub)] \n")
 
-# println("Random Slicing:")
-# println("Line Sample pf = $pf_ls_RS")
-# println("Advanced Line Sample pf = $pf_als_RS")
+println("Random Slicing:")
+println("Line Sample pf = $pf_ls_RS")
+println("Advanced Line Sample pf = $pf_als_RS")

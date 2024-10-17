@@ -99,7 +99,7 @@ burnin = 0
 
 tmcmc = TransitionalMarkovChainMonteCarlo(prior, n, burnin)
 
-# With the prior, likelihood, models and  MCMC sampler defined, the last step is to call the [`bayesinupdating`](@ref) method.
+# With the prior, likelihood, models and  MCMC sampler defined, the last step is to call the [`bayesianupdating`](@ref) method.
 
 samples, evidence = bayesianupdating(likelihood, [λ1, λ2], tmcmc)
 
