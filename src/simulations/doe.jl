@@ -63,10 +63,10 @@ end
 
 function bounds(r::RandomVariable, σ::Int)
     lb = minimum(r)
-    lb = isinf(lb) ? mean(r.dist) -std(r.dist) * σ : lb
+    lb = isinf(lb) ? mean(r.dist) - std(r.dist) * σ : lb
 
     ub = maximum(r)
-    ub = isinf(ub) ? mean(r.dist) +std(r.dist) * σ : ub
+    ub = isinf(ub) ? mean(r.dist) + std(r.dist) * σ : ub
 
     return [lb ub]
 end
@@ -93,7 +93,7 @@ function sample(inputs::Array{<:UQInput}, design::AbstractDesignOfExperiments)
 
     if !isempty(deterministic_inputs)
         #add deterministic inputs to each row (each point)
-        samples = hcat(samples, sample(deterministic_inputs, size(samples, 1)))
+        DataFrames.hcat!(samples, sample(deterministic_inputs, size(samples, 1)))
     end
 
     return samples
