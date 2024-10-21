@@ -27,6 +27,7 @@ makedocs(;
             "Bayesian Updating" => "manual/bayesianupdating.md",
             "Parallelisation" => "manual/parallelisation.md",
             "High Performance Computing" => "manual/hpc.md",
+            "Stochastic Dynamics" => "manual/dynamics.md",
         ],
         "Examples" => [
             "External Models" => "examples/external.md",
