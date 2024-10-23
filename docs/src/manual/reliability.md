@@ -189,7 +189,7 @@ Similar to standard MCS, we have to pass $N$ to the Line Sampling method. Howeve
 Optionally, we can pass a vector of the points along each line that are used to evaluate the performance function and a predetermined direction $\boldsymbol{\alpha}$:
 
 ```@example reliability
-ls = LineSampling(100, collect(0.5:0.5:10))
+ls = LineSampling(100, collect(0.5:0.5:8.0))
 pf_ls, std_ls, samples = probability_of_failure([y], g, x, ls)
 
 println("Probability of failure: $pf_ls")

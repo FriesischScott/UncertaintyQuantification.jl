@@ -19,9 +19,13 @@ A Response Surface is a structure used for modeling.
 #===
 ## Example
 
-In this example, we will model the following test function (known as Himmelblau's function) $\newline$in the range $x1, x2 ∈ [-5, 5]$. It is defined as $\newline$
+In this example, we will model the following test function (known as Himmelblau's function)
 
-$f(x1, x2) = (x1^2 + x2 - 11)^2 + (x1 + x2^2 - 7)^2$.
+in the range ``x1, x2 ∈ [-5, 5]``. It is defined as
+
+```math
+f(x1, x2) = (x1^2 + x2 - 11)^2 + (x1 + x2^2 - 7)^2.
+```
 ===#
 
 #md using Plots #hide
@@ -31,7 +35,7 @@ $f(x1, x2) = (x1^2 + x2 - 11)^2 + (x1 + x2^2 - 7)^2$.
 #md s1 = surface(a, b, himmelblau_f; plot_title="Himmelblau's function")   #hide
 
 #===
-At first we need to create an array of random variables, that will be used when evaluating the points that our desgin produces.
+At first we need to create an array of random variables, that will be used when evaluating the points that our design produces.
 It will also define the range of the function we want the design to fit.
 This is also a good time to declare the function that we are working with.
 ===#

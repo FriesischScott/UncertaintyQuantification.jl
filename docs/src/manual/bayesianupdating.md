@@ -123,8 +123,11 @@ y = pdf.(posterior, x) # hide
 plot!(x, y, label="analytical posterior", linewidth=2) # hide
 
 xlims!(0.5, 1.0) # hide
-return p # hide
+
+savefig(p, "mh.svg"); nothing # hide
 ```
+
+![](mh.svg)
 
 As a second example we will attempt to sample from a bimodal target distribution in two dimensions. The prior is uniform over $[-2, 2]$ in each dimension and the likelihood is a mixture of two Gaussian functions centred at $[0.5, 0.5]$ and $[-0.5, -0.5]$.  The standard deviation for both Gaussians are identical and if small enough will effectively disconnect the two functions.
 
@@ -153,15 +156,17 @@ mh = SingleComponentMetropolisHastings(proposal, x0, n, burnin)
 
 mh_samples, α = bayesianupdating(logprior, loglikelihood, mh)
 
-scatter(mh_samples.x, mh_samples.y; lim=[-2, 2], legend = :none)
+scatter(mh_samples.x, mh_samples.y; lim=[-2, 2], legend = :none) # hide
 
 xs = range(-2, 2, length = 100); ys = range(-2, 2, length = 100) # hide
 sample_points = reduce(vcat,[[x y] for x in xs, y in ys][:]) # hide
 df_points = DataFrame(sample_points, :auto) # hide
 likelihood_eval = exp.(loglikelihood(df_points)) # hide
 contour!(xs, ys, likelihood_eval, lim = [-2,2], legend = :none) # hide
-
+savefig("mh-bimodal.svg"); nothing # hide
 ```
+
+![](mh-bimodal.svg)
 
 The scatter plot clearly shows that the MH algorithm has converged to only one of the two peaks of the bimodal target (contour also plotted). In fact, this is a known weakness of the MH algorithm. However, there are a number of alternative MCMC methods that aim to solve this problem. One of these methods, known as Transitional Markov Chain Monte Carlo [chingTransitionalMarkovChain2007](@cite), will be presented next.
 
@@ -196,8 +201,11 @@ tmcmc = TransitionalMarkovChainMonteCarlo(RandomVariable.(Uniform(-2,2), [:x, :y
 
 tmcmc_samples, S = bayesianupdating(logprior, loglikelihood, tmcmc)
 
-scatter(tmcmc_samples.x, tmcmc_samples.y; lim=[-2, 2], label="TMCMC")
+scatter(tmcmc_samples.x, tmcmc_samples.y; lim=[-2, 2], label="TMCMC") # hide
+savefig("tmcmc.svg"); nothing # hide
 ```
+
+![](tmcmc.svg)
 
 The resulting scatter plot shows how TMCMC is able to sample both peaks of the bimodal target distribution. The standard implementation of TMCMC uses a multivariate Gaussian proposal distribution centred at each $\theta_i$ with covariance matrix $\Sigma$ estimated from the current likelihood scaled by a factor $\beta^2$. This scaling factor defaults to $0.2$ as suggested by the authors, but can optionally be passed to the constructor as a fourth argument. Application of different MCMC Algorithms nested in the TMCMC give rise to variants of the algorithm. For example, it is possible to use the previously introduced `SingleComponentMetropolisHastings` resulting in `SingleComponentTransitionalMarkovChainMonteCarlo`.
 
