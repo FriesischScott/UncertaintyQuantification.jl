@@ -4,7 +4,7 @@
 Creates a response surface using polynomial least squares regression with given degree.
 
 # Examples
-```jldoctest
+```jldoctest; filter = r\"(\\d*)\\.(\\d{12})\\d+\" => s\"\\1.\\2***\"
 julia> data = DataFrame(x = 1:10, y = [1, 4, 10, 15, 24, 37, 50, 62, 80, 101]);
 
 julia> rs = ResponseSurface(data, :y, 2)
