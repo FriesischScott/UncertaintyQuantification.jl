@@ -104,5 +104,7 @@ tmcmc = TransitionalMarkovChainMonteCarlo(prior, n, burnin)
 samples, evidence = bayesianupdating(likelihood, [λ1, λ2], tmcmc)
 
 scatter(samples.θ1, samples.θ2; lim=[0, 4], label="TMCMC", xlabel="θ1", ylabel="θ2")
+#md savefig("stiffness-samples.svg"); nothing # hide
 
+# ![](stiffness-samples.svg)
 #  A scatter plot of the resulting samples shows convergence to two distinct regions. Unlike the transitional Markov Chain Monte Carlo algorithm, the standard Metropolis-Hastings algorithm would have only identified one of the two regions.
