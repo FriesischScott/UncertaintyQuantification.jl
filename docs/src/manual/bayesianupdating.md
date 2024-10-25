@@ -10,7 +10,7 @@ Bayes' theorem is defined as
 P(\theta|Y) = \frac{P(Y|\theta)P(\theta)}{P(Y)},
 ```
 
-where $P(\theta)$ is the prior distribution, describing prior belief on $\theta$. $P(Y|\theta)$ is the likelihood function evaluating how the data Y supports our belief. This is a function of $\theta$ not $Y$. $P(\theta|Y)$ is called the posterior distribution and expresses an updated belief under data $Y$. The term $P(Y)$, often called the marginal likelihood, or the evidence. It can be calculated as the integral of the likelihood multiplied by the prior distribution over the sample space of $\theta$
+where ``P(\theta)`` is the prior distribution, describing prior belief on ``\theta``. ``P(Y|\theta)`` is the likelihood function evaluating how the data Y supports our belief. This is a function of ``\theta`` not ``Y``. ``P(\theta|Y)`` is called the posterior distribution and expresses an updated belief under data ``Y``. The term ``P(Y)``, often called the marginal likelihood, or the evidence. It can be calculated as the integral of the likelihood multiplied by the prior distribution over the sample space of ``\theta``
 
 ```math
 P(Y) = \int{}P(Y|\theta)P(\theta), d\theta{}.
@@ -22,11 +22,11 @@ This term serves as a normalizing constant for the posterior probability. Howeve
 P(\theta|Y) \propto P(Y|\theta)P(\theta).
 ```
 
-Based on this relationship, the posterior probability can be approximated without calculation of $P(Y)$ using a variety of sampling methods. Classic approaches such as rejection sampling can be inefficient, especially for multivariate cases due to high rejection rates. Instead, Metropolis et al., proposed the use of Markov chains to increase efficiency [metropolisEquationStateCalculations1953](@cite).
+Based on this relationship, the posterior probability can be approximated without calculation of ``P(Y)`` using a variety of sampling methods. Classic approaches such as rejection sampling can be inefficient, especially for multivariate cases due to high rejection rates. Instead, Metropolis et al., proposed the use of Markov chains to increase efficiency [metropolisEquationStateCalculations1953](@cite).
 
 ## Markov Chain Monte Carlo
 
-Markov chains are sequences of variables, where each variable is dependent on the last. In a discrete space $\Omega$ the series of random variables $\{X_1,X_2,\ldots,X_t\}$ is called a Marko chain if
+Markov chains are sequences of variables, where each variable is dependent on the last. In a discrete space ``\Omega`` the series of random variables ``\{X_1,X_2,\ldots,X_t\}`` is called a Marko chain if
 
 ```math
 p(X_t=x_t|X_{t-1}=x_{t-1},\ldots,X_1=x_1) = p(X_t=x_t|X_{t-1}=x_{t-1}) .
@@ -42,7 +42,7 @@ The goal of Markov chain Monte Carlo (MCMC) sampling methods is to construct a M
 
 ### Metropolis Hastings
 
-The Metropolis-Hastings algorithm, was published in 1970 by W. K. Hastings [hastingsMonteCarloSampling1970](@cite). The MH algorithm is a random-walk algorithm that provides a selection criteria for choosing the next sample $(\theta_{i + 1})$ in a Markov chain. This is done through a so-called proposal distribution $q(\theta_{i + 1}|\theta_i)$ which is well known and relatively easy to sample from. Usually, symmetric proposal distributions centred at $(\theta_i)$ are used, for example Normal and Uniform distributions. A candidate sample $\theta^*$ is sampled from the proposal distribution and accepted with probability $\alpha$
+The Metropolis-Hastings algorithm, was published in 1970 by W. K. Hastings [hastingsMonteCarloSampling1970](@cite). The MH algorithm is a random-walk algorithm that provides a selection criteria for choosing the next sample ``(\theta_{i + 1})`` in a Markov chain. This is done through a so-called proposal distribution ``q(\theta_{i + 1}|\theta_i)`` which is well known and relatively easy to sample from. Usually, symmetric proposal distributions centred at ``(\theta_i)`` are used, for example Normal and Uniform distributions. A candidate sample ``\theta^*`` is sampled from the proposal distribution and accepted with probability ``\alpha``
 
 ```math
 \alpha = \min\left[1,\frac{P(\theta^*|Y)}{P(\theta_i|Y)}\cdot{}\frac{q(\theta_i|\theta^*)}{q(\theta^*|\theta_i)}\right].
@@ -54,13 +54,13 @@ Substituting the posterior with Bayes' theorem yields
 \alpha = \min\left[1,\frac{P(Y|\theta^*)\cdot{}P(\theta^*)/P(Y)}{P(Y|\theta_i)\cdot{}P(\theta_i)/P(Y)}\cdot{}\frac{q(\theta_i|\theta^*)}{q(\theta^*|\theta_i)}\right].
 ```
 
-Note, how the normalization constant $P(Y)$ cancels out. When the proposal is symmetric $q(\theta_i|\theta^*) = q(\theta^*|\theta_i)$ the acceptance probability further simplifies to
+Note, how the normalization constant ``P(Y)`` cancels out. When the proposal is symmetric ``q(\theta_i|\theta^*) = q(\theta^*|\theta_i)`` the acceptance probability further simplifies to
 
 ```math
 \alpha = \min\left[1,\frac{P(\theta^*|Y)}{P(\theta_i|Y)}\right].
 ```
 
-In practice, a random number $r \sim U(0,1)$ is sampled, and the candidate sample is accepted if $a \leq r$
+In practice, a random number ``r \sim U(0,1)`` is sampled, and the candidate sample is accepted if ``a \leq r``
 
 ```math
 \theta_{i + 1} = \theta^*     \qquad  \text{if} \quad a \leq r,\\
@@ -76,7 +76,7 @@ using UncertaintyQuantification # hide
  return nothing # hide
 ```
 
-The likelihood function which, similar to a `Model` must accept a `DataFrame`, follows a Binomial distribution and returns the likelihood for each row in the `DataFrame` as a vector. The prior is chosen as a beta distribution with $\alpha=\beta=1$ (uniform on $[0, 1]$). It is often beneficial to use the log-likelihood and log-prior for numerical reasons.
+The likelihood function which, similar to a `Model` must accept a `DataFrame`, follows a Binomial distribution and returns the likelihood for each row in the `DataFrame` as a vector. The prior is chosen as a beta distribution with ``\alpha=\beta=1`` (uniform on ``[0, 1]``). It is often beneficial to use the log-likelihood and log-prior for numerical reasons.
 
 ```@example metropolis
     function loglikelihood(df)
@@ -129,7 +129,7 @@ savefig(p, "mh.svg"); nothing # hide
 
 ![](mh.svg)
 
-As a second example we will attempt to sample from a bimodal target distribution in two dimensions. The prior is uniform over $[-2, 2]$ in each dimension and the likelihood is a mixture of two Gaussian functions centred at $[0.5, 0.5]$ and $[-0.5, -0.5]$.  The standard deviation for both Gaussians are identical and if small enough will effectively disconnect the two functions.
+As a second example we will attempt to sample from a bimodal target distribution in two dimensions. The prior is uniform over ``[-2, 2]`` in each dimension and the likelihood is a mixture of two Gaussian functions centred at ``[0.5, 0.5]`` and ``[-0.5, -0.5]``.  The standard deviation for both Gaussians are identical and if small enough will effectively disconnect the two functions.
 
 ```@example tmcmc
 using UncertaintyQuantification # hide
@@ -178,7 +178,7 @@ The Transitional Markov Chain Monte Carlo (TMCMC) method [chingTransitionalMarko
     P^j \propto P(Y|\theta)^{\beta_j} \cdot P(\theta),
 ```
 
-where $j \in \{1, \ldots, m \}$ is the number of the transition step and $\beta_j$ is a tempering parameter with $\beta_1 < \cdots, \beta_m =1$. This enables a slow transition from the prior to the posterior distribution. An important part of the TMCMC algorithm is that the tempering parameter has to be selected as to ensure the transition is smooth and gradual. The algorithm's authors suggest choosing the parameter such that a coefficient of variation of 100% is maintained in the likelihood $P(Y\theta_i)^{\beta_j-\beta_{j - 1}}$. At each level $j$ the starting points for the independent Markov Chains are randomly samples (with replacement) from the current set of samples using statistical weights
+where ``j \in \{1, \ldots, m \}`` is the number of the transition step and ``\beta_j`` is a tempering parameter with ``\beta_1 < \cdots, \beta_m =1``. This enables a slow transition from the prior to the posterior distribution. An important part of the TMCMC algorithm is that the tempering parameter has to be selected as to ensure the transition is smooth and gradual. The algorithm's authors suggest choosing the parameter such that a coefficient of variation of 100% is maintained in the likelihood ``P(Y\theta_i)^{\beta_j-\beta_{j - 1}}``. At each level ``j`` the starting points for the independent Markov Chains are randomly samples (with replacement) from the current set of samples using statistical weights
 
 ```math
 w(\theta_i) = \frac{P(Y|\theta_i)^{\beta_j-\beta_{j-1}}}{\sum_{i=1}^N P(Y|\theta_i)^{\beta_j-\beta_{j-1}}}.
@@ -186,12 +186,12 @@ w(\theta_i) = \frac{P(Y|\theta_i)^{\beta_j-\beta_{j-1}}}{\sum_{i=1}^N P(Y|\theta
 
 The complete TMCMC algorithm can be summarized as
 
-1. Set $j=0$ and $\beta_j=0$. Sample $\theta_i \sim P(\theta)$.
-2. Set $j = j+1$.
-3. Compute the next tempering parameter $\beta_j$.
-4. Determine the weights $w(\theta_i)$.
-5. Generate a single-step Markov chain for each $\theta_i$.
-6. Repeat steps (2) to (5) until (and including) $(\beta_j=1)$.
+1. Set ``j=0`` and ``\beta_j=0``. Sample ``\theta_i \sim P(\theta)``.
+2. Set ``j = j+1``.
+3. Compute the next tempering parameter ``\beta_j``.
+4. Determine the weights ``w(\theta_i)``.
+5. Generate a single-step Markov chain for each ``\theta_i``.
+6. Repeat steps (2) to (5) until (and including) ``(\beta_j=1)``.
 
 Returning to the bimodal example, this time using the TMCMC algorithm. In order to apply a different MCMC algorithm we only need to construct a `TransitionalMarkovChainMonteCarlo` object and pass it to the `bayesianupdating` method. The definition of prior and likelihood remains the same. In difference to the `SingleComponentMetropolisHastings` the log evidence is returned instead of the acceptance rate.
 
@@ -207,7 +207,7 @@ savefig("tmcmc.svg"); nothing # hide
 
 ![](tmcmc.svg)
 
-The resulting scatter plot shows how TMCMC is able to sample both peaks of the bimodal target distribution. The standard implementation of TMCMC uses a multivariate Gaussian proposal distribution centred at each $\theta_i$ with covariance matrix $\Sigma$ estimated from the current likelihood scaled by a factor $\beta^2$. This scaling factor defaults to $0.2$ as suggested by the authors, but can optionally be passed to the constructor as a fourth argument. Application of different MCMC Algorithms nested in the TMCMC give rise to variants of the algorithm. For example, it is possible to use the previously introduced `SingleComponentMetropolisHastings` resulting in `SingleComponentTransitionalMarkovChainMonteCarlo`.
+The resulting scatter plot shows how TMCMC is able to sample both peaks of the bimodal target distribution. The standard implementation of TMCMC uses a multivariate Gaussian proposal distribution centred at each ``\theta_i`` with covariance matrix ``\Sigma`` estimated from the current likelihood scaled by a factor ``\beta^2``. This scaling factor defaults to ``0.2`` as suggested by the authors, but can optionally be passed to the constructor as a fourth argument. Application of different MCMC Algorithms nested in the TMCMC give rise to variants of the algorithm. For example, it is possible to use the previously introduced `SingleComponentMetropolisHastings` resulting in `SingleComponentTransitionalMarkovChainMonteCarlo`.
 
 !!! note "Note"
     `SingleComponentTransitionalMarkovChainMonteCarlo` is currently not available but planned for implementation.

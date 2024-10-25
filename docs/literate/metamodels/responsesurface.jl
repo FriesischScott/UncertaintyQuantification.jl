@@ -33,7 +33,9 @@ f(x1, x2) = (x1^2 + x2 - 11)^2 + (x1 + x2^2 - 7)^2.
 #md b = range(5, -5; length=1000)   #hide
 #md himmelblau_f(x1, x2) = (x1^2 + x2 - 11)^2 + (x1 + x2^2 - 7)^2 #hide
 #md s1 = surface(a, b, himmelblau_f; plot_title="Himmelblau's function")   #hide
+#md savefig(s1, "himmelblau.svg"); nothing # hide
 
+# ![](himmelblau.svg)
 #===
 At first we need to create an array of random variables, that will be used when evaluating the points that our design produces.
 It will also define the range of the function we want the design to fit.
@@ -82,6 +84,9 @@ The model in this case has an mse of about 1e-26 and looks like this in comparis
 #md f(x1, x2) = sum(rs.monomials([x1, x2]) .* rs.β) #hide
 #md s2 = surface(a, b, f; plot_title="Response Surface", plot_titlefontsize=16) #hide
 #md surface(s1, s2; layout=(1, 2), legend=false, size=(800, 400))  #hide
+#md savefig("himmelblau-comparison.svg"); nothing # hide
+
+# ![](himmelblau-comparison.svg)
 
 #jl p_data = test_data[:, [:x1, :x2]]
 #jl evaluate!(himmelblau, p_data)
