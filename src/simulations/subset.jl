@@ -472,13 +472,7 @@ function conditional_sampling(
     return vcat(chain_samples...), vcat(chain_performance...), α / (N - 1)
 end
 
-"""
-	estimate_cov(Iᵢ::AbstractMatrix, pf::Float64, n::Int64)
-
-Evaluates the coefficient of variation at a subset simulation level.
-
-Reference: Au & Beck, (2001), 'Estimation of small failure probabilities in high dimensions by subset simulation'
-"""
+#Evaluates the coefficient of variation at a subset simulation level.
 function estimate_cov(Iᵢ::AbstractMatrix, pf::Float64)
     Nc, Ns = size(Iᵢ) # Number of samples per seed, number of seeds
     n = Nc * Ns
