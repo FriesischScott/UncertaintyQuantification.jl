@@ -49,7 +49,7 @@ to_physical_space!(x, samples)
 
 ## Dependencies
 
-*UncertaintyQuantification* supports modelling of dependencies through copulas. By using copulas, the modelling of the dependence structure is separated from the modelling of the univariate marginal distributions. The basis for copulas is given by Sklar's theorem [sklarFonctionsRepartitionDimensions1959](@cite). It states that any multivariate distribution $H$ in dimensions $d \geq 2$ can be separated into its marginal distributions $F_i$ and a copula function $C$.
+*UncertaintyQuantification* supports modelling of dependencies through copulas. By using copulas, the modelling of the dependence structure is separated from the modelling of the univariate marginal distributions. The basis for copulas is given by Sklar's theorem [sklarFonctionsRepartitionDimensions1959](@cite). It states that any multivariate distribution ``H`` in dimensions ``d \geq 2`` can be separated into its marginal distributions ``F_i`` and a copula function ``C``.
 
 ```math
 H(x_1,\ldots,x_2) = C(F_1(x_1),\ldots,F_d(x_d))
@@ -67,7 +67,7 @@ marginals = [x, y]
 return nothing # hide
 ```
 
-Next, we define the copula to model the dependence. *UncertaintyQuantification* supports Gaussian copulas for multivariate $d \geq 2$ dependence. Here, we define a Gaussian copula by passing the correlation matrix and then build the `JointDistribution` from the copula and the marginals.
+Next, we define the copula to model the dependence. *UncertaintyQuantification* supports Gaussian copulas for multivariate ``d \geq 2`` dependence. Here, we define a Gaussian copula by passing the correlation matrix and then build the `JointDistribution` from the copula and the marginals.
 
 ```@example copula
 cop = GaussianCopula([1 0.8; 0.8 1])
@@ -77,13 +77,13 @@ return nothing # hide
 
 ## Models
 
-In this section we present the models included in *UncertaintyQuantification*. A model, in its most basic form, is a relationship between a set of input variables $x \in \mathbb{R}^{n_x}$ and an output $y \in \mathbb{R}$. Currently, most models are assumed to return single-valued outputs. However, as seen later, the `ExternalModel` is capable of extracting an arbitrary number of outputs from a single run of an external solver.
+In this section we present the models included in *UncertaintyQuantification*. A model, in its most basic form, is a relationship between a set of input variables ``x \in \mathbb{R}^{n_x}`` and an output ``y \in \mathbb{R}``. Currently, most models are assumed to return single-valued outputs. However, as seen later, the `ExternalModel` is capable of extracting an arbitrary number of outputs from a single run of an external solver.
 
 ### Model
 
 A `Model` is essentially a native Julia function operating on the previously defined inputs. Building a `Model` requires two things: a `Function`, which is internally passed a `DataFrame` containing the samples and must return a `Vector` containing the model response for each sample, and a `Symbol` which is the identifier used to add the model output into the `DataFrame`.
 
-Suppose we wanted to define a `Model` which computes the distance from the origin of two variables $x$ and $y$ as $z$. We first define the function and then pass it to the `Model`.
+Suppose we wanted to define a `Model` which computes the distance from the origin of two variables ``x`` and ``y`` as ``z``. We first define the function and then pass it to the `Model`.
 
 ```@example model
 using UncertaintyQuantification, DataFrames # hide

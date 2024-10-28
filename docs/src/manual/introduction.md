@@ -18,7 +18,7 @@ We follow Bi et al. [biBhattacharyyaDistanceEnriching2019](@cite) in dividing un
 
 Next follows a brief introduction to the modelling of precise (category III) and imprecise probabilities (category IV).
 
-A continuous random variable $X$ is uniquely defined by its cumulative density function (CDF) $F: \mathbb{R} \rightarrow [0,1]$. By definition, it returns the probability that the random variable will take a value less than or equal to $x$
+A continuous random variable ``X`` is uniquely defined by its cumulative density function (CDF) ``F: \mathbb{R} \rightarrow [0,1]``. By definition, it returns the probability that the random variable will take a value less than or equal to ``x``
 
 ```math
     F_X(x) = P_X(X \leq x).
@@ -35,6 +35,7 @@ and
 ```math
     \lim_{x\rightarrow \infty}  F_X(x) = 1.
 ```
+
 The probability density function (PDF) of a random variable can be obtained as the derivative of the CDF
 
 ```math
@@ -49,9 +50,9 @@ if it exists. Conversely, the CDF can be defined as the integral of the PDF as
 
 Using the PDF and CDF random variables subject to aleatory uncertainty can be described using well established probability theory.
 
-Ferson et al. [fersonConstructingProbabilityBoxes2015](@cite) introduced the notion of a *probability box* (p-box) for the representing variables witg both epistemic and aleatory uncertainty. Consider two CDFs $\underline{F}$ and $\overline{F}$ with $\underline{F}(x) \leq \overline{F}(x)$ for all $x \in \mathbb{R} $. Then, $[\underline{F}(x), \overline{F}(x)]$ is the set of CDFs $F$ such that $\underline{F}(x) \leq F(x) \leq \overline{F}(x)$. This set is called the p-box for an imprecisely known random variable $X$, where $\underline{F}(x)$ is the lower bound for the probability that $X$ is smaller than or equal to $x$, and $\overline{F}(x)$ is the upper bound of this probability.
+Ferson et al. [fersonConstructingProbabilityBoxes2015](@cite) introduced the notion of a *probability box* (p-box) for the representing variables witg both epistemic and aleatory uncertainty. Consider two CDFs ``\underline{F}`` and ``\overline{F}`` with ``\underline{F}(x) \leq \overline{F}(x)`` for all ``x \in \mathbb{R}``. Then, ``[\underline{F}(x), \overline{F}(x)]`` is the set of CDFs ``F`` such that ``\underline{F}(x) \leq F(x) \leq \overline{F}(x)``. This set is called the p-box for an imprecisely known random variable ``X``, where ``\underline{F}(x)`` is the lower bound for the probability that ``X`` is smaller than or equal to ``x``, and ``\overline{F}(x)`` is the upper bound of this probability.
 
-The simplest way to construct a p-box is using a known parametric family (normal, exponential, ...) with intervals for their parameters (mean, variance, ...), and from this we can form the set $[\underline{F}(x), \overline{F}(x)]$. This is known as parametric p-box, only containing distributions following the specified distribution family. If no family information is available, but $[\underline{F}(x), \overline{F}(x)]$ are known, called a _distribution-free_ p-box, where every possible CDF between the bounds is a valid random variable.
+The simplest way to construct a p-box is using a known parametric family (normal, exponential, ...) with intervals for their parameters (mean, variance, ...), and from this we can form the set ``[\underline{F}(x), \overline{F}(x)]``. This is known as parametric p-box, only containing distributions following the specified distribution family. If no family information is available, but ``[\underline{F}(x), \overline{F}(x)]`` are known, called a *distribution-free* p-box, where every possible CDF between the bounds is a valid random variable.
 
 Special algorithms must be used to propagate the epistemic uncertainty through models. As a result, the analysis also returns upper and lower bounds. This propagation of the epistemic uncertainty comes with a significant increase in computational demand, requiring specialised algorithms or perhaps surrogate modelling.
 
