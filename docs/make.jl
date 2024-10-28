@@ -24,6 +24,7 @@ makedocs(;
             "Getting Started" => "manual/gettingstarted.md",
             "Reliability Analysis" => "manual/reliability.md",
             "Metamodelling" => "manual/metamodels.md",
+            "Simulations" => "manual/simulations.md",
             "Bayesian Updating" => "manual/bayesianupdating.md",
             "Parallelisation" => "manual/parallelisation.md",
             "High Performance Computing" => "manual/hpc.md",
