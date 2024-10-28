@@ -47,7 +47,7 @@ makedocs(;
         ],
         "References" => "references.md",
     ],
-    warnonly=true,
+    warnonly=false,
 )
 
 deploydocs(;
