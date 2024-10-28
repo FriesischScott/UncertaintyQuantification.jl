@@ -25,14 +25,18 @@ openmc = Solver(
     args="", # (optional) extra arguments passed to the solver
 )
 
-slurm = SlurmInterface(;
-    jobname="UQ_slurm",
-    account="EXAMPLE-0001-CPU",
-    partition="cpu_partition",
-    nodes=1,
-    ntasks=1,
+options = Dict(
+    "job-name" => "UQ_slurm",
+    "account" => "EXAMPLE-0001-CPU",
+    "partition" => "cpu_partition",
+    "nodes" => "1",
+    "ntasks" => "1",
+    "time" => "00:05:00",
+)
+
+slurm = SlurmInterface(
+    options;
     throttle=50,
-    time="00:05:00", # Maximum time per simulation
     extras=["module load openmc", "source ~/.virtualenvs/openmc/bin/activate"],
 )
 

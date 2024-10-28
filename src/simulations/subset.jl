@@ -84,7 +84,7 @@ function sample(inputs::Vector{<:UQInput}, sim::AbstractSubSetSimulation)
     to_physical_space!(random_inputs, samples)
 
     if !isempty(deterministic_inputs)
-        samples = hcat(samples, sample(deterministic_inputs, sim.n))
+        DataFrames.hcat!(samples, sample(deterministic_inputs, sim.n))
     end
     return samples
 end

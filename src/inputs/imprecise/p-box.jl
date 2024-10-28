@@ -7,12 +7,12 @@ Defines an ProbabilityBox from a `Vector` of `Interval`, name `UnivariateDistrib
 
 ```jldoctest
 julia>  ProbabilityBox{Uniform}([Interval(1.75, 1.83, :a), Interval(1.77, 1.85, :b)], :l)
-ProbabilityBox{Uniform}(Interval[Interval(1.75, 1.83, :a), Interval(1.77, 1.85, :b)], :l)
+ProbabilityBox{Uniform}(Interval[Interval(1.75, 1.83, :a), Interval(1.77, 1.85, :b)], :l, 0.0, 1.0)
 ```
 
 ```jldoctest
 julia>  ProbabilityBox{Normal}([Interval(0, 1, :μ), Interval(0.1, 1, :σ)], :x)
-ProbabilityBox{Normal}(Interval[Interval(0, 1, :μ), Interval(0.1, 1, :σ)], :x)
+ProbabilityBox{Normal}(Interval[Interval(0, 1, :μ), Interval(0.1, 1, :σ)], :x, -Inf, Inf)
 ```
 """
 struct ProbabilityBox{T<:UnivariateDistribution} <: ImpreciseUQInput
@@ -28,19 +28,16 @@ struct ProbabilityBox{T<:UnivariateDistribution} <: ImpreciseUQInput
         if !isempty(filter(x -> !isa(x, Interval) && !isa(x, Parameter), p))
             error("A ProbabilityBox can only be constructed from Intervals and Parameters.")
         end
-
         # Make sure all required parameters for the distribution are present
         if !(names(p) == [fieldnames(T)...])
             error(
                 "Parameter mismatch for ProbabilityBox $name: $(names(p)) != $([fieldnames(T)...]).",
             )
         end
-
         # If someone only passes Parameters, return a RandomVariable instead.
         if all(isa.(p, Parameter))
             return RandomVariable(T(getproperty.(p, :value)...), name)
         end
-
         return new(p, name, lb, ub)
     end
 end
@@ -48,8 +45,16 @@ end
 function ProbabilityBox{T}(
     p::AbstractVector{<:UQInput}, name::Symbol
 ) where {T<:UnivariateDistribution}
-    domain = support(T())
-    return ProbabilityBox{T}(p, name, domain.lb, domain.ub)
+    # p-boxes with Uniform distribution as parameter must be treated separately since their support changes with p-box lower and upper bounds.
+    if T == Uniform
+        bounds_intervals = mapreduce(x -> collect(bounds(x)), vcat, p[isimprecise.(p)])  # collecting bounds of the intervals used for describing the Uniform distribution
+        values_parameters = map(x -> x.value, p[.!isimprecise.(p)]) # collecting values of Parameters used for describing the Uniform distribution
+        values = vcat(bounds_intervals, values_parameters)
+        return ProbabilityBox{T}(p, name, minimum(values), maximum(values))
+    else
+        domain = support(T())
+        return ProbabilityBox{T}(p, name, domain.lb, domain.ub)
+    end
 end
 
 function ProbabilityBox{T}(
@@ -96,11 +101,7 @@ function quantile(pbox::ProbabilityBox{T}, u::Real) where {T<:UnivariateDistribu
     lb = minimum(quantiles)
     ub = maximum(quantiles)
 
-    if lb == ub
-        return lb
-    else
-        return Interval(lb, ub, pbox.name)
-    end
+    return Interval(lb, ub, pbox.name)
 end
 
 rand(pbox::ProbabilityBox, n::Integer=1) = quantile.(Ref(pbox), rand(n))

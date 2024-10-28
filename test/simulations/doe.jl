@@ -314,8 +314,8 @@
         @test samples.x ≈ [-1, 0, 1, -1, 0, 1, -1, 0, 1] atol = 1e-12
         @test samples.y ≈ [0, 0, 0, 0.5, 0.5, 0.5, 1.0, 1.0, 1.0] atol = 1e-12
 
-        x = RandomVariable(Normal(), :x)
-        y = RandomVariable(Exponential(), :y)
+        x = RandomVariable(Normal(1,1), :x)
+        y = RandomVariable(Exponential(2), :y)
 
         ff = FullFactorial([5, 5])
 
@@ -323,5 +323,8 @@
 
         @test all(isfinite.(samples.x))
         @test all(isfinite.(samples.y))
+
+        @test samples.x[1:5] ≈ [0.0, 0.5, 1.0, 1.5, 2.0] atol = 1e-12
+        @test samples.y[1:5:end] ≈ [0, 1, 2, 3, 4] atol = 1e-12
     end
 end

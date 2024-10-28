@@ -20,14 +20,17 @@ makedocs(;
     pages=[
         "Home" => "index.md",
         "Manual" => [
+            "Introduction" => "manual/introduction.md",
             "Getting Started" => "manual/gettingstarted.md",
             "Reliability Analysis" => "manual/reliability.md",
             "Metamodelling" => "manual/metamodels.md",
             "Simulations" => "manual/simulations.md",
             "Bayesian Updating" => "manual/bayesianupdating.md",
+            "Parallelisation" => "manual/parallelisation.md",
             "High Performance Computing" => "manual/hpc.md",
         ],
         "Examples" => [
+            "External Models" => "examples/external.md",
             "Metamodels" => "examples/metamodels.md",
             "Simulations" => "examples/simulations.md",
             "Bayesian Updating" => "examples/bayesianupdating.md",
@@ -36,8 +39,7 @@ makedocs(;
         "Benchmarks" => ["Subset Simulation" => "benchmarks/subset.md"],
         "API" => [
             "Inputs" => "api/inputs.md",
-            "Parameter" => "api/parameter.md",
-            "RandomVariable" => "api/randomvariable.md",
+            "Models" => "api/models.md",
             "ResponseSurface" => "api/responsesurface.md",
             "PolyharmonicSpline" => "api/polyharmonicspline.md",
             "Simulations" => "api/simulations.md",

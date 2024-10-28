@@ -126,7 +126,7 @@ xlims!(0.5, 1.0) # hide
 return p # hide
 ```
 
-As a second example we will attempt to sample from a bimodial target distribution in two dimensions. The prior is uniform over $[-2, 2]$ in each dimension and the likelihood is a mixture of two Gaussian functions centred at $[0.5, 0.5]$ and $[-0.5, -0.5]$.  The standard deviation for both Gaussians are identical and if small enough will effectively disconnect the two functions.
+As a second example we will attempt to sample from a bimodal target distribution in two dimensions. The prior is uniform over $[-2, 2]$ in each dimension and the likelihood is a mixture of two Gaussian functions centred at $[0.5, 0.5]$ and $[-0.5, -0.5]$.  The standard deviation for both Gaussians are identical and if small enough will effectively disconnect the two functions.
 
 ```@example tmcmc
 using UncertaintyQuantification # hide
@@ -163,7 +163,7 @@ contour!(xs, ys, likelihood_eval, lim = [-2,2], legend = :none) # hide
 
 ```
 
-The scatter plot clearly shows that the MH algorithm has converged to only one of the two peaks of the bimodial target (contour also plotted). In fact, this is a known weakness of the MH algorithm. However, there are a number of alternative MCMC methods that aim to solve this problem. One of these methods, known as Transitional Markov Chain Monte Carlo [chingTransitionalMarkovChain2007](@cite), will be presented next.
+The scatter plot clearly shows that the MH algorithm has converged to only one of the two peaks of the bimodal target (contour also plotted). In fact, this is a known weakness of the MH algorithm. However, there are a number of alternative MCMC methods that aim to solve this problem. One of these methods, known as Transitional Markov Chain Monte Carlo [chingTransitionalMarkovChain2007](@cite), will be presented next.
 
 ### Transitional Markov Chain Monte Carlo
 
@@ -188,7 +188,7 @@ The complete TMCMC algorithm can be summarized as
 5. Generate a single-step Markov chain for each $\theta_i$.
 6. Repeat steps (2) to (5) until (and including) $(\beta_j=1)$.
 
-Returning to the bimodial example, this time using the TMCMC algorithm. In order to apply a different MCMC algorithm we only need to construct a `TransitionalMarkovChainMonteCarlo` object and pass it to the `bayesianupdating` method. The definition of prior and likelihood remains the same. In difference to the `SingleComponentMetropolisHastings` the log evidence is returned instead of the acceptance rate.
+Returning to the bimodal example, this time using the TMCMC algorithm. In order to apply a different MCMC algorithm we only need to construct a `TransitionalMarkovChainMonteCarlo` object and pass it to the `bayesianupdating` method. The definition of prior and likelihood remains the same. In difference to the `SingleComponentMetropolisHastings` the log evidence is returned instead of the acceptance rate.
 
 ```@example tmcmc
 
