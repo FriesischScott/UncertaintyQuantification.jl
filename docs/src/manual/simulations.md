@@ -59,7 +59,7 @@ It is of course possible to directly create the struct inside the `sample`-call,
 
 ```@example qmc
     x = RandomVariable(Uniform(), :x)
-    sample = SobolSampling(100)
+    samples = SobolSampling(100)
 ```
 
 To emphasize the importance of randomization, look at the correlations that might occur using unrandomized qmc and how they are fixed by randomizing. 
