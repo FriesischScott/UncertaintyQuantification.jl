@@ -32,7 +32,6 @@ makedocs(;
         "Examples" => [
             "External Models" => "examples/external.md",
             "Metamodels" => "examples/metamodels.md",
-            "Simulations" => "examples/simulations.md",
             "Bayesian Updating" => "examples/bayesianupdating.md",
             "High Performance Computing" => "examples/hpc.md",
         ],
