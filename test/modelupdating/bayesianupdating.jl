@@ -251,44 +251,5 @@
         @test mean(mc_samples.x) ≈ analytic_mean rtol = 0.1
         @test std(mc_samples.x) ≈ analytic_std rtol = 0.1
     end
-
-    @testset "MAP normal mean analytical" begin
-
-        optMethod = "LBFGS"
-        x0 = [0.]
-
-        prior_mean = 2
-        prior_std = 10
-
-        prior = Normal(prior_mean, prior_std)
-
-        prior_sample_ = RandomVariable(prior, :x)
-
-        estimater = MaximumAPosteriori([prior_sample_], optMethod, x0)
-
-        MAPEst, analytic_mean, analytic_std = normalmeanbenchmark(estimater, prior)
-
-        @test mean(MAPEst[1][1]) ≈ analytic_mean rtol = 0.05
-
-    end
-
-    @testset "MLE normal mean analytical" begin
-
-        optMethod = "LBFGS"
-        x0 = [0.]
-
-        prior_mean = 2
-        prior_std = 10
-
-        prior = Normal(prior_mean, prior_std)
-
-        prior_sample_ = RandomVariable(prior, :x)
-
-        estimater = MaximumLikelihood([prior_sample_], optMethod, x0)
-
-        MLEst, analytic_mean, analytic_std = normalmeanbenchmark(estimater, prior)
-
-        @test mean(MLEst[1][1]) ≈ analytic_mean rtol = 0.05
-
-    end
+    
 end

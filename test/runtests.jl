@@ -30,6 +30,7 @@ include("models/responsesurface.jl")
 include("models/imprecise/propagation.jl")
 
 include("modelupdating/bayesianupdating.jl")
+include("modelupdating/bayesianpointestimate.jl")
 
 include("reliability/form.jl")
 include("reliability/probabilityoffailure.jl")
