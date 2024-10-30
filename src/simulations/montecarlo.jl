@@ -7,9 +7,9 @@ struct SobolSampling <: AbstractQuasiMonteCarlo
     n::Integer
     randomization::Symbol
 
-    function SobolSampling(n::Integer, randomization::Symbol=:matousekscramble)
-        randomization ∉ [:matousekscramble, :owenscramble, :none] &&
-            error("type must be :matousekscramble :owenscramble or :none")
+    function SobolSampling(n::Integer, randomization::Symbol=:matousek)
+        randomization ∉ [:matousek, :owen, :none] &&
+            error("type must be :matousek :owen or :none")
         if n > 0
             if !isinteger(log2(n))
                 n = Int(2^ceil(log2(n)))
@@ -26,9 +26,9 @@ struct FaureSampling <: AbstractQuasiMonteCarlo
     n::Integer
     randomization::Symbol
 
-    function FaureSampling(n::Integer, randomization::Symbol=:matousekScramble)
-        randomization ∉ [:matousekscramble, :owenscramble, :none] &&
-            error("type must be :matousekscramble, :owenscramble or :none")
+    function FaureSampling(n::Integer, randomization::Symbol=:matousek)
+        randomization ∉ [:matousek, :owen, :none] &&
+            error("type must be :matousek, :owen or :none")
         if n > 0
             return new(n, randomization)
         else
@@ -126,9 +126,9 @@ function qmc_samples(sim::LatticeRuleSampling, rvs::Integer)
 end
 
 function randomize(sim::AbstractQuasiMonteCarlo, u::Matrix, b=2)
-    if sim.randomization == :matousekscramble
+    if sim.randomization == :matousek
         u = QuasiMonteCarlo.randomize(u, MatousekScramble(; base=b))
-    elseif sim.randomization == :owenscramble
+    elseif sim.randomization == :owen
         u = QuasiMonteCarlo.randomize(u, OwenScramble(; base=b))
     elseif sim.randomization == :shift
         u = QuasiMonteCarlo.randomize(u, Shift())

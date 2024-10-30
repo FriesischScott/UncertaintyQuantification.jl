@@ -2,7 +2,7 @@
 
 In the context of structural engineering, engineering design, and risk assessment, the term reliability is used to describe the ability of system to perform its intended function under varying conditions over time.
 
-There, the state of a system is identified by its *performance function* $g(\boldsymbol{x})$ such that:
+There, the state of a system is identified by its *performance function* ``g(\boldsymbol{x})`` such that:
 
 ```math
 g(\boldsymbol{x}) =
@@ -18,13 +18,13 @@ Then the *probability of failure* is defined as the likelihood of the system bei
 p_f = \int_{g(\boldsymbol{x}) \leq 0} f_{\boldsymbol{X}}(\boldsymbol{x}) \mathrm{d} \boldsymbol{x}.
 ```
 
-Here, $f_{\boldsymbol{X}}(\boldsymbol{x})$ denotes the joint probability density function (PDF) of the input $\boldsymbol{X}$.
+Here, ``f_{\boldsymbol{X}}(\boldsymbol{x})`` denotes the joint probability density function (PDF) of the input ``\boldsymbol{X}``.
 
 ## Definition of the Input, Model and Performance
 
 The first step of the implementation of a reliability analysis in `UncertaintyQuantification.jl` is the definition of the probabilistic input and the model which is shown exemplarily.
 
-Here we use a modification of the first example presented in [papaioannouCombination2021](@cite) which uses a quadratic performance function and a probabilistic input containing of two standard normal random variables $\boldsymbol{X} = [X_1, X_2]$ with $X_i \sim \mathcal{N}(0,1)$.
+Here we use a modification of the first example presented in [papaioannouCombination2021](@cite) which uses a quadratic performance function and a probabilistic input containing of two standard normal random variables ``\boldsymbol{X} = [X_1, X_2]`` with ``X_i \sim \mathcal{N}(0,1)``.
 The model is given as
 
 ```math
@@ -46,14 +46,14 @@ Random.seed!(42) # hide
 x = RandomVariable.(Normal(), [:x1, :x2])
 ```
 
-Next we define the model for the response $y(\boldsymbol{X})$ as
+Next we define the model for the response ``y(\boldsymbol{X})`` as
 
 ```@example reliability
 y = Model(df -> 0.1*(df.x1 - df.x2).^2 - 1/sqrt(2) * (df.x1 + df.x2), :y)
 nothing # hide
 ```
 
-where the first input is the function $y$ (which must accept a `DataFrame`) and the second argument is the `Symbol` for the output variable. With the help of the model, we can define the performance function $g$ which again takes a `DataFrame` as an input:
+where the first input is the function ``y`` (which must accept a `DataFrame`) and the second argument is the `Symbol` for the output variable. With the help of the model, we can define the performance function ``g`` which again takes a `DataFrame` as an input:
 
 ```@example reliability
 g(df) = df.y .+ 4
@@ -64,19 +64,19 @@ nothing # hide
 
 ### First Order Reliability Method
 
-The First Order Reliability Method (FORM) [rackwitzStructuralReliability1978](@cite) estimates the failure probability by finding a linear approximation of the performance function at the so-called *design point* $\boldsymbol{U}^*$.
-The design point represents the point on the surface of the performance function $g(\boldsymbol{X}) = 0$ that is closest to the origin in the standard normal space.
+The First Order Reliability Method (FORM) [rackwitzStructuralReliability1978](@cite) estimates the failure probability by finding a linear approximation of the performance function at the so-called *design point* ``\boldsymbol{U}^*``.
+The design point represents the point on the surface of the performance function ``g(\boldsymbol{X}) = 0`` that is closest to the origin in the standard normal space.
 
-That distance from the design point to the origin is referred to as the *reliability index* given as $\beta^* = ||\boldsymbol{U}^*||$.
+That distance from the design point to the origin is referred to as the *reliability index* given as ``\beta^* = ||\boldsymbol{U}^*||``.
 Due to the transformation to the standard normal space, the probability of failure is simply given as
 
 ```math
 \hat{p}_{f, \mathrm{FORM}} = \Phi(-\beta^*)
 ```
 
-where $\Phi$ denotes the standard normal CDF.
+where ``\Phi`` denotes the standard normal CDF.
 
-In addition to the $\beta^*$, the location of the design point is specified by the *important direction* defined as:
+In addition to the ``\beta^*``, the location of the design point is specified by the *important direction* defined as:
 
 ```math
 \boldsymbol{\alpha}^* = \frac{\boldsymbol{U}^*}{||\boldsymbol{U}^*||}.
@@ -118,7 +118,7 @@ The Monte Carlo estimate of the failure probability is given as
 p_f \approx \hat{p}_f = \frac{1}{N} \sum_{i=1}^N \mathbb{I}[g(\boldsymbol{x}_i)]
 ```
 
-where $\{\boldsymbol{x}_i\}_{i=1}^N$ represents a set of $N$ samples drawn from the input PDF $f_{\boldsymbol{X}}(\boldsymbol{x})$.
+where ``\{\boldsymbol{x}_i\}_{i=1}^N`` represents a set of ``N`` samples drawn from the input PDF ``f_{\boldsymbol{X}}(\boldsymbol{x})``.
 The variance of the estimator is given as
 
 ```math
@@ -164,9 +164,9 @@ Another advanced Monte Carlo method for reliability analysis is Line Sampling [k
 Its main idea is to use parallel lines for sampling rather than points.
 
 Therefore first the problem is transformed into the standard normal space to make use of the invariance of rotation.
-The important direction $\boldsymbol{\alpha}$ is determined, e.g., using FORM or the gradient at the origin.
-Then, samples are generated and projected onto the hyperplane orthogonal to $\boldsymbol{\alpha}$.
-From each point on the hyperplane, a line is drawn parallel to $\boldsymbol{\alpha}$ and its intersection with the performance function is determined using root finding based on a spline interpolation scheme, giving the set of distances $\{\beta^{(i)}\}_{i=1}^N$ from the hyperplane to the intersection with the performance function.
+The important direction ``\boldsymbol{\alpha}`` is determined, e.g., using FORM or the gradient at the origin.
+Then, samples are generated and projected onto the hyperplane orthogonal to ``\boldsymbol{\alpha}``.
+From each point on the hyperplane, a line is drawn parallel to ``\boldsymbol{\alpha}`` and its intersection with the performance function is determined using root finding based on a spline interpolation scheme, giving the set of distances ``\{\beta^{(i)}\}_{i=1}^N`` from the hyperplane to the intersection with the performance function.
 Due to working in the standard normal space, the *failure probability along each line* is given as
 
 ```math
@@ -179,17 +179,17 @@ Finally, the probability of failure is obtained as the mean of the failure proba
 \hat{p}_{f,\mathrm{LS}} = \frac{1}{N} \sum_{i=1}^N p_{f, \mathrm{line}}^{(i)}.
 ```
 
-The variance of $\hat{p}_{f,\mathrm{LS}}$ is given by the variance of the line failure probabilities:
+The variance of ``\hat{p}_{f,\mathrm{LS}}`` is given by the variance of the line failure probabilities:
 
 ```math
 \operatorname{Var}[\hat{p}_{f,\mathrm{LS}}] = \frac{1}{N(N-1)} \sum_{i=1}^N \Big(p_{f, \mathrm{line}}^{(i)} - \hat{p}_{f,\mathrm{LS}}\Big)^2.
 ```
 
-Similar to standard MCS, we have to pass $N$ to the Line Sampling method. However, here we pass the number of lines.
-Optionally, we can pass a vector of the points along each line that are used to evaluate the performance function and a predetermined direction $\boldsymbol{\alpha}$:
+Similar to standard MCS, we have to pass ``N`` to the Line Sampling method. However, here we pass the number of lines.
+Optionally, we can pass a vector of the points along each line that are used to evaluate the performance function and a predetermined direction ``\boldsymbol{\alpha}``:
 
 ```@example reliability
-ls = LineSampling(100, collect(0.5:0.5:10))
+ls = LineSampling(100, collect(0.5:0.5:8.0))
 pf_ls, std_ls, samples = probability_of_failure([y], g, x, ls)
 
 println("Probability of failure: $pf_ls")
@@ -200,7 +200,7 @@ println("Coefficient of variation: $(std_ls/pf_ls)")
 
 Advanced Line Sampling [deangelisAdvances2015](@cite) is a further enhancement of the standard line sampling methods due to two main features:
 
-1. The important direction $\boldsymbol{\alpha}$ is adapted once a more probable point is found
+1. The important direction ``\boldsymbol{\alpha}`` is adapted once a more probable point is found
 2. The lines are processed sorted by proximity of the points on the hyperplane.
 
 Especially the second point enables the use of an iterative root finder using Newton's method.
@@ -226,7 +226,7 @@ For `AdvancedLineSampling`, we can also define the (initial) direction and optio
 Subset simulation [auEstimationSmallFailure2001](@cite) is an advanced simulation technique for the estimation of small failure probabilities.
 This approach involves decomposing the problem into a sequence of conditional probabilities that are estimated using Markov Chain Monte Carlo.
 
-We create the [`SubSetSimulation`](@ref) object and compute the probability of failure using a standard Gaussian proposal PDF. The value for the target probability of failure at each intermediate level is set to $0.1$ which is generally accepted as the optimal value.
+We create the [`SubSetSimulation`](@ref) object and compute the probability of failure using a standard Gaussian proposal PDF. The value for the target probability of failure at each intermediate level is set to ``0.1`` which is generally accepted as the optimal value.
 
 ```@example reliability
 subset = SubSetSimulation(1000, 0.1, 10, Normal())
@@ -236,7 +236,7 @@ println("Probability of failure: $pf_sus")
 println("Coefficient of variation: $(std_sus/pf_sus)")
 ```
 
-Alternatively, instead of using the standard Subset simulation algorithm (which internally uses Markov Chain Monte Carlo), we can use [`SubSetInfinity`](@ref) to compute the probability of failure, see [auRareEventSimulation2016](@cite). Here we use a standard deviation of $0.5$ to create the proposal samples for the next level.
+Alternatively, instead of using the standard Subset simulation algorithm (which internally uses Markov Chain Monte Carlo), we can use [`SubSetInfinity`](@ref) to compute the probability of failure, see [auRareEventSimulation2016](@cite). Here we use a standard deviation of ``0.5`` to create the proposal samples for the next level.
 
 ```@example reliability
 subset = SubSetInfinity(1000, 0.1, 10, 0.5)
