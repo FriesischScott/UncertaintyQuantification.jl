@@ -16,10 +16,10 @@ jobs:
       - uses: actions/checkout@v3
       - uses: julia-actions/setup-julia@v2
         with:
-          version: '1.10'
+          version: "1.10"
       - name: Build and deploy
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}
           GKSwstype: "100"
-        run: ./scripts/buildDocs.sh
+        run: ./scripts/buildVitePressDocs.sh
