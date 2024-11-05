@@ -4,9 +4,8 @@
 
 The definition of *uncertainty* follows from the absence of *certainty* describing a state of absolute knowledge where everything there is to know about a process is known [nikolaidisTypesUncertaintyDesign2004](@cite). This however is a theoretical and unachievable state in which deterministic models would be sufficient for the analysis of engineering systems. In reality, there is always a gap between certainty and the current state of knowledge resulting in *uncertainty*.
 
-| ![Characterization of uncertainties](../assets/uncertainty.svg) |
-| :--: |
-| *Characterization of reducible and irreducible uncertainties. Adapted from [aughenbaughValueUsingImprecise2005](@cite)*. |
+![Characterization of uncertainties](../assets/uncertainty.svg)
+*Characterization of reducible and irreducible uncertainties. Adapted from [aughenbaughValueUsingImprecise2005](@cite)*.
 
 Although a topic of ongoing debate and revision [aughenbaughValueUsingImprecise2005](@cite), it is largely accepted that uncertainty can be broadly classified into two types, *aleatory* and *epistemic* uncertainty [kiureghianAleatoryEpistemicDoes2009](@cite). The first type, *aleatory* uncertainties, are also called *irreducible* uncertainties or *variability* and describe the inherent randomness of a process. This could, for example, be variability in material properties, degradation of components, or varying external forces such as wind loads or earthquakes. Some researchers debate the existence of aleatory uncertainty under the assumption that if a process was fully understood it would no longer be random. Epistemic uncertainty is the uncertainty resulting from a lack of knowledge or vagueness and is also called *reducible* uncertainty, as it can be reduced through the collection of additional data and information. If both types of uncertainties occur together this is sometimes called *hybrid* or *mixed* uncertainty, and can be modelled using imprecise probability.
 
