@@ -449,7 +449,7 @@ function conditional_sampling(
     chain_performance[1] = performance
 
     for k in 2:N
-        chain_samples[k] = copy(chain_samples[k - 1])
+        chain_samples[k] = copy(chain_samples[k - 1][:, names(inputs)])
 
         to_standard_normal_space!(inputs, chain_samples[k])
 
