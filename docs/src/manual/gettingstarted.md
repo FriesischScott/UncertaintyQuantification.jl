@@ -122,7 +122,9 @@ extrafiles = String[]
 workdir = joinpath(pwd(), "supported-beam")
 ```
 
-Next, we must define where to inject values from the random variables and parameters into the input files. For this, we make use of the *Mustache.jl* and *Format.jl* modules. The values in the source file must be replaced by triple curly bracket expressions of the form `{{{ :x }}}`,  where `:x` is the identifier of the `RandomVariable` or `Parameter` to be injected. For example, to inject the Young's modulus and density of an elastic isotropic material in *OpenSees*, one could write the following.
+```@raw html
+Next, we must define where to inject values from the random variables and parameters into the input files. For this, we make use of the *Mustache.jl* and *Format.jl* modules. The values in the source file must be replaced by triple curly bracket expressions of the form <code v-pre>{{{ :x }}}</code>,  where `:x` is the identifier of the `RandomVariable` or `Parameter` to be injected. For example, to inject the Young's modulus and density of an elastic isotropic material in *OpenSees*, one could write the following.
+```
 
 ```tcl
 nDMaterial ElasticIsotropic 1 {{{ :E }}} 0.25 {{{ :rho }}}
@@ -140,7 +142,7 @@ After formatting and injecting the values into the source file, it would look si
 nDMaterial ElasticIsotropic 1 9.99813819e+02 0.25 3.03176259e+00
 ```
 
-Now that the values are injected into the source files, the next step is to extract the desired output quantities. This is done using an `Extractor`. The `Extractor` is designed similarly to the `Model` in that it takes a `Function` and a `Symbol` as its parameters. However, where a `DataFrame` is passed to the `Model`, the working directoy for the currently evaluated sample is passed to the function of the `Extractor`. The user defined function must then extract the required values from the file and return them. Here, we make use of the *DelimitedFiles* module to extract the maximum absolute displacement from the output file that *OpenSees* generated.
+Now that the values are injected into the source files, the next step is to extract the desired output quantities. This is done using an `Extractor`. The `Extractor` is designed similarly to the `Model` in that it takes a `Function` and a `Symbol` as its parameters. However, where a `DataFrame` is passed to the `Model`, the working directory for the currently evaluated sample is passed to the function of the `Extractor`. The user defined function must then extract the required values from the file and return them. Here, we make use of the *DelimitedFiles* module to extract the maximum absolute displacement from the output file that *OpenSees* generated.
 
 ```julia
 disp = Extractor(base -> begin
