@@ -3,6 +3,18 @@ using Documenter
 using DocumenterCitations
 using UncertaintyQuantification
 
+format = if !isempty(ARGS) && ARGS[1] == "vite"
+    using DocumenterVitepress
+
+    MarkdownVitepress(;
+        repo="https://github.com/FriesischScott/UncertaintyQuantification.jl",
+        devbranch="master",
+        devurl="dev"
+    )
+else
+    Documenter.HTML(; prettyurls=get(ENV, "CI", nothing) == "true")
+end
+
 DocMeta.setdocmeta!(
     UncertaintyQuantification,
     :DocTestSetup,
@@ -14,7 +26,7 @@ bib = CitationBibliography(joinpath(@__DIR__, "references.bib"))
 makedocs(;
     modules=[UncertaintyQuantification],
     plugins=[bib],
-    format=Documenter.HTML(; prettyurls=get(ENV, "CI", nothing) == "true"),
+    format=format,
     sitename="UncertaintyQuantification.jl",
     authors="Jasper Behrensdorf and Ander Gray",
     pages=[
