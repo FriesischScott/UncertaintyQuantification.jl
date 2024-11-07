@@ -70,12 +70,12 @@ loadConst -time 0.0;				# hold gravity constant and restart time
 # create load pattern
 set G 386
 # Time step of signal injected as parameter
-timeSeries Path 2 -dt {{{ :dt }}} -filePath ground-motion.dat -factor $G; # define acceleration vector from file (dt=0.005 is associated with the input file gm)
+timeSeries Path 2 -dt {{{ :dt }}} -filePath ground-motion.dat -factor $G; # define acceleration vector from file (dt is associated with the input file gm)
 pattern UniformExcitation 2 1 -accel 2;		         # define where and how (pattern tag, dof) acceleration is applied
 
 # set damping based on first eigen mode
 set freq [expr [eigen -fullGenLapack 1]**0.5]
-set dampRatio 0.02
+set dampRatio 0.05
 rayleigh 0. 0. 0. [expr 2*$dampRatio/$freq]
 
 # create the analysis
