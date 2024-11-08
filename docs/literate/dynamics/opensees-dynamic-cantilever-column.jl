@@ -13,11 +13,11 @@ The signal is applied as uniform excitation as "ground motion" to the base of th
 # For parallel execution, see the example in `docs/literate/external/02-opensees-parallel.jl`
 
 #md using UncertaintyQuantification # hide
-#md DelimitedFiles # hide
+#md using DelimitedFiles # hide
 #md using Plots # hide
 
 #jl using UncertaintyQuantification
-#jl DelimitedFiles
+#jl using DelimitedFiles
 #jl using Plots
 
 # Time discretization for the signal
@@ -86,8 +86,8 @@ ext = ExternalModel(
 # Define the UQ.jl models used in the analysis
 models = [gm_model, ext]
 
-# Simple Monte Carlo simulation with 100 samples to estimate a failure probability
-@time pf, mc_std, samples = probability_of_failure(models, df -> 250 .- df.max_abs_disp, [Δt, timeSteps, gm], MonteCarlo(2))
+# Simple Monte Carlo simulation with 1000 samples to estimate a failure probability (should be roughly around 10^-2)
+@time pf, mc_std, samples = probability_of_failure(models, df -> 200 .- df.max_abs_disp, [Δt, timeSteps, gm], MonteCarlo(100))
 
 println("Probability of failure: $pf")
 
