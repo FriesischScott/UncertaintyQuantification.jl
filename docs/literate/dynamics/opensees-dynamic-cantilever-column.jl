@@ -87,7 +87,7 @@ ext = ExternalModel(
 models = [gm_model, ext]
 
 # Simple Monte Carlo simulation with 1000 samples to estimate a failure probability (should be roughly around 10^-2)
-@time pf, mc_std, samples = probability_of_failure(models, df -> 200 .- df.max_abs_disp, [Δt, timeSteps, gm], MonteCarlo(100))
+pf, mc_std, samples = probability_of_failure(models, df -> 200 .- df.max_abs_disp, [Δt, timeSteps, gm], MonteCarlo(100))
 
 println("Probability of failure: $pf")
 
