@@ -47,7 +47,7 @@ MLEstimate = bayesianupdating(likelihood, [λ1, λ2], MLE)
 
 scatter(samples.θ1, samples.θ2; lim=[0, 4], label="TMCMC", xlabel="θ1", ylabel="θ2")
 scatter!((MapEstimate.θ1, MapEstimate.θ2), label="MAP")
-display(scatter!((MLEstimate.θ1, MLEstimate.θ2), label="MLE"))
+scatter!((MLEstimate.θ1, MLEstimate.θ2), label="MLE")
 
 priorθ1 = RandomVariable(Normal(.5, .5), :θ1)
 priorθ2 = RandomVariable(Normal(1.5, .5), :θ2)
@@ -69,7 +69,7 @@ MLEstimate = bayesianupdating(likelihood, [λ1, λ2], MLE)
 
 scatter(samples.θ1, samples.θ2; lim=[0, 4], label="TMCMC", xlabel="θ1", ylabel="θ2")
 scatter!((MapEstimate.θ1, MapEstimate.θ2), label="MAP")
-display(scatter!((MLEstimate.θ1, MLEstimate.θ2), label="MLE"))
+scatter!((MLEstimate.θ1, MLEstimate.θ2), label="MLE")
 
 println(exp.(MLEstimate[!,:maxval]))
 println(exp.(MapEstimate[!,:maxval]))

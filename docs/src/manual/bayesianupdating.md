@@ -272,7 +272,10 @@ likelihood_eval = exp.(loglikelihood(df_points)) # hide
 prior_eval = priorFunction(df_points) # hide
 contour!(xs, ys, likelihood_eval, lim = [-2,2], legend = :none) # hide
 contour!(xs, ys, prior_eval, lim = [-2,2], legend = :none) # hide
+savefig("point-estimates.svg"); nothing # hise
 ```
+
+![Point estimates](point-estimates.svg)
 
 ## Bayesian calibration of computer simulations
 

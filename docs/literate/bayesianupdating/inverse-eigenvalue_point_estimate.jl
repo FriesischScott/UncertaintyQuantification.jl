@@ -1,11 +1,10 @@
 #===
-# Bayesian Updating
 
 ## Inverse eigenvalue problem with maximum likelihood and maximum a posteriori point estimation
 
 The inverse eigenvalue problem can also be solved with point estimation schemes, i.e. maximum likelihood estimate (MLE) and maximum a posteriori (MAP) estimate. Both find the maximum of either only the likelihood (MLE) or the posterior (MAP) using optimization. The main difference in both is that MLE does not use the prior information, it will only give an estimate of the most likely parameter values based on the measurements. MAP on the other hand takes into account the prior distribution and gives a weighted estimate of the most likely parameters. MAP thus can also be seen as regularization of MLE.
 
-We will set up the problem the same way as in the MCMC example ([`[inverse-eigenvalue_mcmc@ref]`]@ref). 
+We will set up the problem the same way as in the MCMC example.
 
 ===#
 
@@ -57,7 +56,7 @@ tmcmc = TransitionalMarkovChainMonteCarlo(prior, n, burnin)
 MAP = MaximumAPosterioriBayesian(prior, "LBFGS", x0)
 MLE = MaximumLikelihoodBayesian(prior, "LBFGS", x0)
 
-# With the prior, likelihood, models and  MCMC sampler defined, the last step is to call the [`bayesinupdating`](@ref) method.
+# With the prior, likelihood, models and  MCMC sampler defined, the last step is to call the [`bayesianupdating`](@ref) method.
 
 samples, evidence = bayesianupdating(likelihood, [λ1, λ2], tmcmc)
 MapEstimate = bayesianupdating(likelihood, [λ1, λ2], MAP)
@@ -65,8 +64,10 @@ MLEstimate = bayesianupdating(likelihood, [λ1, λ2], MLE)
 
 scatter(samples.θ1, samples.θ2; lim=[0, 4], label="TMCMC", xlabel="θ1", ylabel="θ2")
 scatter!((MapEstimate.θ1, MapEstimate.θ2), label="MAP")
-display(scatter!((MLEstimate.θ1, MLEstimate.θ2), label="MLE"))
+scatter!((MLEstimate.θ1, MLEstimate.θ2), label="MLE")
+#md savefig("stiffness-point-estimate-uniform.svg"); nothing # hide
 
+# ![Resulting point estimates](stiffness-point-estimate-uniform.svg)
 #  A scatter plot of the resulting samples shows convergence to two distinct regions. Since we used a uniform prior distribution, ML and MAP estimates find the same estimates. With a different prior distribution, i.e. a standard normal centered on one of the modes, we obtain a different result:
 
 priorθ1 = RandomVariable(Normal(.5, .5), :θ1)
@@ -89,8 +90,10 @@ MLEstimate = bayesianupdating(likelihood, [λ1, λ2], MLE)
 
 scatter(samples.θ1, samples.θ2; lim=[0, 4], label="TMCMC", xlabel="θ1", ylabel="θ2")
 scatter!((MapEstimate.θ1, MapEstimate.θ2), label="MAP")
-display(scatter!((MLEstimate.θ1, MLEstimate.θ2), label="MLE"))
+scatter!((MLEstimate.θ1, MLEstimate.θ2), label="MLE")
+#md savefig("stiffness-point-estimate-normal.svg"); nothing # hide
 
+# ![Resulting point estimates](stiffness-point-estimate-normal.svg)
 # Some things to note: Results from MLE are the same as before, since the prior distribution is not taken into account. MCMC does not find the second mode, since it is much less likely than the first one, so the Markov chains do not converge there. MAP does find the mode since it uses optimization and therefore is able to find the local maximum. A look at the relative values between both modes show the differences in probability:
 
 println(exp.(MLEstimate[!,:maxval]))
