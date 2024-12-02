@@ -4,11 +4,11 @@
 Creates a response surface using polynomial least squares regression with given degree.
 
 # Examples
-```jldoctest
+```jldoctest; filter = r\"(\\d*)\\.(\\d{12})\\d+\" => s\"\\1.\\2***\"
 julia> data = DataFrame(x = 1:10, y = [1, 4, 10, 15, 24, 37, 50, 62, 80, 101]);
 
-julia> rs = ResponseSurface(data, :y, 2) |> DisplayAs.withcontext(:compact => true)
-ResponseSurface([0.483333, -0.238636, 1.01894], :y, [:x], 2, Monomial{Commutative{CreationOrder}, Graded{LexOrder}}[1, x₁, x₁²])
+julia> rs = ResponseSurface(data, :y, 2)
+ResponseSurface([0.48333333333332457, -0.23863636363636026, 1.0189393939393936], :y, [:x], 2, Monomials.Monomial[1, x1, x1²])
 ```
 """
 struct ResponseSurface <: UQModel

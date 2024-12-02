@@ -291,11 +291,7 @@ function bayesianupdating(
     return bayesianupdating(prior, likelihood, UQModel[], tmcmc)
 end
 
-"""
-    _beta_and_weights(β, likelihood)
-
-Compute the next value for `β` and the nominal weights `w` using bisection.
-"""
+# Compute the next value for `β` and the nominal weights `w` using bisection.
 function _beta_and_weights(β::Real, L::AbstractVector{<:Real})
     low = β
     high = 2

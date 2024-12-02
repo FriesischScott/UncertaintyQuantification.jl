@@ -28,6 +28,9 @@
     end
 
     @testset "Line sampling" begin
+
+        @test_throws ErrorException("LineSampling does not support lines longer than 8.12.") LineSampling(100, collect(0:0.1:10))
+
         # Englund and Rackwitz - A benchmark study on importance sampling techniques
         # in structural reliability (1993)
         # Example 1
@@ -43,7 +46,7 @@
             g, u, LineSampling(1, [0, 0.1])
         )
         @test_logs (:warn, "All samples for line 1 are inside the failure domain") probability_of_failure(
-            g, u, LineSampling(1, [10, 20])
+            g, u, LineSampling(1, collect(6:0.1:8))
         )
     end
 

@@ -101,10 +101,10 @@ end
     @testset "RQMC" begin
         inputs = RandomVariable.([Uniform(-1, 1), Uniform(0, 3)], [:a, :b])
 
-        sobol = SobolSampling(4, :matousekscramble)
+        sobol = SobolSampling(4, :matousek)
         @test sample(inputs, sobol) != sample(inputs, sobol)
 
-        faure = FaureSampling(4, :owenscramble)
+        faure = FaureSampling(4, :owen)
         @test sample(inputs, faure) != sample(inputs, faure)
 
         lattice = LatticeRuleSampling(4, :shift)
