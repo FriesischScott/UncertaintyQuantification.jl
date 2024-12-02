@@ -37,21 +37,9 @@ burnin = 0
 x0 = [[1., 1.],[3.,.5],[2.,2.]]
 
 tmcmc = TransitionalMarkovChainMonteCarlo(prior, n, burnin)
-MAP = MaximumAPosteriori(prior, "LBFGS", x0)
-MLE = MaximumLikelihood(prior, "LBFGS", x0)
-GaussApprox = VIGaussianApproximation(prior, "LBFGS", x0)
 
 samples, evidence = bayesianupdating(likelihood, [λ1, λ2], tmcmc)
-MapEstimate, MapValues = bayesianupdating(likelihood, [λ1, λ2], MAP)
-MLEstimate, MLEValues = bayesianupdating(likelihood, [λ1, λ2], MLE)
-
-elelele = bayesianupdating(likelihood,[λ1,λ2],GaussApprox)
-
-MapEstimate = mapreduce(x->x, hcat, MapEstimate)'
-MLEstimate = mapreduce(x->x, hcat, MLEstimate)'
 
 scatter(samples.θ1, samples.θ2; lim=[0, 4], label="TMCMC", xlabel="θ1", ylabel="θ2")
-scatter!((MapEstimate[:,1], MapEstimate[:,2]), label="MAP")
-scatter!((MLEstimate[:,1], MLEstimate[:,2]), label="MLE")
 
 # This file was generated using Literate.jl, https://github.com/fredrikekre/Literate.jl
