@@ -40,11 +40,13 @@ makedocs(;
             "Bayesian Updating" => "manual/bayesianupdating.md",
             "Parallelisation" => "manual/parallelisation.md",
             "High Performance Computing" => "manual/hpc.md",
+            "Stochastic Dynamics" => "manual/dynamics.md",
         ],
         "Examples" => [
             "External Models" => "examples/external.md",
             "Metamodels" => "examples/metamodels.md",
             "Bayesian Updating" => "examples/bayesianupdating.md",
+            "Dynamics" => "examples/dynamics.md",
             "High Performance Computing" => "examples/hpc.md",
         ],
         "Benchmarks" => ["Subset Simulation" => "benchmarks/subset.md"],
