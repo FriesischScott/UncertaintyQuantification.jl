@@ -3,6 +3,18 @@ using Documenter
 using DocumenterCitations
 using UncertaintyQuantification
 
+format = if !isempty(ARGS) && ARGS[1] == "vite"
+    using DocumenterVitepress
+
+    MarkdownVitepress(;
+        repo="https://github.com/FriesischScott/UncertaintyQuantification.jl",
+        devbranch="master",
+        devurl="dev"
+    )
+else
+    Documenter.HTML(; prettyurls=get(ENV, "CI", nothing) == "true")
+end
+
 DocMeta.setdocmeta!(
     UncertaintyQuantification,
     :DocTestSetup,
@@ -14,7 +26,7 @@ bib = CitationBibliography(joinpath(@__DIR__, "references.bib"))
 makedocs(;
     modules=[UncertaintyQuantification],
     plugins=[bib],
-    format=Documenter.HTML(; prettyurls=get(ENV, "CI", nothing) == "true"),
+    format=format,
     sitename="UncertaintyQuantification.jl",
     authors="Jasper Behrensdorf and Ander Gray",
     pages=[
@@ -24,10 +36,13 @@ makedocs(;
             "Getting Started" => "manual/gettingstarted.md",
             "Reliability Analysis" => "manual/reliability.md",
             "Metamodelling" => "manual/metamodels.md",
+            "Simulations" => "manual/simulations.md",
             "Bayesian Updating" => "manual/bayesianupdating.md",
+            "Parallelisation" => "manual/parallelisation.md",
             "High Performance Computing" => "manual/hpc.md",
         ],
         "Examples" => [
+            "External Models" => "examples/external.md",
             "Metamodels" => "examples/metamodels.md",
             "Bayesian Updating" => "examples/bayesianupdating.md",
             "High Performance Computing" => "examples/hpc.md",
@@ -35,6 +50,7 @@ makedocs(;
         "Benchmarks" => ["Subset Simulation" => "benchmarks/subset.md"],
         "API" => [
             "Inputs" => "api/inputs.md",
+            "Models" => "api/models.md",
             "ResponseSurface" => "api/responsesurface.md",
             "PolyharmonicSpline" => "api/polyharmonicspline.md",
             "Simulations" => "api/simulations.md",
@@ -43,7 +59,7 @@ makedocs(;
         ],
         "References" => "references.md",
     ],
-    warnonly=true,
+    warnonly=false,
 )
 
 deploydocs(;

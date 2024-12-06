@@ -13,4 +13,5 @@ Pages = ["simulations.md"]
 ```@docs
 SubSetSimulation
 SubSetInfinity
+SubSetInfinityAdaptive
 ```

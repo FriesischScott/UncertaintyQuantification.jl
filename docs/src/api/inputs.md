@@ -18,7 +18,7 @@ ProbabilityBox
 ## Functions
 
 ```@docs
-sample(rv::RandomVariable, n::Integer)
-sample(inputs::Vector{<:UQInput}, n::Integer)
+sample(rv::RandomVariable, n::Integer=1)
+sample(inputs::Vector{<:UQInput}, n::Integer=1)
 
 ```

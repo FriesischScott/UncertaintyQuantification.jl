@@ -31,7 +31,7 @@ function probability_of_failure(
 
     if isempty(sim.direction)
         sim.direction = gradient_in_standard_normal_space(
-            [models..., Model(x -> -1 * performance(x), :performance)],
+            [wrap(models)..., Model(x -> -1 * performance(x), :performance)],
             inputs,
             sns_zero_point(inputs),
             :performance,
@@ -69,7 +69,7 @@ function probability_of_failure(
 
     if isempty(sim.direction)
         sim.direction = gradient_in_standard_normal_space(
-            [models..., Model(x -> -1 * performance(x), :performance)],
+            [wrap(models)..., Model(x -> -1 * performance(x), :performance)],
             inputs,
             sns_zero_point(inputs),
             :performance,
@@ -77,6 +77,7 @@ function probability_of_failure(
     end
 
     random_inputs = filter(i -> isa(i, RandomUQInput), inputs)
+    deterministic_inputs = filter(i -> isa(i, DeterministicUQInput), inputs)
 
     n_rv = count_rvs(random_inputs)
     rv_names = names(random_inputs)
@@ -88,6 +89,11 @@ function probability_of_failure(
     # Start a line from origin parallel to 𝜶, determine distance 𝛽
     θ₀ = sim.points * α'
     samples = DataFrame(rv_names .=> eachcol(θ₀))
+    if !isempty(deterministic_inputs)
+        DataFrames.hcat!(samples, sample(deterministic_inputs, size(samples, 1)))
+    end
+
+    to_physical_space!(inputs, samples)
     evaluate!(models, samples)
 
     β⁺ = rootinterpolation(sim.points, performance(samples))
@@ -119,10 +125,14 @@ function probability_of_failure(
 
         # Limit-state function along line
         f = β -> begin
-            sample = DataFrame(rv_names .=> eachrow(θᵢ .+ α * β))
-            evaluate!(models, sample)
-            append!(samples, sample)
-            return performance(sample)
+            linesample = DataFrame(rv_names .=> eachrow(θᵢ .+ α * β))
+            if !isempty(deterministic_inputs)
+                DataFrames.hcat!(linesample, sample(deterministic_inputs, 1))
+            end
+            to_physical_space!(inputs, linesample)
+            evaluate!(models, linesample)
+            append!(samples, linesample)
+            return performance(linesample)
         end
 
         β[i] = newtonraphson(βᵢ, f, sim.stepsize, sim.tolerance, sim.maxiterations)
@@ -130,13 +140,21 @@ function probability_of_failure(
         # Update starting point for next iteration
         if isinf(β[i])
             # Find root using interpolation if iteration does not converge
-            sample = DataFrame(rv_names .=> eachcol((θᵢ .+ α * sim.points')'))
-            evaluate!(models, sample)
-            append!(samples, sample)
-            β[i] = rootinterpolation(sim.points, performance(sample),i)
+            linesamples = DataFrame(rv_names .=> eachcol((θᵢ .+ α * sim.points')'))
+            if !isempty(deterministic_inputs)
+                DataFrames.hcat!(
+                    linesamples, sample(deterministic_inputs, size(linesamples, 1))
+                )
+            end
+            to_physical_space!(inputs, linesamples)
+            evaluate!(models, linesamples)
+            append!(samples, linesamples)
+            β[i] = rootinterpolation(sim.points, performance(linesamples), i)
         end
 
-        if isfinite(β[i]) βᵢ = β[i] end
+        if isfinite(β[i])
+            βᵢ = β[i]
+        end
 
         # Check if distance is smaller than previous distance
         if β[i] + 1e-6 < β⁺
@@ -162,8 +180,6 @@ function probability_of_failure(
 
     pf = mean(cdf.(Normal(), -β))
     variance = var(cdf.(Normal(), -β)) / sim.lines
-
-    to_physical_space!(inputs, samples)
 
     return pf, sqrt(variance), samples
 end

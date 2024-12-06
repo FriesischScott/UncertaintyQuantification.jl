@@ -19,7 +19,7 @@ struct RandomVariable <: RandomUQInput
 end
 
 """
-	sample(rv::RandomVariable, n::Integer)
+	sample(rv::RandomVariable, n::Integer=1)
 
 Generates n samples from a random variable. Returns a DataFrame.
 
