@@ -10,7 +10,7 @@ A stochastic signal is generated using the Clough-Penzien Power Spectral Density
 The signal is applied as uniform excitation as "ground motion" to the base of the column structure.
 ===#
 
-# For parallel execution, see the example in `docs/literate/external/02-opensees-parallel.jl`
+# For parallel execution, see the example in [`OpenSees supported beam parallel`](@ref)
 
 #md using UncertaintyQuantification # hide
 #md using DelimitedFiles # hide
@@ -89,13 +89,13 @@ models = [gm_model, ext]
 # Simple Monte Carlo simulation with 1000 samples to estimate a failure probability (should be roughly around 10^-2)
 pf, mc_std, samples = probability_of_failure(models, df -> 200 .- df.max_abs_disp, [Δt, timeSteps, gm], MonteCarlo(100))
 
-println("Probability of failure: $pf")
+#jl println("Probability of failure: $pf")
 
-# Plotting of single time histories
+# Plotting of single time history
 
 plot(t, samples.gm[1]./(maximum(abs.(samples.gm[1]))); label="Stochastic ground motion acceleration", xlabel="time in s", ylabel="Normalized acceleration and displacement")
 plot!(samples.sim_time[1], samples.disp[1]./(maximum(abs.(samples.disp[1]))); label="Displacement at top node", linewidth=2)
-#md savefig("time-histories.svg"); nothing # hide
 
-# ![Resulting TimeHistories](time-histories.svg)
-# A plot to visualize the stochastic input ground motion acceleration singal and the resulting displacement time series at the top node of the cantilever column.
+
+#md ![Resulting time history](.../assets/time-history.svg)
+#md A plot to visualize the stochastic input ground motion acceleration singal and the resulting displacement time series at the top node of the cantilever column.
