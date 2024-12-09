@@ -10,11 +10,7 @@ A stochastic signal is generated using the Clough-Penzien Power Spectral Density
 The signal is applied as uniform excitation as "ground motion" to the base of the column structure.
 ===#
 
-# For parallel execution, see the example in [`OpenSees supported beam parallel`](@ref)
-
-#md using UncertaintyQuantification # hide
-#md using DelimitedFiles # hide
-#md using Plots # hide
+# For parallel execution, see the example in [OpenSees supported beam parallel](@ref)
 
 #jl using UncertaintyQuantification
 #jl using DelimitedFiles
