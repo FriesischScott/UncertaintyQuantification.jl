@@ -56,7 +56,6 @@ ext = ExternalModel(
 models = [gm_model, ext]
 
 pf, mc_std, samples = probability_of_failure(models, df -> 200 .- df.max_abs_disp, [Δt, timeSteps, gm], MonteCarlo(100))
-
 println("Probability of failure: $pf")
 
 plot(t, samples.gm[1]./(maximum(abs.(samples.gm[1]))); label="Stochastic ground motion acceleration", xlabel="time in s", ylabel="Normalized acceleration and displacement")

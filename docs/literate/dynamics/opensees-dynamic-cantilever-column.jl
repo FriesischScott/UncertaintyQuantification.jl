@@ -8,9 +8,11 @@ using the open-source finite element software [OpenSees](https://opensees.berkel
 The example definition can be found [here](https://opensees.berkeley.edu/wiki/index.php?title=Time_History_Analysis_of_a_2D_Elastic_Cantilever_Column)
 A stochastic signal is generated using the Clough-Penzien Power Spectral Density and the Spectral Representation Method.
 The signal is applied as uniform excitation as "ground motion" to the base of the column structure.
+
+For parallel execution, see the example in [OpenSees supported beam parallel](@ref)
 ===#
 
-# For parallel execution, see the example in [OpenSees supported beam parallel](@ref)
+#md using UncertaintyQuantification # hide
 
 #jl using UncertaintyQuantification
 #jl using DelimitedFiles
@@ -83,15 +85,23 @@ ext = ExternalModel(
 models = [gm_model, ext]
 
 # Simple Monte Carlo simulation with 1000 samples to estimate a failure probability (should be roughly around 10^-2)
-pf, mc_std, samples = probability_of_failure(models, df -> 200 .- df.max_abs_disp, [Δt, timeSteps, gm], MonteCarlo(100))
 
+#md # ```julia
+#md # pf, mc_std, samples = probability_of_failure(models, df -> 200 .- df.max_abs_disp, [Δt, timeSteps, gm], MonteCarlo(100))
+#md # ```
+
+#jl pf, mc_std, samples = probability_of_failure(models, df -> 200 .- df.max_abs_disp, [Δt, timeSteps, gm], MonteCarlo(100))
 #jl println("Probability of failure: $pf")
 
 # Plotting of single time history
 
-plot(t, samples.gm[1]./(maximum(abs.(samples.gm[1]))); label="Stochastic ground motion acceleration", xlabel="time in s", ylabel="Normalized acceleration and displacement")
-plot!(samples.sim_time[1], samples.disp[1]./(maximum(abs.(samples.disp[1]))); label="Displacement at top node", linewidth=2)
+#md # ```julia
+#md # plot(t, samples.gm[1]./(maximum(abs.(samples.gm[1]))); label="Stochastic ground motion acceleration", xlabel="time in s", ylabel="Normalized acceleration and displacement")
+#md # plot!(samples.sim_time[1], samples.disp[1]./(maximum(abs.(samples.disp[1]))); label="Displacement at top node", linewidth=2)
+#md # ```
 
+#jl plot(t, samples.gm[1]./(maximum(abs.(samples.gm[1]))); label="Stochastic ground motion acceleration", xlabel="time in s", ylabel="Normalized acceleration and displacement")
+#jl plot!(samples.sim_time[1], samples.disp[1]./(maximum(abs.(samples.disp[1]))); label="Displacement at top node", linewidth=2)
 
-#md ![Resulting time history](.../assets/time-history.svg)
-#md A plot to visualize the stochastic input ground motion acceleration singal and the resulting displacement time series at the top node of the cantilever column.
+#md # ![Resulting time history](../assets/time-history.svg)
+#md # A plot to visualize the stochastic input ground motion acceleration singal and the resulting displacement time series at the top node of the cantilever column.
