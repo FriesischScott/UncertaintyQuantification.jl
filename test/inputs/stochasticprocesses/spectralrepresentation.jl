@@ -16,7 +16,7 @@
     ϕ_temp = copy(ϕ)
     x = evaluate(srm_obj, collect(ϕ[1, srm_obj.ϕnames]))
 
-    Ŝ = Δt^2 / T0 * abs.(dft(x)) .^ 2 / (2π)
+    Ŝ = Δt^2 / T0 * abs.(UncertaintyQuantification.dft(x)) .^ 2 / (2π)
     S̃ = periodogram(x, t)
     S̄ = periodogram(x, t, false)
 

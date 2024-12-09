@@ -130,7 +130,6 @@ export TwoLevelFactorial
 export bayesianupdating
 export calc
 export count_rvs
-export dft
 export dimensions
 export distribution_parameters
 export doe_samples
@@ -138,7 +137,6 @@ export evaluate
 export evaluate!
 export gradient
 export gradient_in_standard_normal_space
-export idft
 export mean
 export multivariate_indices
 export periodogram
