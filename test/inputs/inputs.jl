@@ -31,4 +31,10 @@ inputs = [pi, jd, z]
     @testset "count_rvs" begin
         @test count_rvs(inputs) == 3
     end
+
+    @testset "broadcasting" begin
+        x = RandomVariable(Normal(), :x)
+        u = rand(10)
+        @test pdf.(x.dist, u) == pdf.(x, u)
+    end
 end

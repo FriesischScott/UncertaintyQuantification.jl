@@ -56,3 +56,5 @@ function sns_zero_point(inputs::AbstractVector{<:UQInput})
 
     return sns
 end
+
+Base.broadcastable(i::T) where {T<:UQInput} = Ref(i)
