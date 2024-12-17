@@ -2,16 +2,16 @@ struct EmpiricalDistribution <: ContinuousUnivariateDistribution
     data::Vector{<:Real}
     cdf::ECDF
     quantile::Spline1D
-    pdf::InterpKDE
+    h::Real
 
-    function EmpiricalDistribution(x::Vector{<:Real}, kernel=Normal)
+    function EmpiricalDistribution(x::Vector{<:Real})
         cdf = ecdf(x)
 
         f = cdf.(cdf.sorted_values)
         quantile = Spline1D(f, cdf.sorted_values)
 
-        pdf = InterpKDE(kde_lscv(x; kernel=kernel))
-        return new(x, cdf, quantile, pdf)
+        h = sheather_jones_bandwidth(x)
+        return new(x, cdf, quantile, h)
     end
 end
 
@@ -24,7 +24,7 @@ function quantile(d::EmpiricalDistribution, x::Real)
 end
 
 function pdf(d::EmpiricalDistribution, x::Real)
-    return insupport(d, x) ? abs(pdf(d.pdf, x)) : zero(x)
+    return insupport(d, x) ? kde(d.h, x, d.data) : zero(x)
 end
 
 function logpdf(d::EmpiricalDistribution, x::Real)

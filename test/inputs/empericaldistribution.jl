@@ -1,5 +1,5 @@
 @testset "EmpiricalDistribution" begin
-    n = 10^5
+    n = 10^4
 
     distributions = [Normal(1, 1), Rayleigh(1), Gumbel()]
     names = ["Normal", "Rayleigh", "Gumbel"]
