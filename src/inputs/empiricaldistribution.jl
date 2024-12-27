@@ -1,17 +1,19 @@
 struct EmpiricalDistribution <: ContinuousUnivariateDistribution
     data::Vector{<:Real}
+    lb::Real
+    ub::Real
     cdf::ECDF
     quantile::Spline1D
     h::Real
 
-    function EmpiricalDistribution(x::Vector{<:Real})
+    function EmpiricalDistribution(x::Vector{<:Real}, lb::Real=-Inf, ub::Real=Inf)
         cdf = ecdf(x)
 
         f = cdf.(cdf.sorted_values)
         quantile = Spline1D(f, cdf.sorted_values)
 
         h = sheather_jones_bandwidth(x)
-        return new(x, cdf, quantile, h)
+        return new(x, lb, ub, cdf, quantile, h)
     end
 end
 
@@ -36,7 +38,7 @@ function rand(rng::AbstractRNG, d::EmpiricalDistribution)
 end
 
 insupport(d::EmpiricalDistribution, x::Real) = minimum(d) <= x <= maximum(d)
-minimum(d::EmpiricalDistribution) = minimum(d.data)
-maximum(d::EmpiricalDistribution) = maximum(d.data)
+minimum(d::EmpiricalDistribution) = d.lb
+maximum(d::EmpiricalDistribution) = d.ub
 mean(d::EmpiricalDistribution) = mean(d.data)
 var(d::EmpiricalDistribution) = var(d.data)
