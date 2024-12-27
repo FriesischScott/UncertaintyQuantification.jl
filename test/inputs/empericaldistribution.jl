@@ -49,13 +49,15 @@
     @test mean(ed) ≈ mean(data)
     @test var(ed) ≈ var(data)
 
-    samples = range(15, 55; length=250)
+    samples = rand(ed, 100)
 
     @test all(insupport.(ed, samples))
     @test all(pdf.(ed, samples) .>= 0)
 
-    pdf_area, _ = hquadrature(x -> pdf(ed, x), 15, 55)
+    pdf_area, _ = hquadrature(x -> pdf(ed, x), ed.lb, ed.ub)
 
     @test pdf_area ≈ 1 atol = 0.01
     @test logpdf.(ed, samples) ≈ log.(pdf.(ed, samples))
+
+    @test quantile.(ed, cdf.(ed, samples)) ≈ samples
 end

@@ -14,9 +14,11 @@ using MeshAdaptiveDirectSearch
 using Monomials
 using Mustache
 using Primes
+using QuadGK
 using QuasiMonteCarlo
 using Random
 using Reexport
+using Roots
 using StatsBase
 
 @reexport using Distributions
