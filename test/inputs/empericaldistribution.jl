@@ -54,7 +54,10 @@
     @test all(insupport.(ed, samples))
     @test all(pdf.(ed, samples) .>= 0)
 
-    pdf_area, _ = hquadrature(x -> pdf(ed, x), ed.lb, ed.ub)
+    @test pdf(ed, minimum(ed)) ≈ 0.0 atol = 1e-10
+    @test pdf(ed, maximum(ed)) ≈ 0.0 atol = 1e-10
+
+    pdf_area, _ = hquadrature(x -> pdf(ed, x), minimum(ed), maximum(ed))
 
     @test pdf_area ≈ 1 atol = 0.01
     @test logpdf.(ed, samples) ≈ log.(pdf.(ed, samples))
