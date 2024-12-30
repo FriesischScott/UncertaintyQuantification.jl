@@ -4,7 +4,7 @@ struct EmpiricalDistribution <: ContinuousUnivariateDistribution
     ub::Real
     h::Real
 
-    function EmpiricalDistribution(x::Vector{<:Real}, lb::Real=-Inf, ub::Real=Inf)
+    function EmpiricalDistribution(x::Vector{<:Real})
         h = sheather_jones_bandwidth(x)
 
         lb = find_zero(u -> kde(h, u, x), minimum(x), Order2())
