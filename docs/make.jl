@@ -9,7 +9,7 @@ format = if !isempty(ARGS) && ARGS[1] == "vite"
     MarkdownVitepress(;
         repo="https://github.com/FriesischScott/UncertaintyQuantification.jl",
         devbranch="master",
-        devurl="dev"
+        devurl="dev",
     )
 else
     Documenter.HTML(; prettyurls=get(ENV, "CI", nothing) == "true")
@@ -34,6 +34,7 @@ makedocs(;
         "Manual" => [
             "Introduction" => "manual/introduction.md",
             "Getting Started" => "manual/gettingstarted.md",
+            "Kernel Density Estimation" => "manual/kde.md",
             "Reliability Analysis" => "manual/reliability.md",
             "Metamodelling" => "manual/metamodels.md",
             "Simulations" => "manual/simulations.md",
