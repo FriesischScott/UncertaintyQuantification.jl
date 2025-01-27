@@ -1,6 +1,7 @@
 ## 1st Method -  External: Global Opt ; Internal: Sampling
 struct DoubleLoop
-    sim::AbstractSimulation
+    lb::AbstractSimulation
+    ub::AbstractSimulation
 end
 
 struct RandomSlicing
@@ -10,6 +11,10 @@ end
 
 function RandomSlicing(sim::AbstractSimulation)
     return RandomSlicing(sim, deepcopy(sim))
+end
+
+function DoubleLoop(sim::AbstractSimulation)
+    return DoubleLoop(sim, deepcopy(sim))
 end
 
 function probability_of_failure(
@@ -24,10 +29,17 @@ function probability_of_failure(
     imprecise_inputs = filter(x -> isa(x, ImpreciseUQInput), inputs)
     precise_inputs = filter(x -> !isa(x, ImpreciseUQInput), inputs)
 
-    function pf(x)
+    function pf_low(x)
         imprecise_inputs_x = map_to_precise_inputs(x, imprecise_inputs)
         mc_inputs = [precise_inputs..., imprecise_inputs_x...]
-        mc_pf, _, _ = probability_of_failure(models, performance, mc_inputs, dl.sim)
+        mc_pf, _, _ = probability_of_failure(models, performance, mc_inputs, dl.lb)
+        return mc_pf
+    end
+
+    function pf_high(x)
+        imprecise_inputs_x = map_to_precise_inputs(x, imprecise_inputs)
+        mc_inputs = [precise_inputs..., imprecise_inputs_x...]
+        mc_pf, _, _ = probability_of_failure(models, performance, mc_inputs, dl.ub)
         return mc_pf
     end
 
@@ -35,8 +47,8 @@ function probability_of_failure(
     x0 = middle.(lb, ub)
 
     result_lb = minimize(
-        isa(dl.sim, FORM) ? OrthoMADS(length(x0)) : RobustOrthoMADS(length(x0)),
-        x -> pf(x),
+        isa(dl.lb, FORM) ? OrthoMADS(length(x0)) : RobustOrthoMADS(length(x0)),
+        x -> pf_low(x),
         x0;
         lowerbound=lb,
         upperbound=ub,
@@ -44,8 +56,8 @@ function probability_of_failure(
     )
 
     result_ub = minimize(
-        isa(dl.sim, FORM) ? OrthoMADS(length(x0)) : RobustOrthoMADS(length(x0)),
-        x -> -pf(x),
+        isa(dl.ub, FORM) ? OrthoMADS(length(x0)) : RobustOrthoMADS(length(x0)),
+        x -> -pf_high(x),
         x0;
         lowerbound=lb,
         upperbound=ub,
@@ -58,7 +70,7 @@ function probability_of_failure(
     if pf_lb == pf_ub
         return pf_ub
     else
-        return Interval(pf_lb, pf_ub, :pf)
+        return Interval(pf_lb, pf_ub, :pf), result_lb.x, result_ub.x
     end
 end
 
