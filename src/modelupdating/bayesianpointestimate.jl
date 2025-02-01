@@ -8,6 +8,18 @@ The user can provide the method for optimization. Optim has some methods impleme
 It is possible to provide multiple initial values for optimization, MLE and MAP will return the maximum of the target function for each starting point so it is also possible to find approximations for multi-variate distributions.
 """
 
+"""
+    MaximumAPosterioriBayesian(prior, optimmethod, x0; islog, lowerbounds, upperbounds)
+
+Passed to [`bayesianupdating`](@ref) to estimate one or more maxima of the posterior distribution starting from `x0`. The optimization uses the method specified in `optimmethod`. Will calculate one estimation per point in x0. The flag `islog` specifies whether the prior and likelihood functions passed to the  [`bayesianupdating`](@ref) method are already  given as logarithms. `lowerbounds` and `upperbounds` specify optimization intervals.
+
+Alternative constructors
+
+```julia
+    MaximumAPosterioriBayesian(prior, optimmethod, x0; islog) # `lowerbounds` = [-Inf], # `upperbounds` = [Inf]
+    MaximumAPosterioriBayesian(prior, optimmethod, x0)  # `islog` = true
+```
+"""
 struct MaximumAPosterioriBayesian <: AbstractBayesianPointEstimate
 
     prior::Vector{RandomVariable}
@@ -41,8 +53,24 @@ struct MaximumAPosterioriBayesian <: AbstractBayesianPointEstimate
 end
 
 """
-Maximum likelihood estimate
+    MaximumLikelihoodBayesian(prior, optimmethod, x0; islog, lowerbounds, upperbounds)
+
+Passed to [`bayesianupdating`](@ref) to estimate one or more maxima of the likelihood starting from `x0`. The optimization uses the method specified in `optimmethod`. Will calculate one estimation per point in x0. The flag `islog` specifies whether the prior and likelihood functions passed to the  [`bayesianupdating`](@ref) method are already  given as logarithms. `lowerbounds` and `upperbounds` specify optimization intervals.
+
+Alternative constructors
+
+```julia
+    MaximumLikelihoodBayesian(prior, optimmethod, x0; islog) # `lowerbounds` = [-Inf], # `upperbounds` = [Inf]
+    MaximumLikelihoodBayesian(prior, optimmethod, x0)  # `islog` = true
+```
+### Notes
+The method uses `prior` only as information on which parameters are supposed to be optimized. The prior itself does not influence the result of the maximum likelihood estimate and can be given as a dummy distribution. For example, if two parameters `a` and `b` are supposed to be optimized, the prior could look like this
+
+```julia
+    prior = RandomVariable.(Uniform(0,1), [:a, :b])
+```
 """
+
 ## !TODO Currently the prior is used to get information about model parameters, maybe there is a better way. In MLE the prior is not needed
 
 struct MaximumLikelihoodBayesian <: AbstractBayesianPointEstimate
@@ -79,7 +107,28 @@ struct MaximumLikelihoodBayesian <: AbstractBayesianPointEstimate
 end
 
 """
-general function for bayesianupdating for point estimate methods. Function takes likelihood, models, estimation method and an optional prior distribution. For MLE, the prior is ignored, if no prior is given, the prior evaluation function is generated from the given prior in the struct. For both methods, the variables to be updated are inferred from the given prior in the struct, so even if the prior is not needed in MLE, it should be given as a dummy-distribution to inform the method on which variables to update. 
+    bayesianupdating(likelihood, models, pointestimate; prior)
+
+Perform bayesian updating using the given `likelihood`, `models`  and any point estimation method [`AbstractBayesianPointEstimate`](@ref).
+
+### Notes
+
+Method can be called with an empty Vector of models, i.e.
+
+    bayesianupdating(likelihood, [], pointestimate)
+
+If `prior` is not given, the method will construct a prior distribution from the prior specified in `AbstractBayesianPointEstimate.prior`.
+
+`likelihood` is a Julia function which must be defined in terms of a `DataFrame` of samples, and must evaluate the likelihood for each row of the `DataFrame`
+
+For example, a loglikelihood based on normal distribution using 'Data':
+
+```julia
+likelihood(df) = [sum(logpdf.(Normal.(df_i.x, 1), Data)) for df_i in eachrow(df)]
+```
+
+If a model evaluation is required to evaluate the likelihood, a vector of `UQModel`s must be passed to `bayesianupdating`. For example if the variable `x` above is the output of a numerical model.
+
 """
 
 function bayesianupdating(likelihood::Function, models::Vector{<:UQModel}, pointestimate::AbstractBayesianPointEstimate; prior::Union{Function,Nothing} = nothing)
@@ -100,6 +149,7 @@ function bayesianupdating(likelihood::Function, models::Vector{<:UQModel}, point
 
 end
 
+# function to set up the optimization problem for MAP estimate and to generate a prior function if none is given.
 function setupoptimizationproblem(prior::Union{Function, Nothing}, likelihood::Function, models::Vector{<:UQModel}, mapestimate::MaximumAPosterioriBayesian)
 
     # if no prior is given, generate prior function from mapestimate.prior
@@ -133,6 +183,7 @@ function setupoptimizationproblem(prior::Union{Function, Nothing}, likelihood::F
 
 end
 
+# function to generate the optimization problem for MLE. Note that the prior is not used, but for reasons of multiple dispatch it needs to be included
 function setupoptimizationproblem(prior::Union{Function,Nothing}, likelihood::Function, models::Vector{<:UQModel}, mlestimate::MaximumLikelihoodBayesian)
 
     target = if mlestimate.islog
@@ -155,16 +206,17 @@ function setupoptimizationproblem(prior::Union{Function,Nothing}, likelihood::Fu
 
 end
 
+# actual optimization procedure based on the point estimation method and given parameters
 function optimize_pointestimate(optimTarget::Function, pointestimate::AbstractBayesianPointEstimate)
 
-    method = ""
+    method = LBFGS()
 
     if pointestimate.optimmethod=="LBFGS"
         method = LBFGS()
     elseif pointestimate.optimmethod=="NelderMead"
         method = NelderMead()
     else
-        error("Optimization method $(pointestimate.optimmethod) is not supported in UncertaintyQuantification.jl")
+        error("Optimization method $(pointestimate.optimmethod) is not supported in UncertaintyQuantification.jl. Currently supported methods are 'LBFGS' and 'NelderMead'.")
     end
 
     if all(isinf, pointestimate.upperbounds) && all(isinf, pointestimate.lowerbounds)

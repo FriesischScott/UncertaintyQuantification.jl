@@ -69,6 +69,7 @@
         alpha_posterior = alpha0 + sum(data_binom)
         beta_posterior = beta0 + N_binom - sum(data_binom)
 
+        analytic_mode = (alpha_posterior-1) / (alpha_posterior + beta_posterior - 2)
         analytic_mean = alpha_posterior / (alpha_posterior + beta_posterior)
         analytic_var =
             alpha_posterior * beta_posterior /
@@ -85,7 +86,7 @@
 
         estimate = bayesianupdating(loglikelihood, UQModel[], estimater, prior = logprior)
 
-        return estimate, analytic_mean, sqrt(analytic_var)
+        return estimate, analytic_mode, analytic_mean
     end
 
     function normalmeanbenchmark(estimater::AbstractBayesianPointEstimate, prior::Normal{Float64})
@@ -162,9 +163,9 @@
 
         estimater = MaximumAPosterioriBayesian([prior], optMethod, x0; lowerbounds = [0.], upperbounds = [1.])
 
-        estimate, analytic_mean, analytic_std = binomialinferencebenchmark(estimater, prior_Function)
+        estimate, analytic_mode, analytic_mean = binomialinferencebenchmark(estimater, prior_Function)
 
-        @test mean(estimate.x) ≈ analytic_mean rtol = 0.1
+        @test mean(estimate.x) ≈ analytic_mode rtol = 0.1
     end
 
     @testset "MLE binomial test" begin
@@ -177,9 +178,9 @@
 
         estimater = MaximumLikelihoodBayesian([prior], optMethod, x0; lowerbounds = [0.], upperbounds = [1.])
 
-        estimate, analytic_mean, analytic_std = binomialinferencebenchmark(estimater, prior_Function)
+        estimate, analytic_mode, analytic_mean = binomialinferencebenchmark(estimater, prior_Function)
 
-        @test mean(estimate.x) ≈ analytic_mean rtol = 0.1
+        @test mean(estimate.x) ≈ analytic_mode rtol = 0.1
     end
 
 end

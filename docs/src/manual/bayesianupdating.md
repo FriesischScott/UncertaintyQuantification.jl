@@ -263,17 +263,19 @@ MLE = MaximumLikelihoodBayesian(prior, "LBFGS", x0)
 mapestimate = bayesianupdating(loglikelihood, UQModel[], MAP)
 mlestimate = bayesianupdating(loglikelihood, UQModel[], MLE)
 
-scatter(mapestimate.x, mapestimate.y; lim=[-2, 2], legend = :none)
-scatter!(mlestimate.x, mlestimate.y; lim=[-2,2], legend = :none)
 xs = range(-2, 2, length = 100); ys = range(-2, 2, length = 100) # hide
 sample_points = reduce(vcat,[[x y] for x in xs, y in ys][:]) # hide
 df_points = DataFrame(sample_points, :auto) # hide
 likelihood_eval = exp.(loglikelihood(df_points)) # hide
 prior_eval = priorFunction(df_points) # hide
-contour!(xs, ys, likelihood_eval, lim = [-2,2], legend = :none) # hide
-contour!(xs, ys, prior_eval, lim = [-2,2], legend = :none) # hide
+contour(xs, ys, likelihood_eval, lim = [-2,2], c = :red) # hide
+contour!(xs, ys, prior_eval, lim = [-2,2], c = :blue) # hide
+scatter!(mapestimate.x, mapestimate.y; lim=[-2, 2], label = "MAP estimate")
+scatter!(mlestimate.x, mlestimate.y; lim=[-2,2], label = "MLEstimate")
 savefig("point-estimates.svg"); nothing # hise
 ```
+
+The figure shows the (bimodal) likelihood in red and the prior distribution in blue. The difference in MAP and MLE is clearly visible, as the MLE conincides directly with the maxima of the likelihood, while MAP is shifted in the direction of the prior mean.
 
 ![Point estimates](point-estimates.svg)
 
