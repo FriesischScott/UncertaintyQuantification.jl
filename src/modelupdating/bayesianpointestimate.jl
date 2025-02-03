@@ -1,14 +1,4 @@
 """
-Bayesian Point estimates
-"""
-
-"""
-Maximum a posteriori and maximum likelihood estimates, uses optimization to find the most likely model parameters based on prior and/or likelihood.
-The user can provide the method for optimization. Optim has some methods implemented, both with gradient and gradient-free.
-It is possible to provide multiple initial values for optimization, MLE and MAP will return the maximum of the target function for each starting point so it is also possible to find approximations for multi-variate distributions.
-"""
-
-"""
     MaximumAPosterioriBayesian(prior, optimmethod, x0; islog, lowerbounds, upperbounds)
 
 Passed to [`bayesianupdating`](@ref) to estimate one or more maxima of the posterior distribution starting from `x0`. The optimization uses the method specified in `optimmethod`. Will calculate one estimation per point in x0. The flag `islog` specifies whether the prior and likelihood functions passed to the  [`bayesianupdating`](@ref) method are already  given as logarithms. `lowerbounds` and `upperbounds` specify optimization intervals.
@@ -70,10 +60,9 @@ The method uses `prior` only as information on which parameters are supposed to 
     prior = RandomVariable.(Uniform(0,1), [:a, :b])
 ```
 """
-
-## !TODO Currently the prior is used to get information about model parameters, maybe there is a better way. In MLE the prior is not needed
-
 struct MaximumLikelihoodBayesian <: AbstractBayesianPointEstimate
+
+    ## !TODO Currently the prior is used to get information about model parameters, maybe there is a better way. In MLE the prior is not needed
 
     prior::Vector{RandomVariable}
     optimmethod::String
@@ -130,7 +119,6 @@ likelihood(df) = [sum(logpdf.(Normal.(df_i.x, 1), Data)) for df_i in eachrow(df)
 If a model evaluation is required to evaluate the likelihood, a vector of `UQModel`s must be passed to `bayesianupdating`. For example if the variable `x` above is the output of a numerical model.
 
 """
-
 function bayesianupdating(likelihood::Function, models::Vector{<:UQModel}, pointestimate::AbstractBayesianPointEstimate; prior::Union{Function,Nothing} = nothing)
 
     optimTarget = setupoptimizationproblem(prior, likelihood, models, pointestimate)

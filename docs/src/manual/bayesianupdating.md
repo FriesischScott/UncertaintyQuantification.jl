@@ -225,11 +225,11 @@ tmcmc_samples, S = bayesianupdating(loglikelihood, tmcmc)
 Instead of using sample-based methods it is also possible to calculate the local maxima of likelihood ($P(Y|\theta)$) or posterior ($P(\theta|Y)$). While this does not directly give an esimate of the full parameter distribution, it allows for the estimation of the most probable parameter values. Calculating the maximum (or maxima, depending on the use case) is referred to as maximum likelihood estimate (MLE), using the full (unnormalized) posterior is referred to as maximum a posteriori (MAP) estimate. More formally,
 
 ```math
-\theta_{\text{MLE}} = \underset{\arg \max}{\theta} P(Y|\theta)
+\theta_{\text{MLE}} = \underset{\theta}{\arg \max} P(Y|\theta)
 ```
 
 ```math
-\theta_{\text{MAP}} = \underset{\arg \max}{\theta} P(Y|\theta) P(\theta)
+\theta_{\text{MAP}} = \underset{\theta}{\arg \max} P(Y|\theta) P(\theta)
 ```
 
 Generally, the MAP estimate can be considered as regularized version of the MLE, since the prior distribution is used to constrain the estimates. Both estimates are found with optimization schemes and thus come with the usual drawbacks, including convergence to local maxima. Both methods are therefore sensitive to initial conditions. Further note that both estimates do not calculate the mean but the mode of the respective distributions, i.e. for distributions that have a high variance these estimates do not provide much information about the parmater distribution.
