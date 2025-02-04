@@ -11,6 +11,9 @@ on:
 
 jobs:
   build:
+    if: github.event_name == 'pull_request'
+      environment:
+        url: https://friesischscott.github.io/UncertaintyQuantification.jl/previews/PR${{github.event.number}}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
