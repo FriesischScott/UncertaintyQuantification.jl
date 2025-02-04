@@ -9,6 +9,7 @@ Alternative constructors
     MaximumAPosterioriBayesian(prior, optimmethod, x0; islog) # `lowerbounds` = [-Inf], # `upperbounds` = [Inf]
     MaximumAPosterioriBayesian(prior, optimmethod, x0)  # `islog` = true
 ```
+See also [`MaximumLikelihoodBayesian`](@ref), [`bayesianupdating `](@ref),  [`TransitionalMarkovChainMonteCarlo`](@ref).
 """
 struct MaximumAPosterioriBayesian <: AbstractBayesianPointEstimate
 
@@ -59,6 +60,7 @@ The method uses `prior` only as information on which parameters are supposed to 
 ```julia
     prior = RandomVariable.(Uniform(0,1), [:a, :b])
 ```
+See also [`MaximumAPosterioriBayesian`](@ref), [`bayesianupdating `](@ref),  [`TransitionalMarkovChainMonteCarlo`](@ref).
 """
 struct MaximumLikelihoodBayesian <: AbstractBayesianPointEstimate
 
@@ -118,6 +120,7 @@ likelihood(df) = [sum(logpdf.(Normal.(df_i.x, 1), Data)) for df_i in eachrow(df)
 
 If a model evaluation is required to evaluate the likelihood, a vector of `UQModel`s must be passed to `bayesianupdating`. For example if the variable `x` above is the output of a numerical model.
 
+For a general overview of the function, see [`bayesianupdating `](@ref).
 """
 function bayesianupdating(likelihood::Function, models::Vector{<:UQModel}, pointestimate::AbstractBayesianPointEstimate; prior::Union{Function,Nothing} = nothing)
 

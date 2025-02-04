@@ -189,7 +189,7 @@ include("hpc/slurm.jl")
 include("models/pce/pcebases.jl")
 include("models/pce/polynomialchaosexpansion.jl")
 
-include("modelupdating/bayesianpointestimate.jl")
+include("modelupdating/bayesianMAP.jl")
 include("modelupdating/bayesianupdating.jl")
 
 include("sensitivity/finitedifferences.jl")

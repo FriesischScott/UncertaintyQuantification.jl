@@ -220,9 +220,9 @@ tmcmc = TransitionalMarkovChainMonteCarlo(RandomVariable.(Uniform(-2,2), [:x, :y
 tmcmc_samples, S = bayesianupdating(loglikelihood, tmcmc)
 ```
 
-## Point estimation methods in Bayesian updating
+## Maximum likelihood and maximum a posteriori estimates
 
-Instead of using sample-based methods it is also possible to calculate the local maxima of likelihood ($P(Y|\theta)$) or posterior ($P(\theta|Y)$). While this does not directly give an esimate of the full parameter distribution, it allows for the estimation of the most probable parameter values. Calculating the maximum (or maxima, depending on the use case) is referred to as maximum likelihood estimate (MLE), using the full (unnormalized) posterior is referred to as maximum a posteriori (MAP) estimate. More formally,
+Instead of using sample-based methods it is also possible to calculate the local maxima of likelihood ($P(Y|\theta)$) or posterior ($P(\theta|Y)$). While this does not directly give an esimate of the full parameter distribution, it allows for the estimation of the most probable parameter values. Calculating the maximum (or maxima, depending on the use case) is referred to as maximum likelihood estimate (MLE), using the full (unnormalized) posterior is referred to as maximum a posteriori (MAP) estimate. Note that technically MLE is not a Bayesian estimate as the prior distribution is ignored. More formally,
 
 ```math
 \theta_{\text{MLE}} = \underset{\theta}{\arg \max} P(Y|\theta)
@@ -270,9 +270,14 @@ likelihood_eval = exp.(loglikelihood(df_points)) # hide
 prior_eval = priorFunction(df_points) # hide
 contour(xs, ys, likelihood_eval, lim = [-2,2], c = :red) # hide
 contour!(xs, ys, prior_eval, lim = [-2,2], c = :blue) # hide
-scatter!(mapestimate.x, mapestimate.y; lim=[-2, 2], label = "MAP estimate")
-scatter!(mlestimate.x, mlestimate.y; lim=[-2,2], label = "MLEstimate")
-savefig("point-estimates.svg"); nothing # hise
+contour!(xs, ys, likelihood_eval.*prior_eval/.05, lim = [-2,2], c = :black)
+scatter!(mapestimate.x, mapestimate.y; lim=[-2, 2], label = "MAP estimate", c = :black)
+scatter!(mlestimate.x, mlestimate.y; lim=[-2,2], label = "ML estimate", c = :red)
+plot!([0,0],[0,0],c = :red, label = "Likelihood")
+plot!([0,0],[0,0],c = :blue, label = "Prior")
+plot!([0,0],[0,0],c = :black, label = "Posterior")
+
+savefig("point-estimates.svg"); nothing # hide
 ```
 
 The figure shows the (bimodal) likelihood in red and the prior distribution in blue. The difference in MAP and MLE is clearly visible, as the MLE conincides directly with the maxima of the likelihood, while MAP is shifted in the direction of the prior mean.

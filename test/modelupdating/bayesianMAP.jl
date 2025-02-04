@@ -1,5 +1,5 @@
 
-@testset "Bayesian Point Estimates" begin
+@testset "ML and MAP estimates" begin
     N_binom = 15
     data_binom = [1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 1] # p = 0.8
 
