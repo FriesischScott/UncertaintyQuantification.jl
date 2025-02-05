@@ -30,7 +30,9 @@ inputs = [a, t, b, h, M, T]
 model = [Wx, Wz, σ, τ, p]
 performance = df -> σ_s .- df.p
 
-# pf_dl = probability_of_failure(model, performance, inputs, DoubleLoop(MonteCarlo(10^6)))
+pf_dl, x_lb, x_ub = probability_of_failure(
+    model, performance, inputs, DoubleLoop(MonteCarlo(10^6), MonteCarlo(10^5))
+)
 
 rs = RandomSlicing(ImportanceSampling(4000))
 
