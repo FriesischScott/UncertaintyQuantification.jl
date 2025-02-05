@@ -1,6 +1,8 @@
 # Stochastic Dynamics
 
-Stochastic dynamics studies the behaviour of buildings and systems and their changes over time when they are affected by random processes, or also called stochastic processes, such as earthquakes or wind loads. Stochastic processes are characterised by an inherent randomness which can not be described deterministically [li2009sdos](@cite). To study the frequency distribution and their amplitude of a stochastic process, the so-called power spectral density (PSD) function can be defined.
+Stochastic dynamics focuses on the study and development of methods, applications, and techniques for analyzing systems with probabilistic behavior. Stochastic dynamic systems are mathematical models used to describe the mechanical behavior and evolution of systems that change over time and include probabilistic characteristics. These systems are characterized by their dynamics' uncertainty, variability, and randomness, which can arise from external influences, inherent randomness, or imperfect knowledge of system parameters. Such systems are crucial in fields ranging from finance and economics to engineering and natural sciences, as they allow for modeling and predicting the behavior of complex systems under uncertainty.
+
+Some examples that shall introduce stochastic dynamics in UQ.jl studie the behaviour of buildings and systems and their changes over time when they are affected by random processes, or also called stochastic processes, such as earthquakes or wind loads. Stochastic processes are characterised by an inherent randomness which can not be described deterministically [li2009sdos](@cite). To study the frequency distribution and their amplitude of a stochastic process, the so-called power spectral density (PSD) function can be defined.
 
 ## Semi-empirical PSD functions
 

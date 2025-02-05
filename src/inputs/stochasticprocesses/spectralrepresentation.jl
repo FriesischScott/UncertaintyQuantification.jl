@@ -1,4 +1,29 @@
+"""
+    AbstractStochasticProcess <: RandomUQInput
+
+An abstract type representing a stochastic process in the context of uncertainty quantification. Concrete types inheriting from this abstract type should implement specific models for stochastic processes.
+
+# Subtypes
+- `SpectralRepresentationProcess`
+- `OtherStochasticProcess`
+
+# Description
+Stochastic processes are mathematical models used to describe systems that evolve over time with inherent randomness. This abstract type serves as a base for defining various stochastic process models, which can be used in simulations and analyses within the uncertainty quantification framework.
+
+"""
+
 abstract type AbstractStochasticProcess <: RandomUQInput end
+
+"""
+    SpectralRepresentation(psd, time, name)
+
+Alternative constructor
+
+```julia
+    SpectralRepresentation(psd, time, name)  # `islog` = true
+```
+
+"""
 
 struct SpectralRepresentation <: AbstractStochasticProcess
     psd::AbstractPowerSpectralDensity

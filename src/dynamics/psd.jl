@@ -1,6 +1,41 @@
+"""
+    AbstractPowerSpectralDensity
+
+An abstract type representing a power spectral density model. Concrete types inheriting from this abstract type should implement specific models for power spectral density.
+For the theoretical background of spectral densitz models see [Semi-empirical PSD functions](dynamics.md)
+
+# Subtypes
+- `CloughPenzien`
+- `KanaiTajimi`
+
+"""
 
 abstract type AbstractPowerSpectralDensity end
 
+"""
+    CloughPenzien(w, S_0, ω_f, ζ_f, ω_g, ζ_g)
+
+The `CloughPenzien` struct represents a power spectral density model with the following parameters:
+- `w`: A vector of angular frequencies.
+- `S_0`: A scaling factor.
+- `ω_f`: Frequency parameter for the first oscillator.
+- `ζ_f`: Damping ratio for the first oscillator.
+- `ω_g`: Frequency parameter for the second oscillator.
+- `ζ_g`: Damping ratio for the second oscillator.
+
+The constructor calculates the power spectral density `p` based on the given parameters.
+
+# Example
+```julia
+w = 0:0.1:10
+S_0 = 1.0
+ω_f = 2.0
+ζ_f = 0.05
+ω_g = 3.0
+ζ_g = 0.1
+cp = CloughPenzien(w, S_0, ω_f, ζ_f, ω_g, ζ_g)
+```
+"""
 struct CloughPenzien <: AbstractPowerSpectralDensity
     ω::AbstractVector{<:Real}
     S_0::Real
