@@ -11,7 +11,6 @@ An abstract type representing a stochastic process in the context of uncertainty
 Stochastic processes are mathematical models used to describe systems that evolve over time with inherent randomness. This abstract type serves as a base for defining various stochastic process models, which can be used in simulations and analyses within the uncertainty quantification framework.
 
 """
-
 abstract type AbstractStochasticProcess <: RandomUQInput end
 
 """
@@ -35,7 +34,6 @@ sr = SpectralRepresentation(psd, time, name)
 ```
 
 """
-
 struct SpectralRepresentation <: AbstractStochasticProcess
     psd::AbstractPowerSpectralDensity
     time::AbstractVector{<:Real}
