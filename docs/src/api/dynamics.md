@@ -11,12 +11,16 @@ Pages = ["dynamics.md"]
 ## Types
 
 ```@docs
-    psd
-    spectralrepresentation
+    AbstractPowerSpectralDensity
+    CloughPenzien
+    KanaiTajimi
+    AbstractStochasticProcess
 ```
 
 ## Methods
 
 ```@docs
-    
+    CloughPenzien
+    KanaiTajimi
+    evaluate
 ```

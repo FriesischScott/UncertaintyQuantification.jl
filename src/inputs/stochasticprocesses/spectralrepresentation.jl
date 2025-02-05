@@ -17,10 +17,21 @@ abstract type AbstractStochasticProcess <: RandomUQInput end
 """
     SpectralRepresentation(psd, time, name)
 
-Alternative constructor
+The `SpectralRepresentation` struct represents a stochastic process generated using the spectral representation method. It has the following fields:
+- `psd`: An instance of `AbstractPowerSpectralDensity` representing the power spectral density function.
+- `time`: A vector of time points.
+- `ωt`: A matrix of angular frequencies multiplied by time points.
+- `Δω`: The frequency increment.
+- `A`: Vector of amplitudes.
+- `name`: A symbol representing the name of the process.
+- `ϕnames`: A vector of symbols representing the names of the random phase angles.
 
+# Example
 ```julia
-    SpectralRepresentation(psd, time, name)  # `islog` = true
+psd = CloughPenzien(w, S_0, ω_f, ζ_f, ω_g, ζ_g)
+time = 0:0.1:10
+name = :process1
+sr = SpectralRepresentation(psd, time, name)
 ```
 
 """
