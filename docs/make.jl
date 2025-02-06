@@ -7,7 +7,8 @@ format = if !isempty(ARGS) && ARGS[1] == "vite"
     using DocumenterVitepress
 
     MarkdownVitepress(;
-        repo="github.com/FriesischScott/UncertaintyQuantification.jl",
+        repo="https://github.com/FriesischScott/UncertaintyQuantification.jl",
+        deploy_url="https://friesischscott.github.io/UncertaintyQuantification.jl",
         devbranch="master",
         devurl="dev",
     )
