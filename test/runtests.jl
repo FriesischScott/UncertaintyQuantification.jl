@@ -9,7 +9,7 @@ using StatsBase: fit, Histogram, corkendall
 using Test
 using UncertaintyQuantification
 
-include("inputs/empericaldistribution.jl")
+include("inputs/empiricaldistribution.jl")
 include("inputs/parameter.jl")
 include("inputs/jointdistribution.jl")
 include("inputs/imprecise/interval.jl")
