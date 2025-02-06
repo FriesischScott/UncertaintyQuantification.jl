@@ -16,7 +16,7 @@ end
 models = [gm_model]
 inputs = [gm, capacity]
 
-mc = MonteCarlo(10^4)
+mc = MonteCarlo(10^6)
 
 @time mc_pf, mc_std, mc_samples = probability_of_failure(models, limitstate, inputs, mc)
 println("Monte Carlo probability of failure $mc_pf ($(size(mc_samples, 1)) model evaluations)")
