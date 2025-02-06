@@ -14,6 +14,7 @@ using LinearAlgebra
 using MeshAdaptiveDirectSearch
 using Monomials
 using Mustache
+using Optim
 using Primes
 using QuasiMonteCarlo
 using Random
@@ -53,12 +54,25 @@ Subtypes are:
 - [`TransitionalMarkovChainMonteCarlo`](@ref)
 """
 abstract type AbstractBayesianMethod end
+
+"""
+    AbstractBayesianPointEstimate
+
+Subtypes are used to dispatch to the differenct point estimation methods in [`bayesianupdating`](@ref).
+
+Subtypes are:
+
+- [`MaximumAPosterioriBayesian`](@ref)
+- [`MaximumLikelihoodBayesian`](@ref)
+"""
+abstract type AbstractBayesianPointEstimate end
 abstract type AbstractDesignOfExperiments end
 
 abstract type AbstractHPCScheduler end
 
 # Types
 export AbstractBayesianMethod
+export AbstractBayesianPointEstimate
 export AbstractDesignOfExperiments
 export AbstractMonteCarlo
 export AbstractPowerSpectralDensity
@@ -105,6 +119,8 @@ export LeastSquares
 export LegendreBasis
 export LineSampling
 export SingleComponentMetropolisHastings
+export MaximumAPosterioriBayesian
+export MaximumLikelihoodBayesian
 export Model
 export MonteCarlo
 export ParallelModel
@@ -186,6 +202,7 @@ include("hpc/slurm.jl")
 include("models/pce/pcebases.jl")
 include("models/pce/polynomialchaosexpansion.jl")
 
+include("modelupdating/bayesianMAP.jl")
 include("modelupdating/bayesianupdating.jl")
 
 include("sensitivity/finitedifferences.jl")
