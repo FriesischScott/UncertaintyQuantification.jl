@@ -9,7 +9,7 @@ format = if !isempty(ARGS) && ARGS[1] == "vite"
     MarkdownVitepress(;
         repo="https://github.com/FriesischScott/UncertaintyQuantification.jl",
         devbranch="master",
-        devurl="dev"
+        devurl="dev",
     )
 else
     Documenter.HTML(; prettyurls=get(ENV, "CI", nothing) == "true")
