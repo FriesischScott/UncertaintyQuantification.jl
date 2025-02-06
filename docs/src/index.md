@@ -1,5 +1,20 @@
 # UncertaintyQuantification.jl
 
+```@raw html
+---
+authors:
+  - name: Jasper Behrensdorf
+    platform: github
+    link: https://github.com/FriesischScott
+  - name: Ander Gray
+    platform: github
+    link: https://github.com/AnderGray
+
+---
+
+<Authors />
+```
+
 A Julia package for uncertainty quantification. Current functionality includes:
 
 * Simulation-based reliability analysis
@@ -39,11 +54,6 @@ julia> using UncertaintyQuantification
 ```
 
 ---
-
-## Authors
-
-* Jasper Behrensdorf, Institute for Risk and Reliability, Leibniz University Hannover
-* Ander Gray, Institute for Risk and Uncertainty, University of Liverpool
 
 ### Related packages
 
