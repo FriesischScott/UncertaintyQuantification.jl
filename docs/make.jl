@@ -25,6 +25,7 @@ bib = CitationBibliography(joinpath(@__DIR__, "references.bib"))
 
 makedocs(;
     modules=[UncertaintyQuantification],
+    clean = true,
     plugins=[bib],
     format=format,
     sitename="UncertaintyQuantification.jl",
@@ -57,7 +58,8 @@ makedocs(;
             "PolyharmonicSpline" => "api/polyharmonicspline.md",
             "Simulations" => "api/simulations.md",
             "Bayesian Updating" => "api/bayesianupdating.md",
-            "Stochastic Dynamics" => "api/dynamics.md",
+            "Power Spectral Density Functions" => "api/psd.md",
+            "Stochastic Processes (Spectral Representation)" => "api/spectralrepresentation.md",
             "SlurmInterface" => "api/slurm.md",
         ],
         "References" => "references.md",

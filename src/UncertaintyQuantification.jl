@@ -61,6 +61,8 @@ abstract type AbstractHPCScheduler end
 export AbstractBayesianMethod
 export AbstractDesignOfExperiments
 export AbstractMonteCarlo
+export AbstractPowerSpectralDensity
+export AbstractStochasticProcess
 export AbstractQuasiMonteCarlo
 export AbstractSimulation
 export Copula
