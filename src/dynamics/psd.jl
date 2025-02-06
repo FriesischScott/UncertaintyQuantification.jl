@@ -34,7 +34,7 @@ S_0 = 1.0
 ζ_f = 0.05
 ω_g = 3.0
 ζ_g = 0.1
-cp = CloughPenzien(w, S_0, ω_f, ζ_f, ω_g, ζ_g)
+cp_psd = CloughPenzien(w, S_0, ω_f, ζ_f, ω_g, ζ_g)
 ```
 """
 function CloughPenzien(
@@ -91,8 +91,8 @@ function KanaiTajimi(
     return KanaiTajimi(ω, S_0, ω_0, ζ, p)
 end
 
-function evaluate(cp::CloughPenzien)
-    return cp.p
+function evaluate(cp_psd::CloughPenzien)
+    return cp_psd.p
 end
 
 function evaluate(kt::KanaiTajimi)

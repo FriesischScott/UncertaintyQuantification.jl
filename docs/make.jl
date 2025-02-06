@@ -26,7 +26,6 @@ bib = CitationBibliography(joinpath(@__DIR__, "references.bib"))
 
 makedocs(;
     modules=[UncertaintyQuantification],
-    clean = true,
     plugins=[bib],
     format=format,
     sitename="UncertaintyQuantification.jl",

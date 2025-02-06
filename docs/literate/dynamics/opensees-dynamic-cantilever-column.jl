@@ -1,7 +1,7 @@
 #===
-# Dynamics
+# Stochastic Dynamics Example
 
-## OpenSees "earthquake" signal on a cantilever column - structural dynamic analysis
+## OpenSees earthquake signal on a cantilever column
 
 In this example we will perform the reliability analysis of a multi element cantilever column subjected to artificial stochastic ground motions
 using the open-source finite element software [OpenSees](https://opensees.berkeley.edu/).
@@ -13,10 +13,7 @@ For parallel execution, see the example in [OpenSees supported beam parallel](@r
 ===#
 
 #md using UncertaintyQuantification # hide
-
 #jl using UncertaintyQuantification
-#jl using DelimitedFiles
-#jl using Plots
 
 # Time discretization for the signal
 Δt = Parameter(0.02, :dt)

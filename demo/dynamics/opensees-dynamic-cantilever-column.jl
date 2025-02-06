@@ -1,6 +1,4 @@
 using UncertaintyQuantification
-using DelimitedFiles
-using Plots
 
 Δt = Parameter(0.02, :dt)
 t = collect(0:Δt.value:10)
