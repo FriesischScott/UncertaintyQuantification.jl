@@ -1,22 +1,29 @@
+```@raw html
 ---
 authors:
-  - name: Jane Smith
-  - name: John Doe
-    platform: bluesky
-  - name: Lazaro
-    avatar: https://avatars.githubusercontent.com/u/19525261?v=4
+  - name: Jasper Behrensdorf
     platform: github
-    link: https://github.com/lazarusA
+    link: https://github.com/FriesischScott
+  - name: Ander Gray
+    platform: github
+    link: https://github.com/AnderGray
 ---
+```
+
 # UncertaintyQuantification.jl
 
-```@raw html
+A Julia package for uncertainty quantification.
+
 ## Authors
+
+```@raw html
 
 <Authors />
 ```
 
-A Julia package for uncertainty quantification. Current functionality includes:
+## Features
+
+Current functionality includes:
 
 * Simulation-based reliability analysis
   * Monte Carlo simulation
