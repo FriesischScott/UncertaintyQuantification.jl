@@ -1,6 +1,3 @@
-# UncertaintyQuantification.jl
-
-```@raw html
 ---
 authors:
   - name: Jane Smith
@@ -10,13 +7,13 @@ authors:
     avatar: https://avatars.githubusercontent.com/u/19525261?v=4
     platform: github
     link: https://github.com/lazarusA
-
 ---
+# UncertaintyQuantification.jl
 
-## Badges via the frontmatter
+```@raw html
+## Authors
 
 <Authors />
-
 ```
 
 A Julia package for uncertainty quantification. Current functionality includes:
