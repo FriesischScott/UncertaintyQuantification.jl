@@ -3,20 +3,16 @@
 ```@raw html
 ---
 authors:
-  - name: Jane Smith
-  - name: John Doe
-    platform: bluesky
-  - name: Lazaro
-    avatar: https://avatars.githubusercontent.com/u/19525261?v=4
+  - name: Jasper Behrensdorf
     platform: github
-    link: https://github.com/lazarusA
+    link: https://github.com/FriesischScott
+  - name: Ander Gray
+    platform: github
+    link: https://github.com/AnderGray
 
 ---
 
-## Authors
-
 <Authors />
-
 ```
 
 A Julia package for uncertainty quantification. Current functionality includes:
