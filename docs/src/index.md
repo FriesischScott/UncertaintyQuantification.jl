@@ -1,3 +1,6 @@
+# UncertaintyQuantification.jl
+
+```@raw html
 ---
 authors:
   - name: Jasper Behrensdorf
@@ -6,11 +9,8 @@ authors:
   - name: Ander Gray
     platform: github
     link: https://github.com/AnderGray
+
 ---
-
-# UncertaintyQuantification.jl
-
-```@raw html
 
 <Authors />
 ```
