@@ -73,4 +73,4 @@ Pkg.test(; test_args=["HPC", "YOUR_ACCOUNT", "YOUR_PARTITION"])
 
 ### Usage
 
-See [examples/HPC](../examples/hpc.md) for a detailed example.
+See [High Performance Computing](@ref) for a detailed example.
