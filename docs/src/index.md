@@ -52,7 +52,7 @@ Current functionality includes:
 * Simulation-based reliability analysis
   * Monte Carlo simulation
   * Quasi Monte Carlo simulation (Sobol, Halton)
-  * Line Sampling
+  * (Advanced) Line Sampling
   * Subset Simulation
 * Sensitivity analysis
   * Gradients
@@ -60,6 +60,8 @@ Current functionality includes:
 * Metamodeling
   * Polyharmonic splines
   * Response Surface
+  * Polynomial Chaos Expansion
+* Bayesian Updating
 * Third-party solvers
   * Connect to any solver by injecting random samples into source files
   * HPC interfacing with slurm
