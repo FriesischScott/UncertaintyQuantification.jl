@@ -30,7 +30,7 @@ authors:
     link: https://github.com/andreaperin
   - name: Thomas Potthast
     platform: github
-    name: https://github.com/potthastT
+    link: https://github.com/potthastT
 ---
 ```
 
