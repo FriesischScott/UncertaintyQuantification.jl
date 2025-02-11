@@ -33,4 +33,4 @@ rmprocs(workers()) # release the local workers
 It is important to note, that the [`ParallelModel`](@ref) requires some overhead to distribute the function calls to the workers. Therefore it performs significantly slower than the standard [`Model`](@ref) with vectorized operations for a simple function as in this example. The method of executing a model in parallel presented above also applies to the `ExternalModel`.
 
 !!! note
-    For heavier external models the use of parallel compute clusters through the [`SlurmInterface`](@ref) is recommended. See [High Performance Computing](hpc.md).
+    For heavier external models the use of parallel compute clusters through the [`SlurmInterface`](@ref) is recommended. See [High Performance Computing](@ref).

@@ -1,7 +1,12 @@
 function distribution_parameters(mean::Real, std::Real, _::Type{Distributions.Beta})
-    α = ((1 - mean) / std^2 - (1 / mean)) * mean^2
-    β = α * ((1 / mean) - 1)
-
+    if 0 < mean < 1
+        α = ((1 - mean) / std^2 - (1 / mean)) * mean^2
+        β = α * ((1 / mean) - 1)
+    else
+        error(
+            "provided mean value $mean is not compatible with Beta distribution support: (0; 1)",
+        )
+    end
     return α, β
 end
 

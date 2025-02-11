@@ -251,4 +251,5 @@
         @test mean(mc_samples.x) ≈ analytic_mean rtol = 0.1
         @test std(mc_samples.x) ≈ analytic_std rtol = 0.1
     end
+    
 end

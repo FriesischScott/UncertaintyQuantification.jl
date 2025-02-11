@@ -90,12 +90,14 @@ function likelihood(df)
     return log.(exp.([-0.5 * sum(((Y .- λ[n, :]') ./ σ) .^ 2) for n in axes(λ, 1)]))
 end
 
-# We will solve this problem using the TMCMC algorithm. Therefore, the next step is to define the [`RandomVariable`](@ref) vector of the prior, followed by the [`TransitionalMarkovChainMonteCarlo`](@ref) object.
+# We will solve this problem using the TMCMC algorithm, as well as multi-objective maximum a priori (MAP) and maximum likelihood (ML) estimates. Therefore, the next step is to define the [`RandomVariable`](@ref) vector of the prior, followed by the objects for the estimaters ([`TransitionalMarkovChainMonteCarlo`](@ref)). We also have to choose number of samples and burn-in for TMCMC.
 
 prior = RandomVariable.(Uniform(0.01, 4), [:θ1, :θ2])
 
 n = 1000
 burnin = 0
+
+x0 = [[1., 1.],[3.,.5],[2.,2.]]
 
 tmcmc = TransitionalMarkovChainMonteCarlo(prior, n, burnin)
 

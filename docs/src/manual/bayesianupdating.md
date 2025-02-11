@@ -220,6 +220,70 @@ tmcmc = TransitionalMarkovChainMonteCarlo(RandomVariable.(Uniform(-2,2), [:x, :y
 tmcmc_samples, S = bayesianupdating(loglikelihood, tmcmc)
 ```
 
+## Maximum likelihood and maximum a posteriori estimates
+
+Instead of using sample-based methods it is also possible to calculate the local maxima of likelihood ($P(Y|\theta)$) or posterior ($P(\theta|Y)$). While this does not directly give an esimate of the full parameter distribution, it allows for the estimation of the most probable parameter values. Calculating the maximum (or maxima, depending on the use case) is referred to as maximum likelihood estimate (MLE), using the full (unnormalized) posterior is referred to as maximum a posteriori (MAP) estimate. Note that technically MLE is not a Bayesian estimate as the prior distribution is ignored. More formally,
+
+```math
+\theta_{\text{MLE}} = \underset{\theta}{\arg \max} P(Y|\theta)
+```
+
+```math
+\theta_{\text{MAP}} = \underset{\theta}{\arg \max} P(Y|\theta) P(\theta)
+```
+
+Generally, the MAP estimate can be considered as regularized version of the MLE, since the prior distribution is used to constrain the estimates. Both estimates are found with optimization schemes and thus come with the usual drawbacks, including convergence to local maxima. Both methods are therefore sensitive to initial conditions. Further note that both estimates do not calculate the mean but the mode of the respective distributions, i.e. for distributions that have a high variance these estimates do not provide much information about the parmater distribution.
+
+The implementation in **UncertaintyQuantification.jl** is analgous to the sampling methods. A `MaximumAPosterioriBayesian` or a `MaximumLikelihoodBayesian` object is created that takes the important settings as input. These are the prior, the optimization method to use and the starting points for optimization. For convenience, multiple points can be specified here. The optimization method is given as a string such that the `Optim.jl` package does not need to be included in the script. Finally, the `bayesianupdate`-function can be used again with the known syntax, i.e. a likelihood, `UQ-Model`-array and the desired object for the method are given and a `DataFrame` is returned. The log-densities are given in the `DataFrame` as the variable `:maxval`. Below is an example for the implementation.
+
+```@example pointestimates
+using UncertaintyQuantification # hide
+using Plots # hide
+using DataFrames # hide
+
+μ = 0
+σ = .2
+
+prior = RandomVariable.(Normal(μ,σ), [:x, :y])
+
+N1 = MvNormal([-0.5, -0.5], 0.1)
+N2 = MvNormal([0.5, 0.5], 0.1)
+
+loglikelihood =
+    df -> log.([0.5 * pdf(N1, collect(x)) + 0.5 * pdf(N2, collect(x)) for x in eachrow(df)])
+
+priorFunction =
+    df -> prod.([pdf(Normal(μ, σ), collect(x)) for x in eachrow(df)])
+
+x0 = [[.1, .1],[-.1,-.1]]
+
+MAP = MaximumAPosterioriBayesian(prior, "LBFGS", x0)
+MLE = MaximumLikelihoodBayesian(prior, "LBFGS", x0)
+
+mapestimate = bayesianupdating(loglikelihood, UQModel[], MAP)
+mlestimate = bayesianupdating(loglikelihood, UQModel[], MLE)
+
+xs = range(-2, 2, length = 100); ys = range(-2, 2, length = 100) # hide
+sample_points = reduce(vcat,[[x y] for x in xs, y in ys][:]) # hide
+df_points = DataFrame(sample_points, :auto) # hide
+likelihood_eval = exp.(loglikelihood(df_points)) # hide
+prior_eval = priorFunction(df_points) # hide
+contour(xs, ys, likelihood_eval, lim = [-2,2], c = :red) # hide
+contour!(xs, ys, prior_eval, lim = [-2,2], c = :blue) # hide
+contour!(xs, ys, likelihood_eval.*prior_eval/.05, lim = [-2,2], c = :black)
+scatter!(mapestimate.x, mapestimate.y; lim=[-2, 2], label = "MAP estimate", c = :black)
+scatter!(mlestimate.x, mlestimate.y; lim=[-2,2], label = "ML estimate", c = :red)
+plot!([0,0],[0,0],c = :red, label = "Likelihood")
+plot!([0,0],[0,0],c = :blue, label = "Prior")
+plot!([0,0],[0,0],c = :black, label = "Posterior")
+
+savefig("point-estimates.svg"); nothing # hide
+```
+
+The figure shows the (bimodal) likelihood in red and the prior distribution in blue. The difference in MAP and MLE is clearly visible, as the MLE conincides directly with the maxima of the likelihood, while MAP is shifted in the direction of the prior mean.
+
+![Point estimates](point-estimates.svg)
+
 ## Bayesian calibration of computer simulations
 
 *UncertaintyQuantification.jl* allows for complex computer models to be included in the Bayesian updating procedure, if for example one wishes to infer unknown model parameters from experimental data of model outputs. Several models can be evaluated in order to compute the likelihood function, by passing a vector of [`UQModel`](@ref)s to the [`bayesianupdating`](@ref) method. These will be executed before the likelihood is evaluated and models outputs will be available in the `DataFrame` inside the likelihood function. There is no restriction on the type of [`UQModel`](@ref) used. For example, it is possible to use an `ExternalModel` and call an external solver.
