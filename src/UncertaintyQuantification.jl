@@ -106,6 +106,7 @@ export LeastSquares
 export LegendreBasis
 export LineSampling
 export SingleComponentMetropolisHastings
+export MLE
 export Model
 export MonteCarlo
 export ParallelModel
@@ -120,6 +121,8 @@ export RandomSlicing
 export ResponseSurface
 export SobolSampling
 export Solver
+export StandardizeInput
+export StandardizeOutput
 export SubSetInfinity
 export SubSetInfinityAdaptive
 export SubSetSimulation
@@ -152,6 +155,7 @@ export to_copula_space
 export to_physical_space!
 export to_standard_normal_space
 export to_standard_normal_space!
+export with_gaussian_noise
 
 include("inputs/empiricaldistribution.jl")
 include("inputs/inputs.jl")
@@ -173,7 +177,9 @@ include("models/imprecise/propagation.jl")
 include("models/polyharmonicspline.jl")
 include("models/responsesurface.jl")
 include("models//slicingmodel.jl")
-include("models/gp/datamanipulation.jl")
+include("models/gp/standardization.jl")
+include("models/gp/parameterization.jl")
+include("models/gp/hyperparametertuning.jl")
 include("models/gp/gaussianprocess.jl")
 
 include("hpc/slurm.jl")
