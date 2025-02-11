@@ -2,11 +2,8 @@ abstract type AbstractHyperparameterOptimization end
 
 struct NoOptimization <: AbstractHyperparameterOptimization end
 
-function optimize_hyperparameters(gp::Union{AbstractGPs.GP, NoisyGP}, x, y, mle::NoOptimization) #!TYPES
-    # This is completely unnecessary, should maybe write a GP method for NoOpt
-    model, θ₀ = parameterize(gp)
-    flatparams, unflatten = ParameterHandling.flatten(θ₀)
-    return model(unflatten(flatparams)), unflatten(flatparams)
+function optimize_hyperparameters(gp::Union{AbstractGPs.GP, NoisyGP}, x, y, opt::NoOptimization) #!TYPES
+    return gp
 end
 
 struct MLE <: AbstractHyperparameterOptimization
@@ -44,5 +41,5 @@ function optimize_hyperparameters(gp::Union{AbstractGPs.GP, NoisyGP}, x, y, mle:
     end
 
     result = optimize(Optim.only_fg!(fg!), flatparams, mle.optimizer, mle.options; inplace=false)
-    return model(unflatten(result.minimizer)), unflatten(result.minimizer)
+    return model(unflatten(result.minimizer))
 end
