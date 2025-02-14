@@ -2,7 +2,7 @@
 
 model BasicBuilder -ndm 2 -ndf 2
 
-# Young's Modulus is enjected
+# Young's Modulus is injected
 nDMaterial ElasticIsotropic 1 {{{ :E }}} 0.25 3.0
 
 set Quad quad

@@ -75,6 +75,8 @@ export AbstractBayesianMethod
 export AbstractBayesianPointEstimate
 export AbstractDesignOfExperiments
 export AbstractMonteCarlo
+export AbstractPowerSpectralDensity
+export AbstractStochasticProcess
 export AbstractQuasiMonteCarlo
 export AbstractSimulation
 export Copula
@@ -92,7 +94,9 @@ export BackwardFiniteDifferences
 export BoxBehnken
 export CentralComposite
 export CentralFiniteDifferences
+export CloughPenzien
 export DoubleLoop
+export EmpiricalPSD
 export ExternalModel
 export SlurmInterface
 export Extractor
@@ -108,6 +112,7 @@ export HermiteBasis
 export ImportanceSampling
 export Interval
 export JointDistribution
+export KanaiTajimi
 export LatinHypercubeSampling
 export LatticeRuleSampling
 export LeastSquares
@@ -128,8 +133,11 @@ export ProbabilityBox
 export RandomVariable
 export RandomSlicing
 export ResponseSurface
+export ShinozukaDeodatis
 export SobolSampling
 export Solver
+export SpectralRepresentation
+export StochasticProcessModel
 export SubSetInfinity
 export SubSetInfinityAdaptive
 export SubSetSimulation
@@ -149,6 +157,7 @@ export gradient
 export gradient_in_standard_normal_space
 export mean
 export multivariate_indices
+export periodogram
 export polynomialchaos
 export probability_of_failure
 export propagate_intervals!
@@ -174,6 +183,10 @@ include("inputs/randomvariables/randomvariable.jl")
 include("inputs/randomvariables/distributionparameters.jl")
 include("inputs/copulas/gaussian.jl")
 include("inputs/jointdistribution.jl")
+
+include("dynamics/psd.jl")
+include("inputs/stochasticprocesses/spectralrepresentation.jl")
+include("inputs/stochasticprocesses/models.jl")
 
 include("models/external/solver.jl")
 include("models/external/extractor.jl")
@@ -206,6 +219,7 @@ include("reliability/probabilityoffailure.jl")
 include("reliability/probabilityoffailure_imprecise.jl")
 include("sensitivity/sobolindices.jl")
 
+include("util/fourier-transform.jl")
 include("util/wrap.jl")
 include("util/imprecise.jl")
 

@@ -2,7 +2,7 @@
 
 In the context of structural engineering, engineering design, and risk assessment, the term reliability is used to describe the ability of system to perform its intended function under varying conditions over time.
 
-There, the state of a system is identified by its *performance function* ``g(\boldsymbol{x})`` such that:
+There, the state of a system is identified by its *performance function* (also sometimes refered to as limit state function) ``g(\boldsymbol{x})`` such that:
 
 ```math
 g(\boldsymbol{x}) =

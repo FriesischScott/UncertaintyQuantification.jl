@@ -9,6 +9,8 @@ using StatsBase: fit, Histogram, corkendall
 using Test
 using UncertaintyQuantification
 
+include("dynamics/psd.jl")
+
 include("inputs/empericaldistribution.jl")
 include("inputs/parameter.jl")
 include("inputs/jointdistribution.jl")
@@ -19,6 +21,8 @@ include("inputs/randomvariables/distributionparameters.jl")
 include("inputs/jointdistribution.jl");
 include("inputs/inputs.jl")
 include("inputs/copulas/gaussian.jl")
+include("inputs/stochasticprocesses/spectralrepresentation.jl")
+include("inputs/stochasticprocesses/models.jl")
 
 include("models/external/solvers.jl")
 include("models/external/externalmodel.jl")
@@ -42,6 +46,8 @@ include("sensitivity/sobolindices.jl")
 include("simulations/doe.jl")
 include("simulations/montecarlo.jl")
 include("simulations/subset.jl")
+
+include("util/fourier-transform.jl")
 
 if Sys.islinux()
     HPC = false
