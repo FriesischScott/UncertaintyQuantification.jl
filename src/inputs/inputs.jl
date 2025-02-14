@@ -27,7 +27,7 @@ function names(inputs::Vector{<:UQInput})
     _names = Symbol[]
 
     for i in inputs
-        if i isa JointDistribution
+        if i isa JointDistribution || i isa SpectralRepresentation
             append!(_names, names(i))
         else
             push!(_names, getproperty(i, :name))

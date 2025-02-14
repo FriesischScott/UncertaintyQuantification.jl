@@ -65,6 +65,9 @@ Current functionality includes:
 * Third-party solvers
   * Connect to any solver by injecting random samples into source files
   * HPC interfacing with slurm
+* Stochastic Dynamics
+  * Power Spectral Density Estimation
+  * Stochastic Process Generation
 
 ---
 
