@@ -63,18 +63,6 @@ function to_physical_space!(rv::RandomVariable{Normal}, x::DataFrame)
     end
 end
 
-function to_standard_normal_space!(rv::RandomVariable{EmpiricalDistribution}, x::DataFrame)
-    # call vectorized cdf for empirical distributions
-    x[!, rv.name] = quantile.(Normal(), cdf(rv.dist, x[:, rv.name]))
-    return nothing
-end
-
-function to_physical_space!(rv::RandomVariable{EmpiricalDistribution}, x::DataFrame)
-    # call vectorized quantile for empirical distributions
-    x[!, rv.name] = quantile(rv.dist, cdf.(Normal(), x[:, rv.name]))
-    return nothing
-end
-
 dimensions(rv::RandomVariable) = 1
 
 logpdf(rv::RandomVariable, x::Real) = logpdf(rv.dist, x)

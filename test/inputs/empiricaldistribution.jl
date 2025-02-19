@@ -49,7 +49,7 @@
     @test mean(ed) ≈ mean(data)
     @test var(ed) ≈ var(data)
 
-    samples = rand(ed, 100)
+    samples = rand(ed, 10000)
 
     @test all(insupport.(ed, samples))
     @test all(pdf.(ed, samples) .>= 0)
