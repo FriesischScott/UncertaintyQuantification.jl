@@ -12,8 +12,7 @@ Alternative constructors
 See also [`MaximumLikelihoodBayesian`](@ref), [`bayesianupdating `](@ref),  [`TransitionalMarkovChainMonteCarlo`](@ref).
 """
 struct MaximumAPosterioriBayesian <: AbstractBayesianPointEstimate
-
-    prior::Vector{RandomVariable}
+    prior::Vector{<:RandomVariable}
     optimmethod::String
     x0::Vector{Vector{Float64}}
     islog::Bool
@@ -21,23 +20,30 @@ struct MaximumAPosterioriBayesian <: AbstractBayesianPointEstimate
     upperbounds::Vector{Float64}
 
     function MaximumAPosterioriBayesian(
-        prior::Vector{RandomVariable},
+        prior::Vector{<:RandomVariable},
         optimmethod::String,
         x0::Vector{Float64};
         islog::Bool=true,
-        lowerbounds::Vector{Float64} = [-Inf],
-        upperbounds::Vector{Float64} = [Inf]
+        lowerbounds::Vector{Float64}=[-Inf],
+        upperbounds::Vector{Float64}=[Inf],
     )
-        return MaximumAPosterioriBayesian(prior, optimmethod, [x0], islog=islog, lowerbounds=lowerbounds, upperbounds=upperbounds)
+        return MaximumAPosterioriBayesian(
+            prior,
+            optimmethod,
+            [x0];
+            islog=islog,
+            lowerbounds=lowerbounds,
+            upperbounds=upperbounds,
+        )
     end
 
     function MaximumAPosterioriBayesian(
-        prior::Vector{RandomVariable},
+        prior::Vector{<:RandomVariable},
         optimmethod::String,
         x0::Vector{Vector{Float64}};
         islog::Bool=true,
-        lowerbounds::Vector{Float64} = [-Inf],
-        upperbounds::Vector{Float64} = [Inf]
+        lowerbounds::Vector{Float64}=[-Inf],
+        upperbounds::Vector{Float64}=[Inf],
     )
         return new(prior, optimmethod, x0, islog, lowerbounds, upperbounds)
     end
@@ -66,7 +72,7 @@ struct MaximumLikelihoodBayesian <: AbstractBayesianPointEstimate
 
     ## !TODO Currently the prior is used to get information about model parameters, maybe there is a better way. In MLE the prior is not needed
 
-    prior::Vector{RandomVariable}
+    prior::Vector{RandomVariable{T}} where {T<:UnivariateDistribution}
     optimmethod::String
     x0::Vector{Vector{Float64}}
     islog::Bool
@@ -74,27 +80,33 @@ struct MaximumLikelihoodBayesian <: AbstractBayesianPointEstimate
     upperbounds::Vector{Float64}
 
     function MaximumLikelihoodBayesian(
-        prior::Vector{RandomVariable},
+        prior::Vector{RandomVariable{T}},
         optimmethod::String,
         x0::Vector{Float64};
         islog::Bool=true,
-        lowerbounds::Vector{Float64} = [-Inf],
-        upperbounds::Vector{Float64} = [Inf]
-    )
-        return MaximumLikelihoodBayesian(prior, optimmethod, [x0], islog=islog, lowerbounds=lowerbounds, upperbounds=upperbounds)
+        lowerbounds::Vector{Float64}=[-Inf],
+        upperbounds::Vector{Float64}=[Inf],
+    ) where {T<:UnivariateDistribution}
+        return MaximumLikelihoodBayesian(
+            prior,
+            optimmethod,
+            [x0];
+            islog=islog,
+            lowerbounds=lowerbounds,
+            upperbounds=upperbounds,
+        )
     end
 
     function MaximumLikelihoodBayesian(
-        prior::Vector{RandomVariable},
+        prior::Vector{RandomVariable{T}},
         optimmethod::String,
         x0::Vector{Vector{Float64}};
         islog::Bool=true,
-        lowerbounds::Vector{Float64} = [-Inf],
-        upperbounds::Vector{Float64} = [Inf]
-    )
+        lowerbounds::Vector{Float64}=[-Inf],
+        upperbounds::Vector{Float64}=[Inf],
+    ) where {T<:UnivariateDistribution}
         return new(prior, optimmethod, x0, islog, lowerbounds, upperbounds)
     end
-
 end
 
 """
@@ -122,35 +134,51 @@ If a model evaluation is required to evaluate the likelihood, a vector of `UQMod
 
 For a general overview of the function, see [`bayesianupdating `](@ref).
 """
-function bayesianupdating(likelihood::Function, models::Vector{<:UQModel}, pointestimate::AbstractBayesianPointEstimate; prior::Union{Function,Nothing} = nothing)
-
+function bayesianupdating(
+    likelihood::Function,
+    models::Vector{<:UQModel},
+    pointestimate::AbstractBayesianPointEstimate;
+    prior::Union{Function,Nothing}=nothing,
+)
     optimTarget = setupoptimizationproblem(prior, likelihood, models, pointestimate)
     result = optimize_pointestimate(optimTarget, pointestimate)
 
-    x = vcat(map(x -> push!(x.minimizer,-x.minimum),result))
+    x = vcat(map(x -> push!(x.minimizer, -x.minimum), result))
 
     names = collect(p.name for p in pointestimate.prior)
     names = push!(names, :maxval)
 
     df = DataFrame([name => Float64[] for name in names])
 
-    foreach(row -> push!(df,row), x)
+    foreach(row -> push!(df, row), x)
 
     return df
-
 end
 
 # function to set up the optimization problem for MAP estimate and to generate a prior function if none is given.
-function setupoptimizationproblem(prior::Union{Function, Nothing}, likelihood::Function, models::Vector{<:UQModel}, mapestimate::MaximumAPosterioriBayesian)
+function setupoptimizationproblem(
+    prior::Union{Function,Nothing},
+    likelihood::Function,
+    models::Vector{<:UQModel},
+    mapestimate::MaximumAPosterioriBayesian,
+)
 
     # if no prior is given, generate prior function from mapestimate.prior
     if isnothing(prior)
         prior = if mapestimate.islog
             df -> vec(
-                sum(hcat(map(rv -> logpdf.(rv.dist, df[:, rv.name]), mapestimate.prior)...); dims=2),
+                sum(
+                    hcat(map(rv -> logpdf.(rv.dist, df[:, rv.name]), mapestimate.prior)...);
+                    dims=2,
+                ),
             )
         else
-            df -> vec(prod(hcat(map(rv -> pdf.(rv.dist, df[:, rv.name]), mapestimate.prior)...); dims=2))
+            df -> vec(
+                prod(
+                    hcat(map(rv -> pdf.(rv.dist, df[:, rv.name]), mapestimate.prior)...);
+                    dims=2,
+                ),
+            )
         end
     end
 
@@ -160,60 +188,73 @@ function setupoptimizationproblem(prior::Union{Function, Nothing}, likelihood::F
         df -> log.(prior(df)) .+ log.(likelihood(df))
     end
 
-    optimTarget = x -> begin 
+    optimTarget = x -> begin
         names = collect(p.name for p in mapestimate.prior)
-        input = DataFrame(x',names)
-    
+        input = DataFrame(x', names)
+
         if !isempty(models)
-            evaluate!(models,input)
+            evaluate!(models, input)
         end
-        target(input)[1]*-1
+        target(input)[1] * -1
     end
 
     return optimTarget
-
 end
 
 # function to generate the optimization problem for MLE. Note that the prior is not used, but for reasons of multiple dispatch it needs to be included
-function setupoptimizationproblem(prior::Union{Function,Nothing}, likelihood::Function, models::Vector{<:UQModel}, mlestimate::MaximumLikelihoodBayesian)
-
+function setupoptimizationproblem(
+    prior::Union{Function,Nothing},
+    likelihood::Function,
+    models::Vector{<:UQModel},
+    mlestimate::MaximumLikelihoodBayesian,
+)
     target = if mlestimate.islog
         df -> likelihood(df)
     else
         df -> log.(likelihood(df))
     end
 
-    optimTarget = x -> begin 
+    optimTarget = x -> begin
         names = collect(p.name for p in mlestimate.prior)
-        input = DataFrame(x',names)
-    
+        input = DataFrame(x', names)
+
         if !isempty(models)
-            evaluate!(models,input)
+            evaluate!(models, input)
         end
-        target(input)[1]*-1
+        target(input)[1] * -1
     end
 
     return optimTarget
-
 end
 
 # actual optimization procedure based on the point estimation method and given parameters
-function optimize_pointestimate(optimTarget::Function, pointestimate::AbstractBayesianPointEstimate)
-
+function optimize_pointestimate(
+    optimTarget::Function, pointestimate::AbstractBayesianPointEstimate
+)
     method = LBFGS()
 
-    if pointestimate.optimmethod=="LBFGS"
+    if pointestimate.optimmethod == "LBFGS"
         method = LBFGS()
-    elseif pointestimate.optimmethod=="NelderMead"
+    elseif pointestimate.optimmethod == "NelderMead"
         method = NelderMead()
     else
-        error("Optimization method $(pointestimate.optimmethod) is not supported in UncertaintyQuantification.jl. Currently supported methods are 'LBFGS' and 'NelderMead'.")
+        error(
+            "Optimization method $(pointestimate.optimmethod) is not supported in UncertaintyQuantification.jl. Currently supported methods are 'LBFGS' and 'NelderMead'.",
+        )
     end
 
     if all(isinf, pointestimate.upperbounds) && all(isinf, pointestimate.lowerbounds)
         optvalues = map(x -> optimize(optimTarget, x, method), pointestimate.x0)
     else
-        optvalues = map(x -> optimize(optimTarget, pointestimate.lowerbounds, pointestimate.upperbounds, x, Fminbox(method)),pointestimate.x0)
+        optvalues = map(
+            x -> optimize(
+                optimTarget,
+                pointestimate.lowerbounds,
+                pointestimate.upperbounds,
+                x,
+                Fminbox(method),
+            ),
+            pointestimate.x0,
+        )
     end
-
 end

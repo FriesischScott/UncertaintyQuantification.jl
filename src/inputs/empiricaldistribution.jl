@@ -26,8 +26,34 @@ function cdf(d::EmpiricalDistribution, x::Real)
     return quadgk(x -> pdf(d, x), d.lb, x)[1]
 end
 
+# vectorized cdf function exploiting the monotonicity
+function cdf(d::EmpiricalDistribution, x::AbstractVector{<:Real})
+    u = zeros(eltype(x), size(x))
+    idx = sortperm(x)
+    for (i, xᵢ) in enumerate(idx)
+        u[xᵢ] = if i == 1
+            quadgk(x -> pdf(d, x), d.lb, x[xᵢ])[1]
+        else
+            u[idx[i - 1]] + quadgk(x -> pdf(d, x), x[idx[i - 1]], x[xᵢ])[1]
+        end
+    end
+    return u
+end
+
 function quantile(d::EmpiricalDistribution, u::Real)
-    return find_zero(x -> cdf(d, x) - u, (d.lb, d.ub))
+    return find_zero(x -> cdf(d, x) - u, (d.lb, d.ub), Roots.A42())
+end
+
+# vectorized quantile function exploiting the monotonicity
+function quantile(d::EmpiricalDistribution, u::AbstractVector{<:Real})
+    x = zeros(eltype(u), size(u))
+    idx = sortperm(u)
+    for (i, uᵢ) in enumerate(idx)
+        x[uᵢ] = find_zero(
+            x -> cdf(d, x) - u[uᵢ], (i == 1 ? d.lb : x[idx[i - 1]], d.ub), Roots.A42()
+        )
+    end
+    return x
 end
 
 function pdf(d::EmpiricalDistribution, x::Real)
@@ -38,8 +64,11 @@ function logpdf(d::EmpiricalDistribution, x::Real)
     return log(pdf(d, x))
 end
 
-function rand(rng::AbstractRNG, d::EmpiricalDistribution)
-    return quantile(d, rand(rng))
+function Distributions._rand!(
+    rng::AbstractRNG, d::EmpiricalDistribution, A::AbstractArray{<:Real}
+)
+    A[:] = quantile(d, rand(rng, length(A)))
+    return A
 end
 
 insupport(d::EmpiricalDistribution, x::Real) = d.lb <= x <= d.ub
