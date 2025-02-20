@@ -149,14 +149,14 @@ Alternative constructors
 
 """
 struct TransitionalMarkovChainMonteCarlo <: AbstractBayesianMethod # Transitional Markov Chain Monte Carlo
-    prior::Vector{<:RandomVariable}
+    prior::Vector{RandomVariable}
     n::Int
     burnin::Int
     β::Real
     islog::Bool
 
     function TransitionalMarkovChainMonteCarlo(
-        prior::Vector{<:RandomVariable}, n::Int, burnin::Int, β::Real=0.2, islog::Bool=true
+        prior::Vector{RandomVariable}, n::Int, burnin::Int, β::Real=0.2, islog::Bool=true
     )
         if n <= 0
             error("Number of samples `n` must be positive")

@@ -40,8 +40,6 @@ struct EmpiricalDistribution <: ContinuousUnivariateDistribution
 
         unique_idx = findlast.(isequal.(unique(y)), [y])
 
-        @show y[unique_idx]
-
         q = Spline1D(y[unique_idx], x[unique_idx]; k=1, s=0.0)
 
         return new(data, lb, ub, h, c, q)

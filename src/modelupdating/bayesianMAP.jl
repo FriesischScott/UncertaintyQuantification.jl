@@ -12,7 +12,7 @@ Alternative constructors
 See also [`MaximumLikelihoodBayesian`](@ref), [`bayesianupdating `](@ref),  [`TransitionalMarkovChainMonteCarlo`](@ref).
 """
 struct MaximumAPosterioriBayesian <: AbstractBayesianPointEstimate
-    prior::Vector{<:RandomVariable}
+    prior::Vector{RandomVariable}
     optimmethod::String
     x0::Vector{Vector{Float64}}
     islog::Bool
@@ -20,7 +20,7 @@ struct MaximumAPosterioriBayesian <: AbstractBayesianPointEstimate
     upperbounds::Vector{Float64}
 
     function MaximumAPosterioriBayesian(
-        prior::Vector{<:RandomVariable},
+        prior::Vector{RandomVariable},
         optimmethod::String,
         x0::Vector{Float64};
         islog::Bool=true,
@@ -38,7 +38,7 @@ struct MaximumAPosterioriBayesian <: AbstractBayesianPointEstimate
     end
 
     function MaximumAPosterioriBayesian(
-        prior::Vector{<:RandomVariable},
+        prior::Vector{RandomVariable},
         optimmethod::String,
         x0::Vector{Vector{Float64}};
         islog::Bool=true,
@@ -72,7 +72,7 @@ struct MaximumLikelihoodBayesian <: AbstractBayesianPointEstimate
 
     ## !TODO Currently the prior is used to get information about model parameters, maybe there is a better way. In MLE the prior is not needed
 
-    prior::Vector{RandomVariable{T}} where {T<:UnivariateDistribution}
+    prior::Vector{RandomVariable}
     optimmethod::String
     x0::Vector{Vector{Float64}}
     islog::Bool
@@ -80,13 +80,13 @@ struct MaximumLikelihoodBayesian <: AbstractBayesianPointEstimate
     upperbounds::Vector{Float64}
 
     function MaximumLikelihoodBayesian(
-        prior::Vector{RandomVariable{T}},
+        prior::Vector{RandomVariable},
         optimmethod::String,
         x0::Vector{Float64};
         islog::Bool=true,
         lowerbounds::Vector{Float64}=[-Inf],
         upperbounds::Vector{Float64}=[Inf],
-    ) where {T<:UnivariateDistribution}
+    )
         return MaximumLikelihoodBayesian(
             prior,
             optimmethod,
@@ -98,13 +98,13 @@ struct MaximumLikelihoodBayesian <: AbstractBayesianPointEstimate
     end
 
     function MaximumLikelihoodBayesian(
-        prior::Vector{RandomVariable{T}},
+        prior::Vector{RandomVariable},
         optimmethod::String,
         x0::Vector{Vector{Float64}};
         islog::Bool=true,
         lowerbounds::Vector{Float64}=[-Inf],
         upperbounds::Vector{Float64}=[Inf],
-    ) where {T<:UnivariateDistribution}
+    )
         return new(prior, optimmethod, x0, islog, lowerbounds, upperbounds)
     end
 end
