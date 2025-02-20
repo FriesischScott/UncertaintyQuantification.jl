@@ -2,7 +2,7 @@
     EmpiricalDistribution(x::Vector{<:Real})
 
     Creates an empirical distribution from the data given in `x` using kernel density estimation.
-    The kernel used is Gaussian and the bandwith is obtained through the Sheather-Jones method.
+    The kernel used is Gaussian and the bandwidth is obtained through the Sheather-Jones method.
     The support is inferred from the kde using numerical root finding.
 """
 struct EmpiricalDistribution <: ContinuousUnivariateDistribution
