@@ -34,6 +34,7 @@ makedocs(;
         "Manual" => [
             "Introduction" => "manual/introduction.md",
             "Getting Started" => "manual/gettingstarted.md",
+            "Kernel Density Estimation" => "manual/kde.md",
             "Reliability Analysis" => "manual/reliability.md",
             "Metamodelling" => "manual/metamodels.md",
             "Simulations" => "manual/simulations.md",

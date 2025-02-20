@@ -9,16 +9,17 @@ using Distributed
 using FastGaussQuadrature
 using FiniteDifferences
 using Format
-using KernelDensity
 using LinearAlgebra
 using MeshAdaptiveDirectSearch
 using Monomials
 using Mustache
 using Optim
 using Primes
+using QuadGK
 using QuasiMonteCarlo
 using Random
 using Reexport
+using Roots
 using StatsBase
 
 @reexport using Distributions
@@ -222,5 +223,6 @@ include("sensitivity/sobolindices.jl")
 include("util/fourier-transform.jl")
 include("util/wrap.jl")
 include("util/imprecise.jl")
+include("util/kde.jl")
 
 end
