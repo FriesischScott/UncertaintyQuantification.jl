@@ -30,9 +30,9 @@ function SD(α::Real, x::AbstractVector)
     return (n * (n - 1))^(-1) * α^(-5) * val
 end
 
-"""
+#=
 S. J. Sheather, M. C. Jones, A Reliable Data-Based Bandwidth Selection Method for Kernel Density Estimation, Journal of the Royal Statistical Society: Series B (Methodological), Volume 53, Issue 3, July 1991, Pages 683–690, https://doi.org/10.1111/j.2517-6161.1991.tb01857.x
-"""
+=#
 function sheather_jones_bandwidth(x::AbstractVector)
     λ = iqr(x)
     n = length(x)
