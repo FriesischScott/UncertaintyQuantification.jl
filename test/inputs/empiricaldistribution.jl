@@ -46,8 +46,8 @@
 
     @test ed.h ≈ 1.0870436775976158
 
-    @test mean(ed) ≈ mean(data)
-    @test var(ed) ≈ var(data)
+    @test mean(ed) ≈ 34.95964999999962
+    @test var(ed) ≈ 120.7690583345086
 
     samples = rand(ed, 10000)
 

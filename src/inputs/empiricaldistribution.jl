@@ -70,5 +70,5 @@ end
 insupport(d::EmpiricalDistribution, x::Real) = d.lb <= x <= d.ub
 minimum(d::EmpiricalDistribution) = d.lb
 maximum(d::EmpiricalDistribution) = d.ub
-mean(d::EmpiricalDistribution) = mean(d.data)
-var(d::EmpiricalDistribution) = var(d.data)
+mean(d::EmpiricalDistribution) = quadgk(x -> x * pdf(d, x), d.lb, d.ub)[1]
+var(d::EmpiricalDistribution) = quadgk(x -> x^2 * pdf(d, x), d.lb, d.ub)[1] - mean(d)^2
