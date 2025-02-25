@@ -91,7 +91,6 @@ export UQModel
 
 # Structs
 export AdvancedLineSampling
-export AdaptiveMetropolisHastings
 export EmpiricalDistribution
 export ExperimentalDesign # Currently used for gps
 export BackwardFiniteDifferences
