@@ -122,7 +122,7 @@
             [g1, g2],
             df -> min.(df.g1, df.g2),
             inputs,
-            RadialBasedImportanceSampling(10^6, 2.953),
+            RadialBasedImportanceSampling(10^4, 2.953),
         )
 
         @test isapprox(pf, 2.75e-3; rtol=0.1)
@@ -132,7 +132,7 @@
             [g1, g2],
             df -> max.(df.g1, df.g2),
             inputs,
-            RadialBasedImportanceSampling(10^6, 3.434),
+            RadialBasedImportanceSampling(10^4, 3.434),
         )
 
         @test isapprox(pf, 1.23e-4; rtol=0.1)
