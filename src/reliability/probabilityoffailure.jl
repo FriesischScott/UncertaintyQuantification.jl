@@ -235,7 +235,7 @@ function probability_of_failure(
         error("You must use DoubleLoop or RandomSlicing with imprecise inputs.")
     end
 
-    if isempty(sim.β)
+    if iszero(sim.β)
         _, β, _, _ = probability_of_failure(models, performance, inputs, FORM())
         sim.β = β
     end
