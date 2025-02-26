@@ -54,6 +54,7 @@ makedocs(;
         "API" => [
             "Inputs" => "api/inputs.md",
             "Models" => "api/models.md",
+            "Reliability" => "api/reliability.md",
             "ResponseSurface" => "api/responsesurface.md",
             "PolyharmonicSpline" => "api/polyharmonicspline.md",
             "Simulations" => "api/simulations.md",

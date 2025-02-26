@@ -1,3 +1,13 @@
+"""
+    probability_of_failure_(models::Union{Vector{<:UQModel},UQModel},performance::Function),inputs::Union{Vector{<:UQInput},UQInput},sim::FORM)
+
+    Perform a reliability analysis with a standard Monte Carlo simulation.
+    Returns the estimated probability of failure `pf`, the standard deviation `σ` and the `DataFrame` containing the evaluated `samples`.
+    The simulation `sim` can be any instance of `AbstractMonteCarlo`.
+
+    ## Examples
+    pf, σ, samples = probability_of_failure(model, performance, inputs, sim)
+"""
 function probability_of_failure(
     models::Union{Vector{<:UQModel},UQModel},
     performance::Function,

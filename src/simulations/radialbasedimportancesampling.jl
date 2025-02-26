@@ -1,3 +1,13 @@
+"""
+  RadialBasedImportanceSampling(n::Integer, β::Real)
+
+  Used to perform radial-based importance sampling with `n` samples and reliability index `β`.
+  If no `β`` or `β=0.0` is passed, a [`FORM`](@ref) analysis will automatically be performed to estimate the reliability index.
+
+  # References
+
+[harbitzEfficientSamplingMethod1986](@cite)
+"""
 mutable struct RadialBasedImportanceSampling <: AbstractSimulation
     n::Integer
     β::Real
@@ -45,3 +55,5 @@ function _samples_outside_beta_sphere(β::Real, k::Integer, n::Integer)
 
     return x
 end
+
+Χ
