@@ -1,10 +1,18 @@
 """
-  RadialBasedImportanceSampling(n::Integer, β::Real)
+    RadialBasedImportanceSampling(n::Integer, β::Real)
 
-  Used to perform radial-based importance sampling with `n` samples and reliability index `β`.
-  If no `β`` or `β=0.0` is passed, a [`FORM`](@ref) analysis will automatically be performed to estimate the reliability index.
+Used to perform radial-based importance sampling with `n` samples and reliability index `β`.
+If no `β` or `β=0.0` is passed, a [`FORM`](@ref) analysis will automatically be performed to estimate the reliability index.
 
-  # References
+
+## Examples
+
+```jldoctest
+julia> rbis = RadialBasedImportanceSampling(1000)
+RadialBasedImportanceSampling(10000, 0.0)
+````
+
+## References
 
 [harbitzEfficientSamplingMethod1986](@cite)
 """
