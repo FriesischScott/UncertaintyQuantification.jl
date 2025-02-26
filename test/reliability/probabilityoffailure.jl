@@ -136,5 +136,16 @@
         )
 
         @test isapprox(pf, 1.23e-4; rtol=0.1)
+
+        # Englund and Rackwitz - A benchmark study on importance sampling techniques
+        # in structural reliability (1993)
+        # Example 1
+        u = RandomVariable.(Normal(), [:u1, :u2])
+
+        g = df -> 2^(1 / 2) .- (df.u1 .+ df.u2)
+
+        pf, _, _ = probability_of_failure(g, u, RadialBasedImportanceSampling(10000))
+
+        @test pf ≈ 0.159 rtol = 0.05
     end
 end
