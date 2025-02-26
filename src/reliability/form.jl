@@ -22,7 +22,7 @@ struct FORM <: AbstractSimulation
 end
 
 """
-    probability_of_failure_(models::Union{Vector{<:UQModel},UQModel},performance::Function),inputs::Union{Vector{<:UQInput},UQInput},sim::FORM)
+    probability_of_failure(models::Union{Vector{<:UQModel},UQModel},performance::Function),inputs::Union{Vector{<:UQInput},UQInput},sim::FORM)
 
     Perform a reliability analysis using the first order reliability method (FORM), see [`FORM`](@ref).
     Returns the estimated probability of failure `pf`, the reliability index `β` and the design point `dp`.
