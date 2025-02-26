@@ -55,5 +55,3 @@ function _samples_outside_beta_sphere(β::Real, k::Integer, n::Integer)
 
     return x
 end
-
-Χ
