@@ -132,7 +132,7 @@
             [g1, g2],
             df -> max.(df.g1, df.g2),
             inputs,
-            RadialBasedImportanceSampling(10^4, 3.434),
+            RadialBasedImportanceSampling(10^5, 3.434),
         )
 
         @test isapprox(pf, 1.23e-4; rtol=0.1)
