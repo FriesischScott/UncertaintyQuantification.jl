@@ -125,7 +125,7 @@
             RadialBasedImportanceSampling(10^4, 2.953),
         )
 
-        @test isapprox(pf, 2.75e-3; rtol=0.1)
+        @test isapprox(pf, 2.57e-3; rtol=0.1)
 
         # reference solution 1.23e-4
         pf, cov, samples = probability_of_failure(
