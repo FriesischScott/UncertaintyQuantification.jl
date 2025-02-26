@@ -1,3 +1,12 @@
+"""
+    FORM(n::Integer=10,tol::Real=1e-3,fdm::FiniteDifferencesMethod=CentralFiniteDifferences(3))
+
+used to perform the first order reliability method using the HLRF algorithm with `n` iterations and tolerance `tol`. Gradients are estimated through `fdm`.
+
+# References
+
+[rackwitzStructuralReliability1978](@cite)
+"""
 struct FORM <: AbstractSimulation
     n::Integer
     tol::Real
@@ -12,6 +21,17 @@ struct FORM <: AbstractSimulation
     end
 end
 
+"""
+    probability_of_failure(models::Union{Vector{<:UQModel},UQModel},performance::Function),inputs::Union{Vector{<:UQInput},UQInput},sim::FORM)
+
+Perform a reliability analysis using the first order reliability method (FORM), see [`FORM`](@ref).
+Returns the estimated probability of failure `pf`, the reliability index `β` and the design point `dp`.
+
+## Examples
+```
+pf, β, dp = probability_of_failure(model, performance, inputs, sim)
+```
+"""
 function probability_of_failure(
     models::Union{Vector{<:UQModel},UQModel},
     performance::Function,

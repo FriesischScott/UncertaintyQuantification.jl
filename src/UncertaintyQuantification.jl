@@ -130,6 +130,7 @@ export PolynomialChaosBasis
 export PolynomialChaosExpansion
 export PolyharmonicSpline
 export ProbabilityBox
+export RadialBasedImportanceSampling
 export RandomVariable
 export RandomSlicing
 export ResponseSurface
@@ -211,6 +212,7 @@ include("sensitivity/gradient.jl")
 include("simulations/doe.jl")
 include("simulations/linesampling.jl")
 include("simulations/montecarlo.jl")
+include("simulations/radialbasedimportancesampling.jl")
 include("simulations/subset.jl")
 
 include("reliability/form.jl")

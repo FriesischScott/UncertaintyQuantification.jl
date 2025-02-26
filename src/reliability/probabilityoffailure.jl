@@ -1,3 +1,15 @@
+"""
+    probability_of_failure(models::Union{Vector{<:UQModel},UQModel},performance::Function),inputs::Union{Vector{<:UQInput},UQInput},sim::AbstractMonteCarlo)
+
+Perform a reliability analysis with a standard Monte Carlo simulation.
+Returns the estimated probability of failure `pf`, the standard deviation `σ` and the `DataFrame` containing the evaluated `samples`.
+The simulation `sim` can be any instance of `AbstractMonteCarlo`.
+
+## Examples
+```
+pf, σ, samples = probability_of_failure(model, performance, inputs, sim)
+```
+"""
 function probability_of_failure(
     models::Union{Vector{<:UQModel},UQModel},
     performance::Function,
@@ -209,6 +221,37 @@ function probability_of_failure(
     pf = sum(weighted_failures) / sim.n
 
     variance = ((sum(weighted_failures .* weights) / sim.n) - pf^2) / sim.n
+
+    return pf, sqrt(variance), samples
+end
+
+function probability_of_failure(
+    models::Union{Vector{<:UQModel},UQModel},
+    performance::Function,
+    inputs::Union{Vector{<:UQInput},UQInput},
+    sim::RadialBasedImportanceSampling,
+)
+    if isimprecise(inputs)
+        error("You must use DoubleLoop or RandomSlicing with imprecise inputs.")
+    end
+
+    if iszero(sim.β)
+        _, β, _, _ = probability_of_failure(models, performance, inputs, FORM())
+        sim.β = β
+    end
+
+    samples = sample(inputs, sim)
+
+    evaluate!(models, samples)
+
+    # Probability of failure
+    random_inputs = filter(i -> isa(i, RandomUQInput), inputs)
+
+    n_rv = count_rvs(random_inputs)
+
+    pf = (1 - cdf(Chisq(n_rv), sim.β^2)) * sum(performance(samples) .< 0) / sim.n
+
+    variance = (pf - pf^2) / sim.n
 
     return pf, sqrt(variance), samples
 end
