@@ -158,6 +158,32 @@ println("Probability of failure: $pf_is")
 println("Coefficient of variation: $(std_is/pf_is)")
 ```
 
+## Radial Based Importance Sampling
+
+Radial based importance sampling (RBIS) [harbitzEfficientSamplingMethod1986](@cite) increases the efficiency of the Monte Carlo simulation by sampling in standard normal space and excluding a β-sphere where no failures occur from the sampling domain. Here, `β` is the reliability index obtained from a preliminary analysis like FORM. The probability of failure is then estimated as
+
+```math
+p_f \approx \hat{p}_f = (1- \chi^2_k(\beta^2) \frac{1}{N} \sum_{i=1}^N \mathbb{I}[g(\boldsymbol{x}_i)],
+```
+
+where ``\chi^2_k`` is the CDF of the Chi-squared distribution with ``k`` degrees of freedom and ``k`` is the number of random variables.
+
+If no `β` or `β=0.0` is passed to the [`RadialBasedImportanceSampling`](@ref) constructor, a FORM analysis will automatically be performed.
+
+```@example reliability
+rbis = RadialBasedImportanceSampling(1000)
+pf_rbis, std_rbis, samples = probability_of_failure(y, g, x, rbis)
+
+println("Probability of failure: $pf_rbis")
+println("Coefficient of variation: $(std_rbis/pf_rbis)")
+
+scatter(samples.x1, samples.x2; xlabel="x1", ylabel="x2", aspect_ratio=:equal) # hide
+savefig("rbis-samples.svg"); nothing # hide
+```
+
+A scatter plot cleary shows the exclusion of the β-sphere.
+![RBIS samples](rbis-samples.svg)
+
 ### Line Sampling
 
 Another advanced Monte Carlo method for reliability analysis is Line Sampling [koutsourelakisReliability2004](@cite).
@@ -245,29 +271,3 @@ pf_sus, std_sus, samples = probability_of_failure(y, g, x, subset)
 println("Probability of failure: $pf_sus")
 println("Coefficient of variation: $(std_sus/pf_sus)")
 ```
-
-## Radial Based Importance Sampling
-
-Radial based importance sampling (RBIS) [harbitzEfficientSamplingMethod1986](@cite) increases the efficiency of the Monte Carlo simulation by sampling in standard normal space and excluding a β-sphere where no failures occur from the sampling domain. Here, `β` is the reliability index obtained from a preliminary analysis like FORM. The probability of failure is then estimated as
-
-```math
-p_f \approx \hat{p}_f = (1- \chi^2_k(\beta^2) \frac{1}{N} \sum_{i=1}^N \mathbb{I}[g(\boldsymbol{x}_i)],
-```
-
-where ``\chi^2_k`` is the CDF of the Chi-squared distribution with ``k`` degrees of freedom and ``k`` is the number of random variables.
-
-If no `β` is passed to the [`RadialBasedImportanceSampling`](@ref) constructor, a FORM analysis will automatically be performed.
-
-```@example reliability
-rbis = RadialBasedImportanceSampling(1000)
-pf_rbis, std_rbis, samples = probability_of_failure(y, g, x, rbis)
-
-println("Probability of failure: $pf_rbis")
-println("Coefficient of variation: $(std_rbis/pf_rbis)")
-
-scatter(samples.x1, samples.x2; xlabel="x1", ylabel="x2") # hide
-savefig("rbis-samples.svg"); nothing # hide
-```
-
-A scatter plot cleary shows the exclusion of the β-sphere.
-![RBIS samples](rbis-samples.svg)
