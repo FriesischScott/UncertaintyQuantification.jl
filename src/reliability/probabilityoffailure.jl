@@ -245,15 +245,16 @@ function probability_of_failure(
     evaluate!(models, samples)
 
     # Probability of failure
-    random_inputs = filter(i -> isa(i, RandomUQInput), inputs)
 
-    n_rv = count_rvs(random_inputs)
+    n_rv = count_rvs(inputs)
 
-    pf = (1 - cdf(Chisq(n_rv), sim.β^2)) * sum(performance(samples) .< 0) / sim.n
+    N_f = sum(performance(samples) .< 0)
 
-    variance = (pf - pf^2) / sim.n
+    pf = (1 - cdf(Chisq(n_rv), sim.β^2)) * N_f / sim.n
 
-    return pf, sqrt(variance), samples
+    cov = sqrt((1 - N_f / sim.n) / N_f)
+
+    return pf, cov * pf, samples
 end
 
 # Allow to calculate the pf using only a performance function but no model
