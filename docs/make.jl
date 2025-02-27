@@ -65,7 +65,7 @@ makedocs(;
         ],
         "References" => "references.md",
     ],
-    warnonly=true,
+    warnonly=false,
     draft=false,
     source="src",
     build="build",
