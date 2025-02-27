@@ -20,6 +20,7 @@ using QuasiMonteCarlo
 using Random
 using Reexport
 using Roots
+using SpecialFunctions
 using StatsBase
 
 @reexport using Distributions

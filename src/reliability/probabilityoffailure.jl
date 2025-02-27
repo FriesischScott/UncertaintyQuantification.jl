@@ -245,13 +245,16 @@ function probability_of_failure(
     evaluate!(models, samples)
 
     # Probability of failure
-    random_inputs = filter(i -> isa(i, RandomUQInput), inputs)
 
-    n_rv = count_rvs(random_inputs)
+    n_rv = count_rvs(inputs)
 
-    pf = (1 - cdf(Chisq(n_rv), sim.β^2)) * sum(performance(samples) .< 0) / sim.n
+    N_f = sum(performance(samples) .< 0)
 
-    variance = (pf - pf^2) / sim.n
+    pf = (1 - cdf(Chisq(n_rv), sim.β^2)) * N_f / sim.n
+
+    # volume of the exclusion sphere
+    V = π^(n_rv / 2) / gamma(n_rv / 2 + 1) * sim.β^n_rv
+    variance = (N_f * V / sim.n - pf^2) / sim.n
 
     return pf, sqrt(variance), samples
 end

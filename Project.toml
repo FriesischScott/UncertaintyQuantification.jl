@@ -1,9 +1,6 @@
 name = "UncertaintyQuantification"
 uuid = "7183a548-a887-11e9-15ce-a56ab60bad7a"
-authors = [
-    "Jasper Behrensdorf <behrensdorf@irz.uni-hannover.de>",
-    "Ander Gray <ander.gray@hds.utc.fr>",
-]
+authors = ["Jasper Behrensdorf <behrensdorf@irz.uni-hannover.de>", "Ander Gray <ander.gray@hds.utc.fr>"]
 version = "0.12.0"
 
 [deps]
@@ -29,6 +26,7 @@ QuasiMonteCarlo = "8a4e6c94-4038-4cdc-81c3-7e6ffdb2a71b"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
 Roots = "f2b01f46-fcfa-551c-844a-d8ac1e96c665"
+SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 
@@ -51,6 +49,7 @@ QuadGK = "2.11.1"
 QuasiMonteCarlo = "0.3"
 Reexport = "0.2, 1.0"
 Roots = "2.2.2"
+SpecialFunctions = "2.5.0"
 Statistics = "1"
 StatsBase = "0.33, 0.34"
 julia = "1.10"
