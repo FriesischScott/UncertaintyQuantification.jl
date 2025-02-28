@@ -158,7 +158,7 @@ println("Probability of failure: $pf_is")
 println("Coefficient of variation: $(std_is/pf_is)")
 ```
 
-## Radial Based Importance Sampling
+### Radial Based Importance Sampling
 
 Radial based importance sampling (RBIS) [harbitzEfficientSamplingMethod1986](@cite) increases the efficiency of the Monte Carlo simulation by sampling in standard normal space and excluding a β-sphere where no failures occur from the sampling domain. Here, `β` is the reliability index obtained from a preliminary analysis like FORM. The probability of failure is then estimated as
 
@@ -181,7 +181,7 @@ scatter(samples.x1, samples.x2; xlabel="x1", ylabel="x2", aspect_ratio=:equal) #
 savefig("rbis-samples.svg"); nothing # hide
 ```
 
-A scatter plot cleary shows the exclusion of the β-sphere.
+A scatter plot clearly shows the exclusion of the β-sphere.
 ![RBIS samples](rbis-samples.svg)
 
 ### Line Sampling
