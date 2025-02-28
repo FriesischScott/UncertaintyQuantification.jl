@@ -11,6 +11,7 @@ Pages = ["simulations.md"]
 ## Types
 
 ```@docs
+RadialBasedImportanceSampling
 SubSetSimulation
 SubSetInfinity
 SubSetInfinityAdaptive

@@ -28,8 +28,9 @@
     end
 
     @testset "Line sampling" begin
-
-        @test_throws ErrorException("LineSampling does not support lines longer than 8.12.") LineSampling(100, collect(0:0.1:10))
+        @test_throws ErrorException("LineSampling does not support lines longer than 8.12.") LineSampling(
+            100, collect(0:0.1:10)
+        )
 
         # Englund and Rackwitz - A benchmark study on importance sampling techniques
         # in structural reliability (1993)
@@ -109,5 +110,42 @@
 
         # 95% conf intervals estimated from 1000 runs
         @test 3.14e-11 < pf < 3.4e-10
+    end
+
+    @testset "Radial Based Importance Sampling" begin
+        inputs = RandomVariable.(Normal(), [:x1, :x2, :x3])
+        g1 = @. Model(df -> -df.x1 - df.x2 - df.x3 + 3 * sqrt(3), :g1)
+        g2 = @. Model(df -> -df.x3 + 3, :g2)
+
+        # reference solution 2.57e-3
+        pf, _, _ = probability_of_failure(
+            [g1, g2],
+            df -> min.(df.g1, df.g2),
+            inputs,
+            RadialBasedImportanceSampling(10^4, 2.953),
+        )
+
+        @test isapprox(pf, 2.57e-3; rtol=0.1)
+
+        # reference solution 1.23e-4
+        pf, cov, samples = probability_of_failure(
+            [g1, g2],
+            df -> max.(df.g1, df.g2),
+            inputs,
+            RadialBasedImportanceSampling(10^5, 3.434),
+        )
+
+        @test isapprox(pf, 1.23e-4; rtol=0.1)
+
+        # Englund and Rackwitz - A benchmark study on importance sampling techniques
+        # in structural reliability (1993)
+        # Example 1
+        u = RandomVariable.(Normal(), [:u1, :u2])
+
+        g = df -> 2^(1 / 2) .- (df.u1 .+ df.u2)
+
+        pf, _, _ = probability_of_failure(g, u, RadialBasedImportanceSampling(10000))
+
+        @test pf ≈ 0.159 rtol = 0.05
     end
 end
