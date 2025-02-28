@@ -55,6 +55,16 @@ println(
     "Importance Sampling probability of failure: $is_pf ($(size(is_samples, 1)) model evaluations)",
 )
 
+rbis = RadialBasedImportanceSampling(10^4, β)
+
+rbis_pf, rbis_cov, rbis_samples = probability_of_failure(
+    [inertia, displacement], df -> max_displacement .- df.w, inputs, rbis
+)
+
+println(
+    "Radial Based Importance Sampling probability of failure $rbis_pf ($(size(rbis_samples, 1)) model evaluations)",
+)
+
 # Compute probability of failure using Line Sampling
 ls = LineSampling(200)
 
