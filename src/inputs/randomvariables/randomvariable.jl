@@ -13,8 +13,8 @@ julia> RandomVariable(Exponential(1), :x)
 RandomVariable(Exponential{Float64}(θ=1.0), :x)
 ```
 """
-struct RandomVariable <: RandomUQInput
-    dist::UnivariateDistribution
+struct RandomVariable{T<:Union{UnivariateDistribution,ProbabilityBox}} <: RandomUQInput
+    dist::T
     name::Symbol
 end
 
