@@ -11,6 +11,8 @@ format = if !isempty(ARGS) && ARGS[1] == "vite"
         devbranch="master",
         devurl="dev",
     )
+elseif !isempty(ARGS) && ARGS[1] == "pdf"
+    Documenter.LaTeX()
 else
     Documenter.HTML(; prettyurls=get(ENV, "CI", nothing) == "true")
 end
