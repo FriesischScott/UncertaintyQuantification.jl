@@ -3,5 +3,5 @@ function isimprecise(inputs::AbstractVector{<:UQInput})
 end
 
 function isimprecise(input::UQInput)
-    return isa(input, ImpreciseUQInput)
+    return isa(input, Interval) || isa(input, RandomVariable{<:ProbabilityBox})
 end

@@ -62,5 +62,21 @@
 
             @test samples.x ≈ mapped.x
         end
+
+        @testset "ProbabilityBox" begin
+            p_box = RandomVariable(
+                ProbabilityBox{Uniform}([Interval(0, 0.2, :a), Interval(0.5, 1, :b)]), :l
+            )
+
+            SNS_distribution = RandomVariable(Normal(0, 1), :l)
+            SNS_samples = sample(SNS_distribution, 1000)
+
+            SNS_samples_before = deepcopy(SNS_samples)
+
+            to_physical_space!(p_box, SNS_samples)
+            to_standard_normal_space!(p_box, SNS_samples)
+
+            @test all(abs.(SNS_samples[!, :l] .- SNS_samples_before[!, :l]) .<= 10^-10)
+        end
     end
 end

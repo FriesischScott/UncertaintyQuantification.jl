@@ -21,6 +21,10 @@ struct Interval <: ImpreciseUQInput
     end
 end
 
+function Interval(bounds::NamedTuple, name::Symbol)
+    return Interval(bounds.lb, bounds.ub, name)
+end
+
 function map_to_precise(x::Real, input::Interval)
     if !in(x, input)
         error("$x not in [$(input.lb), $(input.ub)] for Interval $(input.name).")

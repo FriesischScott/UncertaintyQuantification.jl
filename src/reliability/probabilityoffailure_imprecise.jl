@@ -26,8 +26,8 @@ function probability_of_failure(
     @assert isimprecise(inputs)
 
     inputs = wrap(inputs)
-    imprecise_inputs = filter(x -> isa(x, ImpreciseUQInput), inputs)
-    precise_inputs = filter(x -> !isa(x, ImpreciseUQInput), inputs)
+    imprecise_inputs = filter(x -> isimprecise(x), inputs)
+    precise_inputs = filter(x -> !isimprecise(x), inputs)
 
     function pf_low(x)
         imprecise_inputs_x = map_to_precise_inputs(x, imprecise_inputs)
@@ -75,7 +75,7 @@ function probability_of_failure(
 end
 
 function bounds(inputs::AbstractVector{<:UQInput})
-    imprecise_inputs = filter(x -> isa(x, ImpreciseUQInput), inputs)
+    imprecise_inputs = filter(x -> isimprecise(x), inputs)
 
     b = bounds.(imprecise_inputs)
     lb = vcat(getindex.(b, 1)...)
@@ -89,8 +89,8 @@ function map_to_precise_inputs(x::AbstractVector, inputs::AbstractVector{<:UQInp
     for i in inputs
         if isa(i, Interval)
             push!(precise_inputs, map_to_precise(popfirst!(params), i))
-        elseif isa(i, ProbabilityBox)
-            d = length(filter(x -> isa(x, Interval), i.parameters))
+        elseif isa(i, RandomVariable{<:ProbabilityBox})
+            d = length(filter(x -> isa(x, Interval), i.dist.parameters))
             p = [popfirst!(params) for _ in 1:d]
             push!(precise_inputs, map_to_precise(p, i))
         end
@@ -124,7 +124,7 @@ function probability_of_failure(
 end
 
 function transform_to_sns_input(i::UQInput)
-    if isa(i, RandomVariable) || isa(i, ProbabilityBox)
+    if isa(i, RandomVariable)
         return RandomVariable(Normal(), i.name)
     elseif isa(i, JointDistribution)
         return RandomVariable.(Normal(), names(i))

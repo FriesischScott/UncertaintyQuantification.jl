@@ -1,7 +1,7 @@
 """
-	ProbabilityBox{T}(p::AbstractVector{Interval}, name::Symbol)
+	ProbabilityBox{T}(p::AbstractVector{<:UQInput})
 
-Defines an ProbabilityBox from a `Vector` of `Interval`, name `UnivariateDistribution` `T`. The number and order of parameters must match the parameters of the associated distribution from Distributions.jl.
+Defines an ProbabilityBox from a `Vector` of `UQInput` and `UnivariateDistribution` `T`. The number and order of parameters must match the parameters of the associated distribution from Distributions.jl.
 
 # Examples
 
@@ -15,14 +15,13 @@ julia>  ProbabilityBox{Normal}([Interval(0, 1, :μ), Interval(0.1, 1, :σ)], :x)
 ProbabilityBox{Normal}(Interval[Interval(0, 1, :μ), Interval(0.1, 1, :σ)], :x, -Inf, Inf)
 ```
 """
-struct ProbabilityBox{T<:UnivariateDistribution} <: ImpreciseUQInput
+struct ProbabilityBox{T<:UnivariateDistribution}
     parameters::AbstractVector{<:UQInput}
-    name::Symbol
     lb::Real
     ub::Real
 
     function ProbabilityBox{T}(
-        p::AbstractVector{<:UQInput}, name::Symbol, lb::Real, ub::Real
+        p::AbstractVector{<:UQInput}, lb::Real, ub::Real
     ) where {T<:UnivariateDistribution}
         # Only allow Intervals and Parameters
         if !isempty(filter(x -> !isa(x, Interval) && !isa(x, Parameter), p))
@@ -31,44 +30,41 @@ struct ProbabilityBox{T<:UnivariateDistribution} <: ImpreciseUQInput
         # Make sure all required parameters for the distribution are present
         if !(names(p) == [fieldnames(T)...])
             error(
-                "Parameter mismatch for ProbabilityBox $name: $(names(p)) != $([fieldnames(T)...]).",
+                "Parameter mismatch for ProbabilityBox $(names(p)) != $([fieldnames(T)...]).",
             )
         end
         # If someone only passes Parameters, return a RandomVariable instead.
         if all(isa.(p, Parameter))
-            return RandomVariable(T(getproperty.(p, :value)...), name)
+            @warn "ProbabilityBox() returns UnivariateDistribution if only Parameters are passed"
+            return T(getproperty.(p, :value)...)
         end
-        return new(p, name, lb, ub)
+        return new(p, lb, ub)
     end
 end
 
-function ProbabilityBox{T}(
-    p::AbstractVector{<:UQInput}, name::Symbol
-) where {T<:UnivariateDistribution}
+function ProbabilityBox{T}(p::AbstractVector{<:UQInput}) where {T<:UnivariateDistribution}
     # p-boxes with Uniform distribution as parameter must be treated separately since their support changes with p-box lower and upper bounds.
     if T == Uniform
         bounds_intervals = mapreduce(x -> collect(bounds(x)), vcat, p[isimprecise.(p)])  # collecting bounds of the intervals used for describing the Uniform distribution
         values_parameters = map(x -> x.value, p[.!isimprecise.(p)]) # collecting values of Parameters used for describing the Uniform distribution
         values = vcat(bounds_intervals, values_parameters)
-        return ProbabilityBox{T}(p, name, minimum(values), maximum(values))
+        return ProbabilityBox{T}(p, minimum(values), maximum(values))
     else
         domain = support(T())
-        return ProbabilityBox{T}(p, name, domain.lb, domain.ub)
+        return ProbabilityBox{T}(p, domain.lb, domain.ub)
     end
 end
 
-function ProbabilityBox{T}(
-    parameter::Interval, name::Symbol
-) where {T<:UnivariateDistribution}
-    return ProbabilityBox{T}([parameter], name)
+function ProbabilityBox{T}(parameter::Interval) where {T<:UnivariateDistribution}
+    return ProbabilityBox{T}([parameter])
 end
 
-function map_to_precise(
+function map_to_distribution(
     x::AbstractVector{<:Real}, pbox::ProbabilityBox{T}
 ) where {T<:UnivariateDistribution}
     intervals = filter(x -> isa(x, Interval), pbox.parameters)
     if !all(in.(x, intervals))
-        error("Values outside of parameter intervals for ProbabilityBox $(pbox.name).")
+        error("Values outside of parameter intervals for ProbabilityBox")
     end
 
     _x = copy(x)
@@ -84,24 +80,19 @@ function map_to_precise(
     dist_support = support(T())
 
     if pbox.lb == dist_support.lb && pbox.ub == dist_support.ub
-        return RandomVariable(T(p...), pbox.name)
+        return T(p...)
     end
 
-    return RandomVariable(truncated(T(p...), pbox.lb, pbox.ub), pbox.name)
+    return truncated(T(p...), pbox.lb, pbox.ub)
 end
 
 function quantile(pbox::ProbabilityBox{T}, u::Real) where {T<:UnivariateDistribution}
-    lb, ub = bounds(pbox)
-
     quantiles = map(
-        par -> quantile(map_to_precise([par...], pbox), u),
-        Iterators.product([[a, b] for (a, b) in zip(lb, ub)]...),
+        par -> quantile(map_to_distribution([par...], pbox), u),
+        Iterators.product([[a, b] for (a, b) in zip(bounds(pbox)...)]...),
     )
 
-    lb = minimum(quantiles)
-    ub = maximum(quantiles)
-
-    return Interval(lb, ub, pbox.name)
+    return (lb=minimum(quantiles), ub=maximum(quantiles))
 end
 
 rand(pbox::ProbabilityBox, n::Integer=1) = quantile.(Ref(pbox), rand(n))
@@ -114,20 +105,16 @@ function bounds(pbox::ProbabilityBox{T}) where {T<:UnivariateDistribution}
     return lb, ub
 end
 
-function sample(pbox::ProbabilityBox, n::Integer=1)
-    return DataFrame(pbox.name => rand(pbox, n))
-end
-
 function cdf(pbox::ProbabilityBox{T}, x::Real) where {T<:UnivariateDistribution}
     lb, ub = bounds(pbox)
 
     cdfs_lo = map(
-        par -> cdf(map_to_precise([par...], pbox), x),
+        par -> cdf(map_to_distribution([par...], pbox), x),
         Iterators.product([[a, b] for (a, b) in zip(lb, ub)]...),
     )
 
     cdfs_hi = map(
-        par -> cdf(map_to_precise([par...], pbox), x),
+        par -> cdf(map_to_distribution([par...], pbox), x),
         Iterators.product([[a, b] for (a, b) in zip(lb, ub)]...),
     )
 
@@ -136,17 +123,17 @@ end
 
 # Does the inverse of quantile, not cdf, which would return an interval
 function reverse_quantile(
-    pbox::ProbabilityBox{T}, x::Interval
+    pbox::ProbabilityBox{T}, x::NamedTuple
 ) where {T<:UnivariateDistribution}
     lb, ub = bounds(pbox)
 
     cdfs_lo = map(
-        par -> cdf(map_to_precise([par...], pbox), x.lb),
+        par -> cdf(map_to_distribution([par...], pbox), x.lb),
         Iterators.product([[a, b] for (a, b) in zip(lb, ub)]...),
     )
 
     cdfs_hi = map(
-        par -> cdf(map_to_precise([par...], pbox), x.ub),
+        par -> cdf(map_to_distribution([par...], pbox), x.ub),
         Iterators.product([[a, b] for (a, b) in zip(lb, ub)]...),
     )
 
@@ -156,32 +143,12 @@ function reverse_quantile(
     error = abs(u_hi - u_lo)
     if error > 10^-6
         @warn(
-            "When inverting the quantile function for p-box $(pbox.name), the error was $(error), greater than the allowed tolerance of 10^-6"
+            "When inverting the quantile function for a p-box, the error was $(error), greater than the allowed tolerance of 10^-6"
         )
     end
-    return mean([u_lo, u_hi])   # Return midpoint
+    return middle(u_lo, u_hi)   # Return midpoint
 end
 
-function to_physical_space!(
-    pbox::ProbabilityBox{T}, x::DataFrame
-) where {T<:UnivariateDistribution}
-    x[!, pbox.name] = map(x -> quantile(pbox, x), cdf.(Normal(), collect(x[:, pbox.name])))
-    return nothing
-end
-
-function to_standard_normal_space!(
-    pbox::ProbabilityBox{T}, x::DataFrame
-) where {T<:UnivariateDistribution}
-    x[!, pbox.name] = _to_standard_normal_space(pbox, x[:, pbox.name])
-    return nothing
-end
-
-function _to_standard_normal_space(
-    d::ProbabilityBox{T}, x::Vector
-) where {T<:UnivariateDistribution}
-    return quantile.(Normal(), reverse_quantile.(Ref(d), x))
-end
-
-dimensions(d::ProbabilityBox{T}) where {T<:UnivariateDistribution} = 1
+Base.broadcastable(pbox::ProbabilityBox) = Ref(pbox)
 
 length(::ProbabilityBox{T}) where {T<:UnivariateDistribution} = 1
