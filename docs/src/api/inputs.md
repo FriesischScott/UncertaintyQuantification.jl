@@ -13,6 +13,7 @@ Parameter
 RandomVariable
 EmpiricalDistribution
 Interval
+IntervalVariable
 ProbabilityBox
 ```
 

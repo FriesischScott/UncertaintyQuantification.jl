@@ -47,6 +47,32 @@ to_standard_normal_space!(x, samples)
 to_physical_space!(x, samples)
 ```
 
+### Imprecise Probabilities
+
+To represent purely epistemic uncertainty we provide the [`IntervalVariable`](@ref) type.
+
+```@example interval
+  x = IntervalVariable(-1,2, :x)
+```
+
+Hybrid uncertainties can be expressed as probability boxes (p-box) using the [`ProbabilityBox`](@ref) type. Constructing a [`ProbabilityBox`](@ref) requires a `Dict` mapping all parameters of a `UnivariateDistribution` to either a `Real` or an [`Interval`](@ref). A [`ProbabilityBox`](@ref) is then wrapped in a [`RandomVariable`](@ref) to be used as an input in an analysis.
+
+```@example pbox
+  parameters = Dict(:μ => Interval(-1,1), :σ => 1)
+ pbox = ProbabilityBox{Normal}(parameters)
+ x = RandomVariable(pbox, :x)
+```
+
+!!! note "Interval and IntervalVariable"
+    The [`Interval`](@ref) type is internally used as a data type and to construct a [`ProbabilityBox`](@ref) while the [`IntervalVariable`] represents interval variables.
+
+Truncated p-boxes can be created by passing optional lower and upper bounds to the constructor.
+
+```@example pbox
+ pbox = ProbabilityBox{Normal}(parameters, 0, Inf)
+ x = RandomVariable(pbox, :x)
+```
+
 ## Dependencies
 
 *UncertaintyQuantification* supports modelling of dependencies through copulas. By using copulas, the modelling of the dependence structure is separated from the modelling of the univariate marginal distributions. The basis for copulas is given by Sklar's theorem [sklarFonctionsRepartitionDimensions1959](@cite). It states that any multivariate distribution ``H`` in dimensions ``d \geq 2`` can be separated into its marginal distributions ``F_i`` and a copula function ``C``.
