@@ -42,7 +42,7 @@ end
 """
 	IntervalVariable(lb::Real, up::real, name::Symbol)
 
-Defines an IntervalVariable input , with lower bound `lb`, upper bound `ub` and `name.
+Defines an IntervalVariable input , with lower bound `lb`, upper bound `ub` and `name`.
 
 This is an input type. To construct p-boxes with interval parameters use [`Interval`](@ref)
 

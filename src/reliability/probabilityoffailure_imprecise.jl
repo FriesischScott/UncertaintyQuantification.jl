@@ -1,9 +1,14 @@
-## 1st Method -  External: Global Opt ; Internal: Sampling
+
+"""
+    DoubleLoop(lb::AbstractSimulation, ub::AbstractSimulation)
+"""
 struct DoubleLoop
     lb::AbstractSimulation
     ub::AbstractSimulation
 end
-
+"""
+    RandomSlicing(lb::AbstractSimulation, ub::AbstractSimulation)
+"""
 struct RandomSlicing
     lb::AbstractSimulation
     ub::AbstractSimulation

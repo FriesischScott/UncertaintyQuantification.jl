@@ -51,24 +51,24 @@ to_physical_space!(x, samples)
 
 To represent purely epistemic uncertainty we provide the [`IntervalVariable`](@ref) type.
 
-```@example interval
+```@example rv
   x = IntervalVariable(-1,2, :x)
 ```
 
 Hybrid uncertainties can be expressed as probability boxes (p-box) using the [`ProbabilityBox`](@ref) type. Constructing a [`ProbabilityBox`](@ref) requires a `Dict` mapping all parameters of a `UnivariateDistribution` to either a `Real` or an [`Interval`](@ref). A [`ProbabilityBox`](@ref) is then wrapped in a [`RandomVariable`](@ref) to be used as an input in an analysis.
 
-```@example pbox
+```@example rv
   parameters = Dict(:μ => Interval(-1,1), :σ => 1)
  pbox = ProbabilityBox{Normal}(parameters)
  x = RandomVariable(pbox, :x)
 ```
 
 !!! note "Interval and IntervalVariable"
-    The [`Interval`](@ref) type is internally used as a data type and to construct a [`ProbabilityBox`](@ref) while the [`IntervalVariable`] represents interval variables.
+    The [`Interval`](@ref) type is internally used as a data type and to construct a [`ProbabilityBox`](@ref) while the [`IntervalVariable`](@ref) represents interval variables.
 
 Truncated p-boxes can be created by passing optional lower and upper bounds to the constructor.
 
-```@example pbox
+```@example rv
  pbox = ProbabilityBox{Normal}(parameters, 0, Inf)
  x = RandomVariable(pbox, :x)
 ```

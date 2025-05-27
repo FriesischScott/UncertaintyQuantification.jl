@@ -1,18 +1,18 @@
 """
-	ProbabilityBox{T}(p::AbstractVector{<:UQInput})
+	ProbabilityBox{T}(p::Dict{Symbol,Union{Real,Interval}})
 
-Defines an ProbabilityBox from a `Vector` of `UQInput` and `UnivariateDistribution` `T`. The number and order of parameters must match the parameters of the associated distribution from Distributions.jl.
+Defines an ProbabilityBox from a `Dict` mapping each of the parameters of the `UnivariateDistribution` `T` to a `Real` or `Interval`.
 
 # Examples
 
 ```jldoctest
-julia>  ProbabilityBox{Uniform}([Interval(1.75, 1.83, :a), Interval(1.77, 1.85, :b)], :l)
-ProbabilityBox{Uniform}(Interval[Interval(1.75, 1.83, :a), Interval(1.77, 1.85, :b)], :l, 1.75, 1.85)
+julia>  ProbabilityBox{Uniform}(Dict(:a => Interval(1.75, 1.83), :b => Interval(1.77, 1.85)))
+ProbabilityBox{Uniform}(Dict{Symbol, Union{Real, Interval}}(:a => [1.75, 1.83], :b => [1.77, 1.85]), 1.75, 1.85)
 ```
 
 ```jldoctest
-julia>  ProbabilityBox{Normal}([Interval(0, 1, :μ), Interval(0.1, 1, :σ)], :x)
-ProbabilityBox{Normal}(Interval[Interval(0, 1, :μ), Interval(0.1, 1, :σ)], :x, -Inf, Inf)
+julia>  ProbabilityBox{Normal}(Dict(:μ => Interval(0, 1), :σ =>  Interval(0.1, 1)))
+ProbabilityBox{Normal}(Dict{Symbol, Union{Real, Interval}}(:μ => [0, 1], :σ => [0.1, 1]), -Inf, Inf)
 ```
 """
 struct ProbabilityBox{T<:UnivariateDistribution}

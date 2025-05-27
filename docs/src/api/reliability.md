@@ -10,6 +10,8 @@ Pages = ["reliability.md"]
 
 ```@docs
 FORM
+DoubleLoop
+RandomSlicing
 ```
 
 ## Methods
