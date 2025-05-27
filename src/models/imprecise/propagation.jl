@@ -82,7 +82,7 @@ function propagate_intervals!(
                 min_mesh_size=1e-13,
             )
 
-            return Interval(result_lb.f, -result_ub.f, output)
+            return Interval(result_lb.f, -result_ub.f)
         end
     end
 

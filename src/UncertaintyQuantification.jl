@@ -111,6 +111,7 @@ export HaltonSampling
 export HermiteBasis
 export ImportanceSampling
 export Interval
+export IntervalVariable
 export JointDistribution
 export KanaiTajimi
 export LatinHypercubeSampling

@@ -1,10 +1,12 @@
 @testset "P-box" begin
-    params = [Interval(0.14, 0.16, :a), Interval(0.21, 0.23, :b), Interval(0, 1, :c)]
+    params = Dict(
+        :a => Interval(0.14, 0.16), :b => Interval(0.21, 0.23), :c => Interval(0, 1)
+    )
     @test_throws ErrorException(
         "Parameter mismatch for ProbabilityBox [:a, :b, :c] != [:a, :b]."
     ) ProbabilityBox{Uniform}(params)
 
-    params = [Interval(0.14, 0.16, :a), Interval(0.21, 0.23, :b)]
+    params = Dict(:a => Interval(0.14, 0.16), :b => Interval(0.21, 0.23))
 
     p_box = ProbabilityBox{Uniform}(params)
     @test p_box.parameters == params
@@ -27,7 +29,7 @@
     @test UncertaintyQuantification.map_to_distribution(par, p_box) == Uniform(par...)
 
     @testset "Quantile and sampling" begin
-        p_box = ProbabilityBox{Normal}([Interval(0, 1, :μ), Interval(0.1, 1, :σ)])
+        p_box = ProbabilityBox{Normal}(Dict(:μ => Interval(0, 1), :σ => Interval(0.1, 1)))
         a = UncertaintyQuantification.quantile(p_box, 0.25)
         @test a.lb == quantile(Normal(0, 1), 0.25)
         @test a.ub == quantile(Normal(1, 0.1), 0.25)
@@ -42,7 +44,7 @@
         @test a.lb == quantile(Normal(0, 0.1), 0.75)
         @test a.ub == quantile(Normal(1, 1), 0.75)
 
-        p_box = ProbabilityBox{Normal}([Parameter(0, :μ), Interval(0.1, 1, :σ)])
+        p_box = ProbabilityBox{Normal}(Dict(:μ => 0, :σ => Interval(0.1, 1)))
         @test UncertaintyQuantification.bounds(p_box) == ([0.1], [1])
 
         a = UncertaintyQuantification.quantile(p_box, 0.25)
@@ -50,7 +52,7 @@
         @test a.ub == quantile(Normal(0, 0.1), 0.25)
 
         a = UncertaintyQuantification.quantile(p_box, 0.5)
-        @test a == (lb=0.0, ub=0.0)
+        @test a == Interval(0.0, 0.0)
 
         a = UncertaintyQuantification.quantile(p_box, 0.75)
         @test a.lb == quantile(Normal(0, 0.1), 0.75)
@@ -58,7 +60,9 @@
     end
 
     @testset "Inverse quantile" begin
-        p_box = ProbabilityBox{Uniform}([Interval(0, 0.2, :a), Interval(0.5, 1, :b)])
+        p_box = ProbabilityBox{Uniform}(
+            Dict(:a => Interval(0, 0.2), :b => Interval(0.5, 1))
+        )
 
         Nsamples = 1000
 

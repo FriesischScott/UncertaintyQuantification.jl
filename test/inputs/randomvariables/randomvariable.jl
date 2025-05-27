@@ -65,7 +65,10 @@
 
         @testset "ProbabilityBox" begin
             p_box = RandomVariable(
-                ProbabilityBox{Uniform}([Interval(0, 0.2, :a), Interval(0.5, 1, :b)]), :l
+                ProbabilityBox{Uniform}(
+                    Dict(:a => Interval(0, 0.2), :b => Interval(0.5, 1))
+                ),
+                :l,
             )
 
             SNS_distribution = RandomVariable(Normal(0, 1), :l)
