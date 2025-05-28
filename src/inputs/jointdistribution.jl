@@ -32,7 +32,11 @@ end
 
 function to_standard_normal_space!(jd::JointDistribution, x::DataFrame)
     for rv in jd.marginals
-        x[!, rv.name] = cdf.(rv.dist, x[:, rv.name])
+        if isa(rv.dist, ProbabilityBox)
+            x[!, rv.name] = reverse_quantile.(rv.dist, x[:, rv.name])
+        else
+            x[!, rv.name] = cdf.(rv.dist, x[:, rv.name])
+        end
     end
     uncorrelated_stdnorm = to_standard_normal_space(
         jd.copula, Matrix{Float64}(x[:, names(jd)])
