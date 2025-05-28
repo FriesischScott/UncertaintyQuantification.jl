@@ -65,7 +65,7 @@ struct IntervalVariable <: UQInput
 end
 
 function Base.show(io::IO, i::IntervalVariable)
-    print(io, "$(String(i.name)) ∈ [$(i.lb),$(i.ub)]")
+    print(io, "$(String(i.name)) ∈ [$(i.lb), $(i.ub)]")
     return nothing
 end
 

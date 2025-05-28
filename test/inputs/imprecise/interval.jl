@@ -14,6 +14,8 @@
     @test 0.15 ∈ interval
     @test 0.16 ∈ interval
     @test !(0.17 ∈ interval)
+
+    @test sprint(show, interval) == "[0.14, 0.16]"
 end
 
 @testset "IntervalVariable" begin
@@ -32,6 +34,8 @@ end
     @test 0.15 ∈ interval
     @test 0.16 ∈ interval
     @test !(0.17 ∈ interval)
+
+    @test sprint(show, interval) == "l ∈ [0.14, 0.16]"
 
     par = 0.13
     @test_throws ErrorException("0.13 not in [0.14, 0.16] for Interval l.") UncertaintyQuantification.map_to_precise(
