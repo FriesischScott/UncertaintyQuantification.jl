@@ -18,6 +18,28 @@
             @test pf.ub ≈ cdf(Normal(-2, sqrt(8)), -9) atol = 1e-6
         end
 
+        @testset "P-boxes with Copula" begin
+            X = RandomVariable(
+                ProbabilityBox{Normal}(Dict(:μ => Interval(-1, 1), :σ => Interval(1, 2))),
+                :X,
+            )
+            Y = RandomVariable(
+                ProbabilityBox{Normal}(Dict(:μ => Interval(-1, 1), :σ => Interval(1, 2))),
+                :Y,
+            )
+
+            c = GaussianCopula([1 0.0; 0.0 1])
+
+            jd = JointDistribution([X, Y], c)
+
+            pf, x_lb, x_ub = probability_of_failure(
+                UQModel[], df -> 9 .+ df.X .+ df.Y, jd, DoubleLoop(FORM())
+            )
+
+            @test pf.lb ≈ cdf(Normal(2, sqrt(2)), -9) atol = 1e-6
+            @test pf.ub ≈ cdf(Normal(-2, sqrt(8)), -9) atol = 1e-6
+        end
+
         @testset "Interval - Distribution" begin
             X = IntervalVariable(-1, 1, :X)
             Y = RandomVariable(Normal(0, 2), :Y)
@@ -76,6 +98,34 @@
 
             pf, _ = probability_of_failure(
                 UQModel[], df -> 9 .+ df.X .+ df.Y, [X, Y], RandomSlicing(FORM())
+            )
+
+            pbox_analyt = ProbabilityBox{Normal}(
+                Dict(:μ => Interval(-2, 2), :σ => Interval(sqrt(2), sqrt(8)))
+            )
+            failure_analty = cdf(pbox_analyt, -9)
+
+            @test pf.lb ≈ failure_analty.lb atol = 1e-6
+            @test pf.ub ≈ failure_analty.ub atol = 1e-6
+        end
+
+        @testset "P-boxes with Copula" begin
+            X = RandomVariable(
+                ProbabilityBox{Normal}(Dict(:μ => Interval(-1, 1), :σ => Interval(1, 2))),
+                :X,
+            )
+            Y = RandomVariable(
+                ProbabilityBox{Normal}(Dict(:μ => Interval(-1, 1), :σ => Interval(1, 2))),
+                :Y,
+            )
+
+            # independent so the solution is the same
+            c = GaussianCopula([1 0.0; 0.0 1])
+
+            jd = JointDistribution([X, Y], c)
+
+            pf, _ = probability_of_failure(
+                UQModel[], df -> 9 .+ df.X .+ df.Y, jd, RandomSlicing(FORM())
             )
 
             pbox_analyt = ProbabilityBox{Normal}(

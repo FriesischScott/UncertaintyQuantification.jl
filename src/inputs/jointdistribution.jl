@@ -52,3 +52,9 @@ names(jd::JointDistribution) = vec(map(x -> x.name, jd.marginals))
 mean(jd::JointDistribution) = mean.(jd.marginals)
 
 dimensions(jd::JointDistribution) = dimensions(jd.copula)
+
+function bounds(jd::JointDistribution)
+    b = map(bounds, filter(isimprecise, jd.marginals))
+
+    return vcat(getindex.(b, 1)...), vcat(getindex.(b, 2)...)
+end
