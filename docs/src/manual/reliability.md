@@ -338,3 +338,55 @@ Then, the relibility analysis is again run through the  [`probability_of_failure
 ```
 
 ### Random Slicing
+
+An alternative method for computing probability bounds for reliability problems is based on random-set theory, as outlined by [alvarez2018estimation](@cite). We colloquially call this "random slicing", as will become apparent. As opposed to double-loop Monte Carlo, random slicing is a *distribution-free* or a *non-parametric* technique, as it does not make use of distribution parameters or family. For this reason, it is slightly more general, but can provide wider probability intervals in certain simulations.
+
+In random slicing, we make use of the fact that a p-box is a random-set [fersonConstructingProbabilityBoxes2015](@cite) to simulate random realisations (random intervals) from the inverses of the bounding CDFs
+
+```math
+     \Gamma(\alpha)=[\overline{F}^{-1}(\alpha), \underline{F}^{-1}(\alpha)],
+```
+
+where ``\alpha \sim U(0,1)`` is a sample from a uniform distribution. This interval can be visualised as a horizontal cut (or slice) of the p-box at an ``\alpha \in [0,1]``. This interval is then propagated through the model ``f`` or performance function ``g`` using an optimiser or surrogate model,
+
+```math
+     \underline{g}(\alpha) = \min_{x \in \Gamma(\alpha)}g(x),
+```
+
+```math
+
+     \overline{g}(\alpha) = \max_{x \in \Gamma(\alpha)}g(x).
+```
+
+In *UncertaintyQuantification.jl* the intervals are also propagated using MADS. In the multivariate case, we can combine two correlated intervals using a Cartesian product
+
+```math
+     [\overline{F}_X^{-1}(\alpha_X), \underline{F}_X^{-1}(\alpha_X)] \times [\overline{F}_Y^{-1}(\alpha_Y), \underline{F}_Y^{-1}(\alpha_Y)],
+```
+
+where ``(\alpha_X, \alpha_Y) \sim C_{XY}`` are samples of the copula between ``X`` and ``Y``.
+
+The reliability analysis can be written as thus:
+
+```math
+     \underline{p}*{\text{f}} = \int_U \mathbb{I}[\overline{g}(\alpha)] dC,(\alpha)
+```
+
+```math
+     \overline{p}*{\text{f}} = \int_U \mathbb{I}[\underline{g}(\alpha)] dC.(\alpha)
+```
+
+In some sense, the two loops from the double-loop method have been reversed, where now the outer-loop handles the random (aleatory) component, and the inner-loop handles the interval propagation (epistemic). Describing the analysis this way essentially gives two separate reliability calculations, with ``\underline{g}`` and ``\overline{g}`` as the two target performance functions. Rosenblatt transformations may be used to associate a standard normal distribution to the copula $C$, and one may then use any standard reliability method to compute the performance bounds.
+
+The software implementation is such that this imprecise reliability method can be coupled to any simulation method (FORM, line sampling, etc.) in a straightforward way. As with the double-loop, one can apply different simulations for each bound if desired.
+
+The problem setup for random slicing is identical to that of the double-loop. The only difference is that a [`RandomSlicing`](@ref) instance is passed instead of [`DoubleLoop](@ref).
+
+Here, the lower bound is again estimated using FORM, while we apply subset simulation to obtain the upper bound. The result for the lower bound matches the analytical solution perfectly. The upper bound is estimated accurately as ``\overline{p}_f \approx 3.884325e-5``. Note, that in addition to the probability of failure, random slicing also returns other outputs of the underlying simulations, such as the coefficient of variation and the evaluated samples for potential post-processing.
+
+```@example reliability
+     subset = SubSetSimulation(2000, 0.1, 10, Normal())
+     pf, out_lb, out_ub = probability_of_failure(f, df -> 9 .+ df.f, [x1,x2], RandomSlicing(FORM(), subset))
+```
+
+As outlined by [alvarez2018estimation], other forms of random-sets can in principle be evaluated with this method, such as possibility distributions [dubois1990consonant](@cite) or general Dempster–Shafer structures [shafer1976mathematical](@cite). However, careful consideration of multivariate extensions of these structures must be taken [schmelzer2023random](@cite). For this reason, we restrict ourselves to distributions, intervals, and p-boxes for the time being.
