@@ -18,6 +18,7 @@ struct MaximumAPosterioriBayesian <: AbstractBayesianPointEstimate
     islog::Bool
     lowerbounds::Vector{Float64}
     upperbounds::Vector{Float64}
+    valname::String
 
     function MaximumAPosterioriBayesian(
         prior::Vector{RandomVariable},
@@ -45,7 +46,8 @@ struct MaximumAPosterioriBayesian <: AbstractBayesianPointEstimate
         lowerbounds::Vector{Float64}=[-Inf],
         upperbounds::Vector{Float64}=[Inf],
     )
-        return new(prior, optimmethod, x0, islog, lowerbounds, upperbounds)
+        valname = islog ? "logMAP" : "MAP"
+        return new(prior, optimmethod, x0, islog, lowerbounds, upperbounds, valname)
     end
 end
 
@@ -78,6 +80,7 @@ struct MaximumLikelihoodBayesian <: AbstractBayesianPointEstimate
     islog::Bool
     lowerbounds::Vector{Float64}
     upperbounds::Vector{Float64}
+    valname::String
 
     function MaximumLikelihoodBayesian(
         prior::Vector{RandomVariable},
@@ -105,7 +108,8 @@ struct MaximumLikelihoodBayesian <: AbstractBayesianPointEstimate
         lowerbounds::Vector{Float64}=[-Inf],
         upperbounds::Vector{Float64}=[Inf],
     )
-        return new(prior, optimmethod, x0, islog, lowerbounds, upperbounds)
+        valname = islog ? "logMLE" : "MLE"
+        return new(prior, optimmethod, x0, islog, lowerbounds, upperbounds, valname)
     end
 end
 
@@ -139,6 +143,7 @@ function bayesianupdating(
     models::Vector{<:UQModel},
     pointestimate::AbstractBayesianPointEstimate;
     prior::Union{Function,Nothing}=nothing,
+    filtertolerance::Real=0,
 )
     optimTarget = setupoptimizationproblem(prior, likelihood, models, pointestimate)
     result = optimize_pointestimate(optimTarget, pointestimate)
@@ -146,11 +151,15 @@ function bayesianupdating(
     x = vcat(map(x -> push!(x.minimizer, -x.minimum), result))
 
     names = collect(p.name for p in pointestimate.prior)
-    names = push!(names, :maxval)
+    names = push!(names, Symbol(pointestimate.valname))
 
     df = DataFrame([name => Float64[] for name in names])
 
     foreach(row -> push!(df, row), x)
+
+    if filtertolerance > 0
+        filterresults!(df, names, filtertolerance)
+    end
 
     return df
 end
@@ -231,17 +240,7 @@ end
 function optimize_pointestimate(
     optimTarget::Function, pointestimate::AbstractBayesianPointEstimate
 )
-    method = LBFGS()
-
-    if pointestimate.optimmethod == "LBFGS"
-        method = LBFGS()
-    elseif pointestimate.optimmethod == "NelderMead"
-        method = NelderMead()
-    else
-        error(
-            "Optimization method $(pointestimate.optimmethod) is not supported in UncertaintyQuantification.jl. Currently supported methods are 'LBFGS' and 'NelderMead'.",
-        )
-    end
+    method = getOptimMethod(pointestimate.optimmethod)
 
     if all(isinf, pointestimate.upperbounds) && all(isinf, pointestimate.lowerbounds)
         optvalues = map(x -> optimize(optimTarget, x, method), pointestimate.x0)
@@ -257,4 +256,178 @@ function optimize_pointestimate(
             pointestimate.x0,
         )
     end
+end
+
+struct LaplaceEstimateBayesian <: AbstractBayesianPointEstimate
+
+    prior::Vector{RandomVariable}
+    optimmethod::String
+    x0::Vector{Vector{Float64}}
+    islog::Bool
+    lowerbounds::Vector{Float64}
+    upperbounds::Vector{Float64}
+
+    function LaplaceEstimateBayesian(
+        prior::Vector{RandomVariable},
+        optimmethod::String,
+        x0::Vector{Float64};
+        islog::Bool=true,
+        lowerbounds::Vector{Float64}=[-Inf],
+        upperbounds::Vector{Float64}=[Inf],
+    )
+        return LaplaceEstimateBayesian(
+            prior,
+            optimmethod,
+            [x0];
+            islog=islog,
+            lowerbounds=lowerbounds,
+            upperbounds=upperbounds,
+        )
+    end
+
+    function LaplaceEstimateBayesian(
+        prior::Vector{RandomVariable},
+        optimmethod::String,
+        x0::Vector{Vector{Float64}};
+        islog::Bool=true,
+        lowerbounds::Vector{Float64}=[-Inf],
+        upperbounds::Vector{Float64}=[Inf],
+    )
+        return new(prior, optimmethod, x0, islog, lowerbounds, upperbounds)
+    end
+end
+
+function bayesianupdating(
+    likelihood::Function,
+    models::Vector{<:UQModel},
+    lpestimate::LaplaceEstimateBayesian;
+    prior::Union{Function,Nothing}=nothing,
+    filtertolerance::Real=1e-6
+)
+    mapestimate = MaximumAPosterioriBayesian(
+        lpestimate.prior,
+        lpestimate.optimmethod,
+        lpestimate.x0;
+        islog=lpestimate.islog,
+        lowerbounds=lpestimate.lowerbounds,
+        upperbounds=lpestimate.upperbounds,
+    )
+
+    optimTarget = setupoptimizationproblem(prior, likelihood, models, mapestimate)
+
+    results = bayesianupdating(
+        likelihood,
+        models,
+        mapestimate;
+        prior=prior,
+    )
+
+    filterresults!(results, names(lpestimate.prior),filtertolerance)
+
+    vars = Matrix(results[:,names(lpestimate.prior)])
+
+    # !TODO use some package for this, i.e. ForwardDiff.jl, Zygote.jl, etc.
+    # Could then also be flexible between AD and FD, and also could track variable names
+    hess = [inv(fd_hessian(optimTarget, var, 1e-3)) for var in eachrow(vars)]
+    results.invhessian = hess
+
+    postvalues = lpestimate.islog ? exp.(results[:,Symbol(mapestimate.valname)]) : results[:,Symbol(mapestimate.valname)]
+    weights =  postvalues ./ sum(postvalues)
+
+    postpdf = df -> map(row -> begin
+        # calculate the posterior pdf for each row in df
+        means = Matrix(results[:, names(lpestimate.prior)])
+        vars = collect(row[names(lpestimate.prior)])
+        pdfs = [weights[i] * pdf(MvNormal(means[i, :], results.invhessian[i]), vec(vars))
+                for i in 1:size(means, 1)]
+        return log.(sum(pdfs))
+    end, eachrow(df))
+
+    # !TODO: use Gaussian mixture model as return value
+    return results, postpdf
+
+end
+
+function fd_hessian(fun, x::AbstractVector, dx::Real)
+    N = length(x)
+    hess = zeros(N, N)
+
+    f0 = fun(x)
+
+    for i in 1:N
+        for j in 1:i
+            if i == j
+                dxF = copy(x)
+                dxB = copy(x)
+                dxF[i] += dx
+                dxB[i] -= dx
+
+                fF = fun(dxF)
+                fB = fun(dxB)
+
+                hess[i, i] = (fF - 2*f0 + fB) / dx^2
+            else
+                dxFdyF = copy(x)
+                dxBdyB = copy(x)
+                dxFdyB = copy(x)
+                dxBdyF = copy(x)
+
+                dxFdyF[i] += dx; dxFdyF[j] += dx
+                dxBdyB[i] -= dx; dxBdyB[j] -= dx
+                dxFdyB[i] += dx; dxFdyB[j] -= dx
+                dxBdyF[i] -= dx; dxBdyF[j] += dx
+
+                f1F = fun(dxFdyF)
+                f1B = fun(dxBdyB)
+                f2F = fun(dxFdyB)
+                f2B = fun(dxBdyF)
+
+                hij = (f1F + f1B - f2F - f2B) / (4 * dx^2)
+                hess[i, j] = hij
+                hess[j, i] = hij
+            end
+        end
+    end
+
+    return hess
+end
+"""
+    getOptimMethod(method::String)
+
+Function to return the optimization method based on a string input. Used to reduce the amount of packages that the user needs to import. Currently supported methods are (L-)BFGS and NelderMead.
+"""
+function getOptimMethod(method::String)
+
+    if method == "LBFGS"
+        method = LBFGS()
+    elseif method == "BFGS"
+        method = BFGS()
+    elseif method == "NelderMead"
+        method = NelderMead()
+    else
+        error(
+            "Optimization method $(method) is not supported in UncertaintyQuantification.jl. Currently supported methods are '(L-)BFGS' and 'NelderMead'.",
+        )
+    end
+
+    return method
+end
+
+function filterresults!(df::DataFrame, variables::Vector{Symbol}, tolerance::Real=1e-6)
+    # filter the DataFrame to only include the variables specified in `variables`
+    filtered_df = Matrix(select(df, variables))
+    n_points = size(filtered_df, 1)
+
+    rem = falses(n_points, n_points)
+
+    for i=1:n_points, j=1:i
+        if i == j
+            rem[i, j] = false
+        else
+            rem[i, j] = norm(filtered_df[i,:] - filtered_df[j,:]) < tolerance
+        end
+    end
+    mask = vec(any(rem, dims=2))
+    deleteat!(df, mask)
+    
 end
