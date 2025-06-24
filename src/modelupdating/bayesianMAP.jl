@@ -114,7 +114,7 @@ struct MaximumLikelihoodBayesian <: AbstractBayesianPointEstimate
 end
 
 """
-    bayesianupdating(likelihood, models, pointestimate; prior)
+    bayesianupdating(likelihood, models, pointestimate; prior, filtertolerance)
 
 Perform bayesian updating using the given `likelihood`, `models`  and any point estimation method [`AbstractBayesianPointEstimate`](@ref).
 
@@ -135,6 +135,8 @@ likelihood(df) = [sum(logpdf.(Normal.(df_i.x, 1), Data)) for df_i in eachrow(df)
 ```
 
 If a model evaluation is required to evaluate the likelihood, a vector of `UQModel`s must be passed to `bayesianupdating`. For example if the variable `x` above is the output of a numerical model.
+
+`filtertolerance` is a tolerance value to filter out multiple estimates of the same point. If the distance between two points is smaller than `filtertolerance`, one of them will be discarded. This is useful if the optimization method finds multiple local maxima that are very close to each other.
 
 For a general overview of the function, see [`bayesianupdating `](@ref).
 """
@@ -258,6 +260,22 @@ function optimize_pointestimate(
     end
 end
 
+"""
+    LaplaceEstimateBayesian(prior, optimmethod, x0; islog, lowerbounds, upperbounds)
+
+Estimates means and covariances of a mixture of Gaussians to approximate the posterior density. Passed to [`bayesianupdating`](@ref) to estimate one or more maxima of the posterior starting from `x0`. The optimization uses the method specified in `optimmethod`. Will calculate one estimation per point in x0, these are then filtered, s.t. multiple estimates of the same point are discarded. The flag `islog` specifies whether the prior and likelihood functions passed to the  [`bayesianupdating`](@ref) method are already  given as logarithms. Also specifies whether the posterior is given as log-function. `lowerbounds` and `upperbounds` specify optimization intervals.
+
+Alternative constructors
+
+```julia
+    LaplaceEstimateBayesian(prior, optimmethod, x0; islog) # `lowerbounds` = [-Inf], # `upperbounds` = [Inf]
+    LaplaceEstimateBayesian(prior, optimmethod, x0)  # `islog` = true
+```
+### Notes
+The method makes use of the [`MaximumAPosterioriBayesian`](@ref) method to estimate the maximum a posteriori (MAP) estimate, and then calculates the Hessian of the posterior at the MAP estimate to construct a Gaussian approximation of the posterior distribution. The Hessian currently is estimated by finite differences.
+
+See also [`MaximumAPosterioriBayesian`](@ref), [`bayesianupdating `](@ref),  [`TransitionalMarkovChainMonteCarlo`](@ref).
+"""
 struct LaplaceEstimateBayesian <: AbstractBayesianPointEstimate
 
     prior::Vector{RandomVariable}
@@ -297,12 +315,38 @@ struct LaplaceEstimateBayesian <: AbstractBayesianPointEstimate
     end
 end
 
+"""
+    bayesianupdating(likelihood, models, lpestimate; prior, filtertolerance, fddist)
+
+Perform bayesian updating with Laplace estimation using the given `likelihood`, `models`  and the MAP estimation [`MaximumAPosterioriBayesian`](@ref). Laplace estimation is basically an extension of the MAP estimation, where the Hessian of the posterior is calculated at the MAP estimate and used to construct a Gaussian approximation of the posterior distribution. Returns a `DataFrame` with the MAP estimates and estimated covariance matrices, as well as a function handle for the posterior pdf as a function of the input `DataFrame`.
+
+### Notes
+
+Method can be called with an empty Vector of models, i.e.
+
+    bayesianupdating(likelihood, [], pointestimate)
+
+If `prior` is not given, the method will construct a prior distribution from the prior specified in `AbstractBayesianPointEstimate.prior`.
+
+`likelihood` is a Julia function which must be defined in terms of a `DataFrame` of samples, and must evaluate the likelihood for each row of the `DataFrame`
+
+For example, a loglikelihood based on normal distribution using 'Data':
+
+```julia
+likelihood(df) = [sum(logpdf.(Normal.(df_i.x, 1), Data)) for df_i in eachrow(df)]
+```
+
+If a model evaluation is required to evaluate the likelihood, a vector of `UQModel`s must be passed to `bayesianupdating`. For example if the variable `x` above is the output of a numerical model.
+
+For a general overview of the function, see [`bayesianupdating `](@ref).
+"""
 function bayesianupdating(
     likelihood::Function,
     models::Vector{<:UQModel},
     lpestimate::LaplaceEstimateBayesian;
     prior::Union{Function,Nothing}=nothing,
-    filtertolerance::Real=1e-6
+    filtertolerance::Real=1e-6,
+    fddist::Float64=1e-3,
 )
     mapestimate = MaximumAPosterioriBayesian(
         lpestimate.prior,
@@ -320,16 +364,16 @@ function bayesianupdating(
         models,
         mapestimate;
         prior=prior,
+        filtertolerance=filtertolerance,
     )
-
-    filterresults!(results, names(lpestimate.prior),filtertolerance)
 
     vars = Matrix(results[:,names(lpestimate.prior)])
 
     # !TODO use some package for this, i.e. ForwardDiff.jl, Zygote.jl, etc.
     # Could then also be flexible between AD and FD, and also could track variable names
-    hess = [inv(fd_hessian(optimTarget, var, 1e-3)) for var in eachrow(vars)]
-    results.invhessian = hess
+    hess = [inv(fd_hessian(optimTarget, var, fddist)) for var in eachrow(vars)]
+    # the call to Hermitian is needed to tell Julia that the matrix is Hermitian. Otherwise MvNormal will complain if the (co-)variances are small.
+    results.invhessian = Hermitian.(hess)
 
     postvalues = lpestimate.islog ? exp.(results[:,Symbol(mapestimate.valname)]) : results[:,Symbol(mapestimate.valname)]
     weights =  postvalues ./ sum(postvalues)
@@ -340,7 +384,7 @@ function bayesianupdating(
         vars = collect(row[names(lpestimate.prior)])
         pdfs = [weights[i] * pdf(MvNormal(means[i, :], results.invhessian[i]), vec(vars))
                 for i in 1:size(means, 1)]
-        return log.(sum(pdfs))
+        return lpestimate.islog ? log.(sum(pdfs)) : sum(pdfs)
     end, eachrow(df))
 
     # !TODO: use Gaussian mixture model as return value
