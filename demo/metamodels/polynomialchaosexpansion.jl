@@ -19,6 +19,15 @@ println("LS Variance: $(var(pceLS))")
 println("LS Mean Squared Error: $mse")
 println("--------------------------")
 
+# Estimation by WAFP
+wafp = WeightedApproximateFetekePoints(SobolSampling(ls_n))
+pceLS, samples, mse = polynomialchaos(x, model, Ψ, :y, wafp)
+
+println("WAFP Mean: $(mean(pceLS))")
+println("WAFP Variance: $(var(pceLS))")
+println("WAFP Mean Squared Error: $mse")
+println("--------------------------")
+
 # Estimation by full quadrature
 gq = GaussQuadrature()
 pceGQ, samples = polynomialchaos(x, model, Ψ, :y, gq)
