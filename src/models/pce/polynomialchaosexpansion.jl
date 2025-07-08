@@ -9,6 +9,16 @@ struct LeastSquares
     sim::AbstractMonteCarlo
 end
 
+struct WeightedApproximateFetekePoints
+    sim::AbstractMonteCarlo
+    fadd::Integer
+    fmult::Integer
+end
+
+function WeightedApproximateFetekePoints(sim::AbstractMonteCarlo; fadd=10, fmult=2)
+    return WeightedApproximateFetekePoints(sim, fadd, fmult)
+end
+
 struct GaussQuadrature end
 
 function polynomialchaos(
@@ -66,6 +76,88 @@ function polynomialchaos(
     ls::LeastSquares,
 )
     return polynomialchaos([inputs], [model], Ψ, output, ls)
+end
+
+function polynomialchaos(
+    inputs::Vector{<:UQInput},
+    model::Vector{<:UQModel},
+    Ψ::PolynomialChaosBasis,
+    output::Symbol,
+    wafp::WeightedApproximateFetekePoints
+)
+    samples = sample(inputs, wafp.sim)
+    random_inputs = filter(i -> isa(i, RandomUQInput), inputs)
+    random_names = names(random_inputs)
+    to_standard_normal_space!(random_inputs, samples)
+    x = map_to_bases(Ψ, Matrix(samples[:, random_names]))
+
+    random_inputs = filter(i -> isa(i, RandomUQInput), inputs)
+
+
+    Np = length(Ψ.α)
+    n = wafp.sim.n
+    rest = min((Np-1) * wafp.fmult, wafp.fadd, n - Np)
+    rest = max(rest, 0)
+    
+    A = Matrix{Float64}(undef, n, Np)
+    for i in 1:n
+        A[i,:] .= evaluate(Ψ, x[i,:])
+    end
+    w = norm.(eachrow(A)) .^ (-2.0)
+    B = A' .* reshape(w .^ (1/2), 1, :)
+    _, _, p = qr(B, ColumnNorm())
+    pout = zeros(Int, Np + rest)
+    pout[1:Np] .= p[1:Np]
+    Ginv = inv(B[:,p] * B[:,p]')
+    for i in 1:rest
+        val, j = findmax(j -> B[:,p[j]]' * Ginv * B[:,p[j]], Np+i:n)
+        pout[Np+i] = p[j]
+        Ginv .-= ((Ginv * B[:,p[j]]) * (B[:,p[j]]' * Ginv)) ./ (1 + val)
+    end
+    
+    samples = samples[pout,:]
+    to_physical_space!(random_inputs, samples)
+    w = w[pout]
+    evaluate!(model, samples)
+
+    A = A[pout,:]
+    W = Diagonal(w)
+    y = (A' * W * A) \ (A' * W * samples[:, output])
+
+    ϵ = samples[:, output] - A * y
+    mse = mean(ϵ .^ 2)
+
+    return PolynomialChaosExpansion(y, Ψ, output, random_inputs), samples, mse
+end
+
+function polynomialchaos(
+    inputs::UQInput,
+    model::Vector{<:UQModel},
+    Ψ::PolynomialChaosBasis,
+    output::Symbol,
+    wafp::WeightedApproximateFetekePoints
+)
+    return polynomialchaos([inputs], model, Ψ, output, wafp)
+end
+
+function polynomialchaos(
+    inputs::Vector{<:UQInput},
+    model::UQModel,
+    Ψ::PolynomialChaosBasis,
+    output::Symbol,
+    wafp::WeightedApproximateFetekePoints
+)
+    return polynomialchaos(inputs, [model], Ψ, output, wafp)
+end
+
+function polynomialchaos(
+    inputs::UQInput,
+    model::UQModel,
+    Ψ::PolynomialChaosBasis,
+    output::Symbol,
+    wafp::WeightedApproximateFetekePoints,
+)
+    return polynomialchaos([inputs], [model], Ψ, output, wafp)
 end
 
 function polynomialchaos(
