@@ -43,10 +43,12 @@ evaluate!(model, samplesMC)
 println("MC Mean: $(mean(samplesMC.y))")
 println("MC Variance: $(var(samplesMC.y))")
 
-# Plots 3 histograms
+# Plots 4 histograms
 samplesLS = sample(pceLS, 10^5)
+samplesWAFP = sample(pceWAFP, 10^5)
 samplesGQ = sample(pceGQ, 10^5)
 
 histogram(samplesLS.y; alpha=0.5, label="Least squares", normalize=:probability, bins=100)
+histogram!(samplesWAFP.y; alpha=0.5, label="WAFP", normalize=:probability, bins=100)
 histogram!(samplesGQ.y; alpha=0.5, label="Quadrature", normalize=:probability, bins=100)
 histogram!(samplesMC.y; alpha=0.5, label="Monte Carlo", normalize=:probability, bins=100)
