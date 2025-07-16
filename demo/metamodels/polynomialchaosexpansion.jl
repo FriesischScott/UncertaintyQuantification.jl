@@ -21,10 +21,10 @@ println("--------------------------")
 
 # Estimation by WAFP
 wafp = WeightedApproximateFetekePoints(SobolSampling(ls_n))
-pceLS, samples, mse = polynomialchaos(x, model, Ψ, :y, wafp)
+pceWAFP, samples, mse = polynomialchaos(x, model, Ψ, :y, wafp)
 
-println("WAFP Mean: $(mean(pceLS))")
-println("WAFP Variance: $(var(pceLS))")
+println("WAFP Mean: $(mean(pceWAFP))")
+println("WAFP Variance: $(var(pceWAFP))")
 println("WAFP Mean Squared Error: $mse")
 println("--------------------------")
 
