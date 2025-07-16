@@ -9,14 +9,23 @@ struct LeastSquares
     sim::AbstractMonteCarlo
 end
 
+"""
+    WeightedApproximateFetekePoints(sim::AbstractMonteCarlo; fadd=10, fmult=2)
+
+Struct for performing weighted approximate Feteke points (wafp) subsampling of a Monte-Carlo sampler for use in generating a 
+`PolynomialChaosExpansion`. Given a `PolynomialChaosBasis` of dimension `N`, and a Monte-Carlo sampler with `M` samples, generates
+a subsample of size `max(N,min(N+fadd,N+fmult,M))` biased towards maximizing the determinant of the Gramian typically requiring less 
+than `M` model evaluations. Follows the strategy outlined in paper:
+
+Burk, Narayan, Orr; https://arxiv.org/abs/2008.04854
+"""
 struct WeightedApproximateFetekePoints
     sim::AbstractMonteCarlo
     fadd::Integer
     fmult::Integer
-end
-
-function WeightedApproximateFetekePoints(sim::AbstractMonteCarlo; fadd=10, fmult=2)
-    return WeightedApproximateFetekePoints(sim, fadd, fmult)
+    function WeightedApproximateFetekePoints(sim::AbstractMonteCarlo; fadd=10, fmult=2)
+        return new(sim, fadd, fmult)
+    end
 end
 
 struct GaussQuadrature end
