@@ -62,6 +62,7 @@ makedocs(;
             "Power Spectral Density Functions" => "api/psd.md",
             "Stochastic Processes (Spectral Representation)" => "api/spectralrepresentation.md",
             "SlurmInterface" => "api/slurm.md",
+            "Polynomial Chaos Expansions" => "api/polynomialchaos.md",
         ],
         "References" => "references.md",
     ],

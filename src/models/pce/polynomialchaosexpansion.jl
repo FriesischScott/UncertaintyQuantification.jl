@@ -15,9 +15,7 @@ end
 Struct for performing weighted approximate Feteke points (wafp) subsampling of a Monte-Carlo sampler for use in generating a 
 `PolynomialChaosExpansion`. Given a `PolynomialChaosBasis` of dimension `N`, and a Monte-Carlo sampler with `M` samples, generates
 a subsample of size `max(N,min(N+fadd,N+fmult,M))` biased towards maximizing the determinant of the Gramian typically requiring less 
-than `M` model evaluations. Follows the strategy outlined in paper:
-
-Burk, Narayan, Orr; https://arxiv.org/abs/2008.04854
+than `M` model evaluations. Follows procedure described in [burkEfficientSampling](@cite). 
 """
 struct WeightedApproximateFetekePoints
     sim::AbstractMonteCarlo
