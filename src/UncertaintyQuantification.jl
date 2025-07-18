@@ -117,6 +117,7 @@ export KanaiTajimi
 export LatinHypercubeSampling
 export LatticeRuleSampling
 export LeastSquares
+export WeightedApproximateFetekePoints
 export LegendreBasis
 export LineSampling
 export SingleComponentMetropolisHastings
