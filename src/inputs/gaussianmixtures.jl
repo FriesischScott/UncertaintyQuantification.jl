@@ -4,7 +4,7 @@
     Creates a Gaussian Mixture Model (GMM) with the specified number of components and dimensions.
     The GMM is initialized with multivariate normal distributions for each component, with means set to zero and identity covariance matrices.
 """
-mutable struct GaussianMixtureModel
+mutable struct GaussianMixtureModel <:RandomUQInput
     mixture::MixtureModel
     names::Vector{Symbol}
 
@@ -27,11 +27,15 @@ end
 """
     sample(gmm::GaussianMixtureModel, n::Integer=1)
 
-Generates `n` samples from the Gaussian Mixture Model (GMM). Returns a DataFrame with the sampled data.
+Generates `n` samples from the Gaussian Mixture Model. Returns a DataFrame.
 """
 function sample(gmm::GaussianMixtureModel, n::Integer=1)
     samples = rand(gmm.mixture, n)
     return DataFrame(transpose(samples), gmm.names)
+end
+
+function to_standard_normal_space!(gmm::GaussianMixtureModel, df::DataFrame)
+	error("GaussianMixtureModels cannot be mapped to standard normal space.")
 end
 
 names(gmm::GaussianMixtureModel) = gmm.names
@@ -45,11 +49,10 @@ minimum(gmm::GaussianMixtureModel) = minimum(gmm.mixture)
 maximum(gmm::GaussianMixtureModel) = maximum(gmm.mixture)
 insupport(gmm::GaussianMixtureModel, x::Vector{Float64}) = insupport(gmm.mixture, x)
 
-
 """
     fit!(gmm::GaussianMixtureModel, data::DataFrame; max_iter::Integer=100, tol::Number=1e-4)
 
-Fits a Gaussian Mixture Model (GMM) to the given data using the Expectation-Maximization (EM) algorithm.
+Fits a Gaussian Mixture Model to the given data using the Expectation-Maximization algorithm.
 
 # Arguments
 - `gmm::GaussianMixtureModel`: The GMM object to be fitted. The model parameters will be updated in-place.
@@ -66,6 +69,9 @@ fit!(gmm, df)
 """
 function fit!(gmm::GaussianMixtureModel, data::DataFrame; max_iter::Integer=100, tol::Number=1e-4)
     # Initialize parameters
+    if ncol(data) != length(gmm.names)
+        throw(ArgumentError("Number of columns in data must match the number of names in the GMM."))
+    end
     X = Matrix(data)
     K = length(gmm.mixture.components)
     N = nrow(data)
