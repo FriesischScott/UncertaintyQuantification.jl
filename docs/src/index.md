@@ -1,3 +1,7 @@
+```@meta
+IgnorePage = :typst
+```
+
 ```@raw html
 ---
 authors:

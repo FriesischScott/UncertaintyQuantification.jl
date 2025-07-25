@@ -1,18 +1,28 @@
 using DataFrames
 using Documenter
-using DocumenterCitations
 using UncertaintyQuantification
+
+if isempty(ARGS) || ARGS[1] != "pdf"
+    using DocumenterCitations
+    bib = CitationBibliography(joinpath(@__DIR__, "references.bib"))
+end
 
 format = if !isempty(ARGS) && ARGS[1] == "vite"
     using DocumenterVitepress
-
     MarkdownVitepress(;
         repo="github.com/FriesischScott/UncertaintyQuantification.jl",
         devbranch="master",
         devurl="dev",
     )
 elseif !isempty(ARGS) && ARGS[1] == "pdf"
-    Documenter.LaTeX()
+    include("./TypstWriter.jl")
+    using .TypstWriter
+
+    TypstWriter.Typst(;
+        platform="native",
+        bib=joinpath(@__DIR__, "references.bib"),
+        version=pkgversion(UncertaintyQuantification),
+    )
 else
     Documenter.HTML(; prettyurls=get(ENV, "CI", nothing) == "true")
 end
@@ -23,11 +33,9 @@ DocMeta.setdocmeta!(
     :(using UncertaintyQuantification, DataFrames, DisplayAs, Random; Random.seed!(8128)),
 )
 
-bib = CitationBibliography(joinpath(@__DIR__, "references.bib"))
-
 makedocs(;
     modules=[UncertaintyQuantification],
-    plugins=[bib],
+    plugins=isempty(ARGS) || ARGS[1] != "pdf" ? [bib] : [],
     format=format,
     sitename="UncertaintyQuantification.jl",
     authors="Jasper Behrensdorf and Ander Gray",

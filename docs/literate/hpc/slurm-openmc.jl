@@ -39,7 +39,7 @@ TBR = Extractor(base -> begin
     return tbr
 end, :TBR)
 
-# In this example, an OpenMC model is built and run using the Python API. We therefore specify the `python3`` command, and the python file to run.
+# In this example, an OpenMC model is built and run using the Python API. We therefore specify the `python3` command, and the python file to run.
 
 openmc = Solver(
     "python3", # path to python3 binary
