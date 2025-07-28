@@ -38,10 +38,8 @@ X = transpose([rand(N₁, n1) rand(N₂, n2)])
 df = DataFrame(X, [:x1, :x2])
 #md nothing # hide
 
-# Then, we initialize a `GaussianMixtureModel` with two dimensions ($x_1$ and $x_2$) and $K=2$ components.
-# Afterwards, we fit the GMM to the data using the `fit!` function. We can compare the coefficients of the fitted GMM with the original distributions:
-gmm = GaussianMixtureModel([:x1, :x2], 2)
-fit!(gmm, df)
+# Then, we fit a `GaussianMixtureModel` with two dimensions ($x_1$ and $x_2$) and $K=2$ components to the data stored in `df`:
+gmm = GaussianMixtureModel(df, 2)
 
 # To visually validate the fit, we can plot the data and the fitted GMM. We create a grid of points to evaluate the GMM's PDF and plot the contours.
 x_range = range(-2, 10, length=100)
@@ -70,15 +68,16 @@ to fit Gaussian Mixture Models, as the `GaussianMixtureModel` type is compatible
 
 ===#
 
-# We can define a GMM from `GaussianMixtures.jl` and convert it to a `MixtureModel` from `Distributions.jl`.
-using GaussianMixtures
+# Let's start with defining a `MixtureModel` from `Distributions.jl`:
 #md using Random; Random.seed!(2) # hide
-g = rand(GMM, 3, 2) # GMM from GaussianMixtures.jl
-m = MixtureModel(g) # MixtureModel from Distributions.jl
-#md nothing # hide
+m = MixtureModel(MvNormal[
+    MvNormal([-1.0, 2.0], [1.0 0.5; 0.5 1.0]),
+    MvNormal([2.0, -1.0], [1.5 0.3; 0.3 1.5]),
+    MvNormal([3.0, 3.0], [1.0 0.2; 0.2 1.0])], [0.4, 0.3, 0.3]
+)
 
 # Then, we can create our `GaussianMixtureModel` from the `MixtureModel` and specify the names of the dimensions.
-gmm = GaussianMixtureModel(m, [:x1, :x2]) # GaussianMixtureModel from UncertaintyQuantification.jl
+gmm = GaussianMixtureModel(m, [:x1, :x2])
 #md nothing # hide
 
 # Again, we can sample from the GMM and, for example, evaluate the PDF and plot those results:

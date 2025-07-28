@@ -1,16 +1,13 @@
 @testset "GaussianMixtureModel" begin
-    Random.seed!(69)
-    # Test initialization with names and number of components
-    gmm = GaussianMixtureModel([:x1, :x2], 3)
+    # Test fitting with a DataFrame and initialization
+    df = DataFrame(x1=randn(100), x2=randn(100))
+    gmm = GaussianMixtureModel(df, 3; maximum_iterations=1, tolerance=1e-3)
+
     @test gmm isa RandomUQInput
     @test length(gmm.names) == 2
     @test length(gmm.mixture.components) == 3
     @test dimensions(gmm) == 2
     @test all(names(gmm) .== [:x1, :x2])
-
-    # Test fitting with a DataFrame
-    df = DataFrame(x1=randn(100), x2=randn(100))
-    fit!(gmm, df)
 
     # Test sample generation
     samples = sample(gmm, 10)
@@ -28,6 +25,6 @@
 
     # Test error handling
     @test_throws ErrorException to_standard_normal_space!(gmm, samples)
-    @test_throws ArgumentError fit!(gmm, DataFrame(x1=randn(100)))  # Mismatched dimensions
+    @test_throws ArgumentError fit_gaussian_mixture(3, randn(100, 1))  # Mismatched dimensions
     @test_throws ArgumentError GaussianMixtureModel(MixtureModel([Normal(0, 1)]), [:x1, :x2])  # Mismatched dimensions and names
 end
