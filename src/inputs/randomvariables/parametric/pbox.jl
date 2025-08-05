@@ -12,5 +12,5 @@ end
 bounds(rv::RandomVariable{<:ProbabilityBox}) = bounds(rv.dist)
 
 function map_to_precise(x::AbstractVector{<:Real}, rv::RandomVariable{<:ProbabilityBox})
-    return RandomVariable(map_to_distribution(x, rv.dist), rv.name)
+    return RandomVariable(map_to_precise(x, rv.dist), rv.name)
 end

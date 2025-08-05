@@ -64,7 +64,7 @@ function ProbabilityBox{T}(p::Dict{Symbol,Interval}) where {T<:UnivariateDistrib
     return ProbabilityBox{T}(convert(Dict{Symbol,Any}, p))
 end
 
-function map_to_distribution(
+function map_to_precise(
     x::AbstractVector{<:Real}, pbox::ProbabilityBox{T}
 ) where {T<:UnivariateDistribution}
     parameters = collect(getindex.(Ref(pbox.parameters), fieldnames(T)))
@@ -94,7 +94,7 @@ end
 
 function quantile(pbox::ProbabilityBox{T}, u::Real) where {T<:UnivariateDistribution}
     quantiles = map(
-        par -> quantile(map_to_distribution([par...], pbox), u),
+        par -> quantile(map_to_precise([par...], pbox), u),
         Iterators.product([[a, b] for (a, b) in zip(bounds(pbox)...)]...),
     )
 
@@ -117,12 +117,12 @@ function cdf(pbox::ProbabilityBox{T}, x::Real) where {T<:UnivariateDistribution}
     lb, ub = bounds(pbox)
 
     cdfs_lo = map(
-        par -> cdf(map_to_distribution([par...], pbox), x),
+        par -> cdf(map_to_precise([par...], pbox), x),
         Iterators.product([[a, b] for (a, b) in zip(lb, ub)]...),
     )
 
     cdfs_hi = map(
-        par -> cdf(map_to_distribution([par...], pbox), x),
+        par -> cdf(map_to_precise([par...], pbox), x),
         Iterators.product([[a, b] for (a, b) in zip(lb, ub)]...),
     )
 
@@ -136,12 +136,12 @@ function reverse_quantile(
     lb, ub = bounds(pbox)
 
     cdfs_lo = map(
-        par -> cdf(map_to_distribution([par...], pbox), x.lb),
+        par -> cdf(map_to_precise([par...], pbox), x.lb),
         Iterators.product([[a, b] for (a, b) in zip(lb, ub)]...),
     )
 
     cdfs_hi = map(
-        par -> cdf(map_to_distribution([par...], pbox), x.ub),
+        par -> cdf(map_to_precise([par...], pbox), x.ub),
         Iterators.product([[a, b] for (a, b) in zip(lb, ub)]...),
     )
 

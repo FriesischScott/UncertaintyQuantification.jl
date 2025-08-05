@@ -16,17 +16,17 @@
     @test UncertaintyQuantification.bounds(p_box) == ([0.14, 0.21], [0.16, 0.23])
 
     par = [0.13, 0.20]
-    @test_throws ErrorException("Values outside of parameter intervals for ProbabilityBox") UncertaintyQuantification.map_to_distribution(
+    @test_throws ErrorException("Values outside of parameter intervals for ProbabilityBox") UncertaintyQuantification.map_to_precise(
         par, p_box
     )
 
     par = [0.17, 0.25]
-    @test_throws ErrorException("Values outside of parameter intervals for ProbabilityBox") UncertaintyQuantification.map_to_distribution(
+    @test_throws ErrorException("Values outside of parameter intervals for ProbabilityBox") UncertaintyQuantification.map_to_precise(
         par, p_box
     )
 
     par = [0.15, 0.22]
-    @test UncertaintyQuantification.map_to_distribution(par, p_box) == Uniform(par...)
+    @test UncertaintyQuantification.map_to_precise(par, p_box) == Uniform(par...)
 
     @testset "Quantile and sampling" begin
         p_box = ProbabilityBox{Normal}(Dict(:μ => Interval(0, 1), :σ => Interval(0.1, 1)))
