@@ -1,15 +1,19 @@
 """
-	Interval(lb::Real, up::real)
+    Interval(lb::Real, ub::Real)
 
-Defines an Interval, with lower a bound, an upper bound.
+Represents a closed numeric interval with a lower bound `lb` and an upper bound `ub`.
 
-This is a data type used internally and to construct p-boxes. For interval inputs see [`IntervalVariable`](@ref).
+`Interval` is a data type primarily used for constructing probability boxes (p-boxes) and other uncertainty representations. It is **not** intended for direct use in simulations for that, see [`IntervalVariable`](@ref).
+
+# Fields
+- `lb::Real`: Lower bound of the interval.
+- `ub::Real`: Upper bound of the interval.
 
 # Examples
 
 ```jldoctest
 julia> Interval(0.10, 0.14)
-Interval(0.1, 0.14)```
+Interval(0.1, 0.14)
 """
 struct Interval
     lb::Real
@@ -40,17 +44,23 @@ function bounds(i::Interval)
 end
 
 """
-	IntervalVariable(lb::Real, up::real, name::Symbol)
+    IntervalVariable(lb::Real, ub::Real, name::Symbol)
 
-Defines an IntervalVariable input , with lower bound `lb`, upper bound `ub` and `name`.
+Defines an interval variable with a lower bound `lb`, upper bound `ub`, and an identifying `name`.
 
-This is an input type. To construct p-boxes with interval parameters use [`Interval`](@ref)
+`IntervalVariable` can be passed directly to analyses and simulations.
+For other uses, such as building probability boxes (p-boxes) from interval parameters, use [`Interval`](@ref) instead.
+
+# Fields
+- `lb::Real`: Lower bound of the interval.
+- `ub::Real`: Upper bound of the interval.
+- `name::Symbol`: Name or identifier for the variable.
 
 # Examples
 
 ```jldoctest
-julia> Interval(0.10, 0.14, :x)
-Interval(0.1, 0.14, :x)```
+julia> IntervalVariable(0.10, 0.14, :x)
+IntervalVariable(0.1, 0.14, :x)
 """
 struct IntervalVariable <: UQInput
     lb::Real
