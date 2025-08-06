@@ -5,6 +5,8 @@
 
 Represents a (optionally truncated) probability box (p-box) for a univariate distribution `T`, where parameters may be specified as precise values (`Real`) or intervals ([`Interval`](@ref)). The support of the distribution is bounded by `lb` (lower bound) and `ub` (upper bound).
 
+To use the `ProbabilityBox` in an analysis it has to be wrapped in a [`RandomVariable`](@ref).
+
 # Fields
 - `parameters::Dict{Symbol, Union{Real, Interval}}`: Dictionary mapping parameter names (as symbols) to their values or intervals.
 - `lb::Real`: Lower bound of the distribution's support.
