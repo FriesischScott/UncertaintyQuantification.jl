@@ -1,7 +1,5 @@
 """
     ProbabilityBox{T}(parameters::Dict{Symbol, Union{Real, Interval}}, lb::Real, ub::Real)
-    ProbabilityBox{T}(parameters::Dict{Symbol, Union{Real, Interval}})
-    ProbabilityBox{T}(parameter::Interval)
 
 Represents a (optionally truncated) probability box (p-box) for a univariate distribution `T`, where parameters may be specified as precise values (`Real`) or intervals ([`Interval`](@ref)). The support of the distribution is bounded by `lb` (lower bound) and `ub` (upper bound).
 
