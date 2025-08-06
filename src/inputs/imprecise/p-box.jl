@@ -1,18 +1,31 @@
 """
-	ProbabilityBox{T}(p::Dict{Symbol,Union{Real,Interval}})
+    ProbabilityBox{T}(parameters::Dict{Symbol, Union{Real, Interval}}, lb::Real, ub::Real)
+    ProbabilityBox{T}(parameters::Dict{Symbol, Union{Real, Interval}})
+    ProbabilityBox{T}(parameter::Interval)
 
-Defines a `ProbabilityBox` from a `Dict` mapping each of the parameters of the `UnivariateDistribution` `T` to a `Real` or [`Interval`](@ref).
+Represents a (optionally truncated) probability box (p-box) for a univariate distribution `T`, where parameters may be specified as precise values (`Real`) or intervals (`Interval`). The support of the distribution is bounded by `lb` (lower bound) and `ub` (upper bound).
+
+# Fields
+- `parameters::Dict{Symbol, Union{Real, Interval}}`: Dictionary mapping parameter names (as symbols) to their values or intervals.
+- `lb::Real`: Lower bound of the distribution's support.
+- `ub::Real`: Upper bound of the distribution's support.
+
+# Constructors
+- `ProbabilityBox{T}(parameters::Dict{Symbol, Union{Real, Interval}}, lb::Real, ub::Real)`: Specify all parameters and support bounds explicitly.
+- `ProbabilityBox{T}(parameters::Dict{Symbol, Union{Real, Interval}})`: Support bounds are inferred from the distribution type `T`.
+- `ProbabilityBox{T}(parameter::Interval)`: For univariate distributions with a single parameter, construct from a single interval.
 
 # Examples
 
 ```jldoctest
-julia>  ProbabilityBox{Uniform}(Dict(:a => Interval(1.75, 1.83), :b => Interval(1.77, 1.85)))
-ProbabilityBox{Uniform}(Dict{Symbol, Union{Real, Interval}}(:a => [1.75, 1.83], :b => [1.77, 1.85]), 1.75, 1.85)
-```
+julia> ProbabilityBox{Normal}(Dict(:μ => Interval(0, 1), :σ => Interval(0.1, 1)), 0.0, Inf)
+ProbabilityBox{Normal}(Dict{Symbol, Union{Real, Interval}}(:μ => [0, 1], :σ => [0.1, 1]), 0.0, Inf)
 
-```jldoctest
-julia>  ProbabilityBox{Normal}(Dict(:μ => Interval(0, 1), :σ =>  Interval(0.1, 1)))
+julia> ProbabilityBox{Normal}(Dict(:μ => Interval(0, 1), :σ => Interval(0.1, 1)))
 ProbabilityBox{Normal}(Dict{Symbol, Union{Real, Interval}}(:μ => [0, 1], :σ => [0.1, 1]), -Inf, Inf)
+
+julia> ProbabilityBox{Exponential}(Interval(0.1, 0.5))
+ProbabilityBox{Exponential}(Dict{Symbol, Union{Real, Interval}}(:θ => [0.1, 0.5]), 0.0, Inf)
 ```
 """
 struct ProbabilityBox{T<:UnivariateDistribution}
@@ -38,20 +51,6 @@ struct ProbabilityBox{T<:UnivariateDistribution}
     end
 end
 
-"""
-	ProbabilityBox{T}(p::Dict{Symbol,Union{Real,Interval}}, lb::Real, ub::Real)
-
-Defines a truncated `ProbabilityBox` from a `Dict` mapping each of the parameters of the `UnivariateDistribution` `T` to a `Real` or [`Interval`](@ref).
-
-The parameters `lb` and `ub` define the lower and upper bound of the support.
-
-# Examples
-
-```jldoctest
-julia>  ProbabilityBox{Normal}(Dict(:μ => Interval(0, 1), :σ =>  Interval(0.1, 1)), 0, Inf)
-ProbabilityBox{Normal}(Dict{Symbol, Union{Real, Interval}}(:μ => [0, 1], :σ => [0.1, 1]), 0, Inf)
-```
-"""
 function ProbabilityBox{T}(p::Dict{Symbol,<:Any}) where {T<:UnivariateDistribution}
     domain = support(T())
     return ProbabilityBox{T}(p, domain.lb, domain.ub)
