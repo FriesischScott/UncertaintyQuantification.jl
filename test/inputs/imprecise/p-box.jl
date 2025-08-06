@@ -12,6 +12,7 @@
     @test p_box.parameters == params
     @test p_box.lb == 0.14
     @test p_box.ub == 0.23
+    @test mean(p_box) == Interval(0.175, 0.195)
 
     @test UncertaintyQuantification.bounds(p_box) == ([0.14, 0.21], [0.16, 0.23])
 
@@ -27,6 +28,12 @@
 
     par = [0.15, 0.22]
     @test UncertaintyQuantification.map_to_precise(par, p_box) == Uniform(par...)
+
+    p_box = ProbabilityBox{Exponential}(Interval(0.5, 0.75))
+    @test p_box.parameters == Dict{Symbol,Interval}(:θ => Interval(0.5, 0.75))
+    @test p_box.lb == 0.0
+    @test p_box.ub == Inf
+    @test mean(p_box) == Interval(0.5, 0.75)
 
     @testset "Quantile and sampling" begin
         p_box = ProbabilityBox{Normal}(Dict(:μ => Interval(0, 1), :σ => Interval(0.1, 1)))
