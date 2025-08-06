@@ -1,7 +1,7 @@
 """
 	ProbabilityBox{T}(p::Dict{Symbol,Union{Real,Interval}})
 
-Defines an ProbabilityBox from a `Dict` mapping each of the parameters of the `UnivariateDistribution` `T` to a `Real` or `Interval`.
+Defines a `ProbabilityBox` from a `Dict` mapping each of the parameters of the `UnivariateDistribution` `T` to a `Real` or [`Interval`](@ref).
 
 # Examples
 
@@ -16,12 +16,12 @@ ProbabilityBox{Normal}(Dict{Symbol, Union{Real, Interval}}(:μ => [0, 1], :σ =>
 ```
 """
 struct ProbabilityBox{T<:UnivariateDistribution}
-    parameters::Dict{Symbol,Union{<:Real,Interval}}
+    parameters::Dict{Symbol,Union{Real,Interval}}
     lb::Real
     ub::Real
 
     function ProbabilityBox{T}(
-        p::Dict{Symbol,Union{Any}}, lb::Real, ub::Real
+        p::Dict{Symbol,<:Any}, lb::Real, ub::Real
     ) where {T<:UnivariateDistribution}
         # Make sure all required parameters for the distribution are present
         if !issetequal(keys(p), fieldnames(T))
@@ -38,30 +38,42 @@ struct ProbabilityBox{T<:UnivariateDistribution}
     end
 end
 
-function ProbabilityBox{T}(p::Dict{Symbol,Any}) where {T<:UnivariateDistribution}
+"""
+	ProbabilityBox{T}(p::Dict{Symbol,Union{Real,Interval}}, lb::Real, ub::Real)
+
+Defines a truncated `ProbabilityBox` from a `Dict` mapping each of the parameters of the `UnivariateDistribution` `T` to a `Real` or [`Interval`](@ref).
+
+The parameters `lb` and `ub` define the lower and upper bound of the support.
+
+# Examples
+
+```jldoctest
+julia>  ProbabilityBox{Normal}(Dict(:μ => Interval(0, 1), :σ =>  Interval(0.1, 1)), 0, Inf)
+ProbabilityBox{Normal}(Dict{Symbol, Union{Real, Interval}}(:μ => [0, 1], :σ => [0.1, 1]), 0, Inf)
+```
+"""
+function ProbabilityBox{T}(p::Dict{Symbol,<:Any}) where {T<:UnivariateDistribution}
+    domain = support(T())
+    return ProbabilityBox{T}(p, domain.lb, domain.ub)
+end
+
+function ProbabilityBox{T}(p::Dict{Symbol,<:Any}) where {T<:Uniform}
     # p-boxes with Uniform distribution as parameter must be treated separately since their support changes with p-box lower and upper bounds.
-    if T == Uniform
-        parameters = collect(getindex.(Ref(p), fieldnames(T)))
-        values = vcat(
-            [
-                isa(p, Interval) ? collect(UncertaintyQuantification.bounds(p)) : p for
-                p in parameters
-            ]...,
-        )
-        return ProbabilityBox{T}(p, minimum(values), maximum(values))
-    else
-        domain = support(T())
-        return ProbabilityBox{T}(p, domain.lb, domain.ub)
-    end
+    parameters = collect(getindex.(Ref(p), fieldnames(T)))
+    values = vcat(
+        [
+            isa(p, Interval) ? collect(UncertaintyQuantification.bounds(p)) : p for
+            p in parameters
+        ]...,
+    )
+    return ProbabilityBox{T}(p, minimum(values), maximum(values))
 end
 
 function ProbabilityBox{T}(parameter::Interval) where {T<:UnivariateDistribution}
     @assert length(fieldnames(T)) == 1
-    return ProbabilityBox{T}(Dict{Symbol,Any}(fieldnames(T)[1] => parameter))
-end
-
-function ProbabilityBox{T}(p::Dict{Symbol,Interval}) where {T<:UnivariateDistribution}
-    return ProbabilityBox{T}(convert(Dict{Symbol,Any}, p))
+    return ProbabilityBox{T}(
+        Dict{Symbol,Union{Real,Interval}}(fieldnames(T)[1] => parameter)
+    )
 end
 
 function map_to_precise(
@@ -114,19 +126,12 @@ function bounds(pbox::ProbabilityBox{T}) where {T<:UnivariateDistribution}
 end
 
 function cdf(pbox::ProbabilityBox{T}, x::Real) where {T<:UnivariateDistribution}
-    lb, ub = bounds(pbox)
-
-    cdfs_lo = map(
+    cdfs = map(
         par -> cdf(map_to_precise([par...], pbox), x),
-        Iterators.product([[a, b] for (a, b) in zip(lb, ub)]...),
+        Iterators.product([[a, b] for (a, b) in zip(bounds(pbox)...)]...),
     )
 
-    cdfs_hi = map(
-        par -> cdf(map_to_precise([par...], pbox), x),
-        Iterators.product([[a, b] for (a, b) in zip(lb, ub)]...),
-    )
-
-    return Interval(minimum(cdfs_lo), maximum(cdfs_hi))
+    return Interval(minimum(cdfs), maximum(cdfs))
 end
 
 # Does the inverse of quantile, not cdf, which would return an interval
@@ -159,4 +164,22 @@ end
 
 Base.broadcastable(pbox::ProbabilityBox) = Ref(pbox)
 
-length(::ProbabilityBox{T}) where {T<:UnivariateDistribution} = 1
+length(::ProbabilityBox{<:UnivariateDistribution}) = 1
+
+function mean(pbox::ProbabilityBox{<:UnivariateDistribution})
+    cdfs = map(
+        par -> mean(map_to_precise([par...], pbox)),
+        Iterators.product([[a, b] for (a, b) in zip(bounds(pbox)...)]...),
+    )
+
+    return Interval(minimum(cdfs), maximum(cdfs))
+end
+
+function var(pbox::ProbabilityBox{<:UnivariateDistribution})
+    cdfs = map(
+        par -> var(map_to_precise([par...], pbox)),
+        Iterators.product([[a, b] for (a, b) in zip(bounds(pbox)...)]...),
+    )
+
+    return Interval(minimum(cdfs), maximum(cdfs))
+end
