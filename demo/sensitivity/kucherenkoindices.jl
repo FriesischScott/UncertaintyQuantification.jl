@@ -15,22 +15,22 @@ using LinearAlgebra
 D = sqrt.(diag(Σ)) 
 R = Σ ./ (D * D') 
 
-marginals = UncertaintyQuantification.RandomVariable[
-    UncertaintyQuantification.RandomVariable(Normal(0, 1), :x1),    # std = 1
-    UncertaintyQuantification.RandomVariable(Normal(0, 1), :x2),    # std = 1  
-    UncertaintyQuantification.RandomVariable(Normal(0, σ), :x3)     # std = σ
+marginals = RandomVariable[
+    RandomVariable(Normal(0, 1), :x1),    # std = 1
+    RandomVariable(Normal(0, 1), :x2),    # std = 1  
+    RandomVariable(Normal(0, σ), :x3)     # std = σ
 ]
 
 inputs = [
-    UncertaintyQuantification.JointDistribution(marginals, UncertaintyQuantification.GaussianCopula(R))
+    JointDistribution(marginals, GaussianCopula(R))
 ]
 
-model = UncertaintyQuantification.Model(df -> df.x1 .+ df.x2 .+ df.x3, :y)
+model = Model(df -> df.x1 .+ df.x2 .+ df.x3, :y)
 
-sim = UncertaintyQuantification.MonteCarlo(500000)
+sim = MonteCarlo(500000)
 
 try
-    indices = UncertaintyQuantification.kucherenkoindices([model], inputs, [:y], sim, num_bins=60)
+    indices = kucherenkoindices([model], inputs, [:y], sim, num_bins=60)
 
     println(indices)
 
