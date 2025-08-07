@@ -45,7 +45,7 @@ struct ProbabilityBox{T<:UnivariateDistribution}
         # If someone only passes Parameters, return a RandomVariable instead.
         if all(isa.(values(p), Real))
             @warn "ProbabilityBox() returns a UnivariateDistribution if no intervals are passed"
-            return T(getindex.(Ref(p), fieldnames(t))...)
+            return T(getindex.(Ref(p), fieldnames(T))...)
         end
         return new(convert(Dict{Symbol,Union{Real,Interval}}, p), lb, ub)
     end
