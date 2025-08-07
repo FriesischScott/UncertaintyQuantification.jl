@@ -2,7 +2,7 @@ include("../../src/UncertaintyQuantification.jl")
 using .UncertaintyQuantification
 using LinearAlgebra
 
-# Testing Kucherenko indices - Test Case 1: Linear model with correlated variables from Kucherenko et al. (2012)
+# Testing Kucherenko indices - Test Case 1: Linear model with correlated variables from Kucherenko et al. (2012) (DOI: 10.1016/j.cpc.2011.12.020)
 
 ρ = 0.5  # correlation coefficient
 σ = 2.0  # standard deviation for x3
@@ -16,9 +16,9 @@ D = sqrt.(diag(Σ))
 R = Σ ./ (D * D') 
 
 marginals = RandomVariable[
-    RandomVariable(Normal(0, 1), :x1),    # std = 1
-    RandomVariable(Normal(0, 1), :x2),    # std = 1  
-    RandomVariable(Normal(0, σ), :x3)     # std = σ
+    RandomVariable(Normal(0, 1), :x1),
+    RandomVariable(Normal(0, 1), :x2),
+    RandomVariable(Normal(0, σ), :x3)
 ]
 
 inputs = [
