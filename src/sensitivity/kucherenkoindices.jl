@@ -20,7 +20,8 @@ function kucherenkoindices(X::Matrix, Y::Vector, num_bins::Int=10)
     
     for i in 1:n_vars
         S_i = _compute_first_order_kucherenko(X, Y, i, num_bins, total_var)
-        ST_i = _compute_total_effect_kucherenko(X, Y, i, num_bins, total_var)
+        
+        ST_i = n_vars == 1 ? S_i : _compute_total_effect_kucherenko(X, Y, i, num_bins, total_var)
         
         push!(indices, [Symbol("X$i"), S_i, ST_i])
     end
@@ -72,10 +73,6 @@ end
 
 function _compute_total_effect_kucherenko(X::Matrix, Y::Vector, var_idx::Int, num_bins::Int, total_var::Float64)
     n_samples, n_vars = size(X)
-    
-    if n_vars == 1
-        return _compute_first_order_kucherenko(X, Y, var_idx, num_bins, total_var)
-    end
     
     other_vars = setdiff(1:n_vars, var_idx)
     X_other = X[:, other_vars]
@@ -133,7 +130,7 @@ end
 - `models::Vector{<:UQModel}`: Vector of UQ models to evaluate
 - `inputs::Vector{<:UQInput}`: Vector of input distributions
 - `outputs::Vector{Symbol}`: Vector of output quantity names
-- `sim::AbstractMonteCarlo`: Monte Carlo simulation parameters
+- `sim::AbstractMonteCarlo`: Total MC samples 
 - `num_bins::Int=10`: Number of bins for conditioning (default: 10)
 """
 function kucherenkoindices(
