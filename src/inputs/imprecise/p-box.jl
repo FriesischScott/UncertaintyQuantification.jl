@@ -47,6 +47,22 @@ struct ProbabilityBox{T<:UnivariateDistribution}
             @warn "ProbabilityBox() returns a UnivariateDistribution if no intervals are passed"
             return T(getindex.(Ref(p), fieldnames(T))...)
         end
+
+        # attempt construction of all distributions
+        parameters = collect(getindex.(Ref(p), fieldnames(T)))
+        parameter_bounds = map(x -> isa(x, Interval) ? bounds(x) : x, parameters)
+        for pars in Iterators.product(parameter_bounds...)
+            try
+                T(pars...)
+            catch e
+                rethrow(
+                    ArgumentError(
+                        "Invalid $T distribution for parameter combination $(pars)"
+                    ),
+                )
+            end
+        end
+
         return new(convert(Dict{Symbol,Union{Real,Interval}}, p), lb, ub)
     end
 end
@@ -57,6 +73,9 @@ function ProbabilityBox{T}(p::Dict{Symbol,<:Any}) where {T<:UnivariateDistributi
 end
 
 function ProbabilityBox{T}(p::Dict{Symbol,<:Any}) where {T<:Uniform}
+    if !issetequal(keys(p), fieldnames(T))
+        error("Parameter mismatch for ProbabilityBox $(keys(p)) != $([fieldnames(T)...]).")
+    end
     # p-boxes with Uniform distribution as parameter must be treated separately since their support changes with p-box lower and upper bounds.
     parameters = collect(getindex.(Ref(p), fieldnames(T)))
     values = vcat(

@@ -43,6 +43,16 @@
 
     @test ProbabilityBox{Normal}(Dict(:μ => 0.0, :σ => 1.0)) == Normal()
 
+    @testset "Invalid distributions" begin
+        @test_throws ArgumentError(
+            "Invalid Normal distribution for parameter combination (0, -1)"
+        ) ProbabilityBox{Normal}(Dict(:μ => 0, :σ => Interval(-1, 1)))
+
+        @test_throws ArgumentError(
+            "Invalid Uniform distribution for parameter combination (0.16, 0.16)"
+        ) ProbabilityBox{Uniform}(Dict(:a => Interval(0.14, 0.16), :b => 0.16))
+    end
+
     @testset "Quantile and sampling" begin
         p_box = ProbabilityBox{Normal}(Dict(:μ => Interval(0, 1), :σ => Interval(0.1, 1)))
         a = UncertaintyQuantification.quantile(p_box, 0.25)
