@@ -106,3 +106,4 @@ end
 Base.in(u, i::IntervalVariable) = i.lb <= u <= i.ub
 
 mean(i::IntervalVariable) = Interval(i)
+var(i::IntervalVariable) = Interval(0.0, (i.ub - i.lb)^2 / 4)

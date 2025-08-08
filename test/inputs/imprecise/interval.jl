@@ -50,7 +50,10 @@ end
     @test UncertaintyQuantification.map_to_precise(0.15, interval) ==
         Parameter(0.15, interval.name)
 
-    interval = IntervalVariable(lb, ub, name)
+    interval = IntervalVariable(0, 1, :x)
 
-    @test UncertaintyQuantification.sample(interval) == DataFrame(; l=Interval(interval))
+    @test mean(interval) == Interval(0, 1)
+    @test var(interval) == Interval(0.0, 0.25)
+
+    @test UncertaintyQuantification.sample(interval) == DataFrame(; x=Interval(interval))
 end
