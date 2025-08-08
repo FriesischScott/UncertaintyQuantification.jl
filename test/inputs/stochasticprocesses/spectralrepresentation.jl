@@ -38,6 +38,9 @@
 
     @test ϕ ≈ ϕ_temp
 
+    t = collect(0:1:10)
+    @test_logs (:warn, r"The frequency of the signal") SpectralRepresentation(sd, t, :ShnzkNySR)
+
     @testset "Reliability" begin
         ω = collect(range(0, 150, 100))
 
