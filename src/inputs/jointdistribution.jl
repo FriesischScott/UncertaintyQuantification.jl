@@ -1,3 +1,38 @@
+"""
+    JointDistribution{D<:Union{Copula,MultivariateDistribution}, M<:Union{RandomVariable,Symbol}}(d, m)
+
+Represents a joint probability distribution, either via a copula and a vector of marginal random variables,
+or a multivariate distribution and a vector of variable names.
+
+# Constructors
+
+- JointDistribution(d::Copula, m::Vector{RandomVariable}):
+    - Use a copula `d` to combine the marginal distributions in `m` into a joint distribution.
+    - The copula's dimension must match the length of `m`.
+    - `m` must be a vector of `RandomVariable`.
+
+- JointDistribution(d::MultivariateDistribution, m::Vector{Symbol}):
+    - Use a multivariate distribution `d` with named components specified by `m`.
+    - The distribution's dimension (number of variables) must match the length of `m`.
+    - `m` must be a vector of `Symbol`.
+
+# Examples
+
+```jldoctest
+julia> JointDistribution(GaussianCopula([1.0 0.71; 0.71 1.0]), [RandomVariable(Normal(), :x), RandomVariable(Uniform(), :y)])
+JointDistribution{Copula, RandomVariable}(GaussianCopula([1.0 0.71; 0.71 1.0]), RandomVariable[RandomVariable{Normal{Float64}}(Normal{Float64}(μ=0.0, σ=1.0), :x), RandomVariable{Uniform{Float64}}(Uniform{Float64}(a=0.0, b=1.0), :y)])
+```
+
+```jldoctest
+julia> JointDistribution(MultivariateNormal([1.0 0.71; 0.71 1.0]), [:x, :y])
+JointDistribution{MultivariateDistribution, Symbol}(ZeroMeanFullNormal(
+dim: 2
+μ: Zeros(2)
+Σ: [1.0 0.71; 0.71 1.0]
+)
+, [:x, :y])
+```
+"""
 struct JointDistribution{
     D<:Union{Copula,MultivariateDistribution},M<:Union{RandomVariable,Symbol}
 } <: RandomUQInput

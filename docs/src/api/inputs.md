@@ -15,8 +15,7 @@ ProbabilityBox
 RandomVariable
 IntervalVariable
 EmpiricalDistribution
-
-
+JointDistribution
 ```
 
 ## Functions
