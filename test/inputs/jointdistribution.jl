@@ -8,44 +8,42 @@ copula = GaussianCopula([1 0.8; 0.8 1])
 
 @testset "JointDistribution" begin
     @testset "Constructor" begin
-        @test isa(JointDistribution(marginals, copula), JointDistribution)
+        @test isa(JointDistribution(copula, marginals), JointDistribution)
 
-        jd = JointDistribution(marginals, copula)
-        @test jd.marginals == marginals
-        @test jd.copula == copula
+        jd = JointDistribution(copula, marginals)
+        @test jd.m == marginals
+        @test jd.d == copula
 
-        @test_throws ErrorException("Dimension mismatch between copula and marginals") JointDistribution(
-            marginals, GaussianCopula([1 0 0; 0 1 0; 0 0 1])
+        @test_throws ErrorException("Dimension mismatch between copula and marginals.") JointDistribution(
+            GaussianCopula([1 0 0; 0 1 0; 0 0 1]), marginals
         )
     end
 
     @testset "sample" begin
-        jd = JointDistribution(marginals, copula)
+        jd = JointDistribution(copula, marginals)
         @test size(sample(jd, 10)) == (10, 2)
         @test size(sample(jd)) == (1, 2)
     end
 
     @testset "names" begin
-        jd = JointDistribution(marginals, copula)
+        jd = JointDistribution(copula, marginals)
         @test names(jd) == [:x, :y]
     end
 
     @testset "mean" begin
-        jd = JointDistribution(marginals, copula)
+        jd = JointDistribution(copula, marginals)
         @test mean(jd) == [1.0, 0.5]
     end
 
     @testset "to_standard_normal_space" begin
-        jd = JointDistribution(marginals, copula)
+        jd = JointDistribution(copula, marginals)
 
-        Random.seed!(8128)
-
-        samples = sample(jd, 10^5)
+        samples = sample(jd, 10^6)
 
         @test isapprox(mean(samples.x), 1.0; atol=0.01)
         @test isapprox(mean(samples.y), 0.5; atol=0.01)
 
-        @test round(cor(samples.x, samples.y); digits=2) == 0.77
+        @test cor(samples.x, samples.y) ≈ 0.77 atol = 0.01
 
         to_standard_normal_space!(jd, samples)
 
@@ -55,15 +53,11 @@ copula = GaussianCopula([1 0.8; 0.8 1])
         @test isapprox(std(samples.x), 1.0; atol=0.01)
         @test isapprox(std(samples.y), 1.0; atol=0.01)
 
-        @test round(abs(cor(samples.x, samples.y)); digits=2) == 0.0
-
-        Random.seed!()
+        @test cor(samples.x, samples.y) ≈ 0.0 atol = 0.01
     end
 
     @testset "to_physical_space" begin
-        jd = JointDistribution(marginals, copula)
-
-        Random.seed!(8128)
+        jd = JointDistribution(copula, marginals)
 
         samples = DataFrame(:x => rand(Normal(), 10^5), :y => rand(Normal(), 10^5))
 
@@ -73,7 +67,5 @@ copula = GaussianCopula([1 0.8; 0.8 1])
         @test isapprox(mean(samples.y), 0.5; atol=0.01)
 
         @test round(cor(samples.x, samples.y); digits=2) == 0.77
-
-        Random.seed!()
     end
 end

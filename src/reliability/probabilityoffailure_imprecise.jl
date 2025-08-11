@@ -99,7 +99,7 @@ function map_to_precise_inputs(x::AbstractVector, inputs::AbstractVector{<:UQInp
             p = [popfirst!(params) for _ in 1:d]
             push!(precise_inputs, map_to_precise(p, i))
         elseif isa(i, JointDistribution)
-            precise_marginals = map(i.marginals) do rv
+            precise_marginals = map(i.m) do rv
                 if isimprecise(rv)
                     d = count(x -> isa(x, Interval), values(rv.dist.parameters))
                     p = [popfirst!(params) for _ in 1:d]
@@ -108,7 +108,7 @@ function map_to_precise_inputs(x::AbstractVector, inputs::AbstractVector{<:UQInp
                     return rv
                 end
             end
-            push!(precise_inputs, JointDistribution(precise_marginals, i.copula))
+            push!(precise_inputs, JointDistribution(i.d, precise_marginals))
         end
     end
     return precise_inputs

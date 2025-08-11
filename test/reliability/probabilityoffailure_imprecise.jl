@@ -30,7 +30,7 @@
 
             c = GaussianCopula([1 0.0; 0.0 1])
 
-            jd = JointDistribution([X, Y], c)
+            jd = JointDistribution(c, [X, Y])
 
             pf, x_lb, x_ub = probability_of_failure(
                 UQModel[], df -> 9 .+ df.X .+ df.Y, jd, DoubleLoop(FORM())
@@ -122,7 +122,7 @@
             # independent so the solution is the same
             c = GaussianCopula([1 0.0; 0.0 1])
 
-            jd = JointDistribution([X, Y], c)
+            jd = JointDistribution(c, [X, Y])
 
             pf, _ = probability_of_failure(
                 UQModel[], df -> 9 .+ df.X .+ df.Y, jd, RandomSlicing(FORM())
