@@ -1,8 +1,8 @@
 struct JointDistribution <: RandomUQInput
-    marginals::Vector{RandomVariable}
+    marginals::Vector{<:RandomVariable}
     copula::Copula
 
-    function JointDistribution(marginals::Vector{RandomVariable}, copula::Copula)
+    function JointDistribution(marginals::Vector{<:RandomVariable}, copula::Copula)
         length(marginals) == dimensions(copula) ||
             error("Dimension mismatch between copula and marginals")
 
@@ -32,7 +32,11 @@ end
 
 function to_standard_normal_space!(jd::JointDistribution, x::DataFrame)
     for rv in jd.marginals
-        x[!, rv.name] = cdf.(rv.dist, x[:, rv.name])
+        if isa(rv.dist, ProbabilityBox)
+            x[!, rv.name] = reverse_quantile.(rv.dist, x[:, rv.name])
+        else
+            x[!, rv.name] = cdf.(rv.dist, x[:, rv.name])
+        end
     end
     uncorrelated_stdnorm = to_standard_normal_space(
         jd.copula, Matrix{Float64}(x[:, names(jd)])
@@ -48,3 +52,9 @@ names(jd::JointDistribution) = vec(map(x -> x.name, jd.marginals))
 mean(jd::JointDistribution) = mean.(jd.marginals)
 
 dimensions(jd::JointDistribution) = dimensions(jd.copula)
+
+function bounds(jd::JointDistribution)
+    b = map(bounds, filter(isimprecise, jd.marginals))
+
+    return vcat(getindex.(b, 1)...), vcat(getindex.(b, 2)...)
+end

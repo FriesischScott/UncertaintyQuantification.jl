@@ -10,10 +10,13 @@ Pages = ["inputs.md"]
 
 ```@docs
 Parameter
-RandomVariable
-EmpiricalDistribution
 Interval
 ProbabilityBox
+RandomVariable
+IntervalVariable
+EmpiricalDistribution
+
+
 ```
 
 ## Functions

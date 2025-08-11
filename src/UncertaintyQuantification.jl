@@ -30,7 +30,6 @@ import Statistics: mean, var
 
 abstract type UQInput end
 abstract type DeterministicUQInput <: UQInput end
-abstract type ImpreciseUQInput <: UQInput end
 abstract type RandomUQInput <: UQInput end
 
 """
@@ -83,7 +82,6 @@ export AbstractSimulation
 export Copula
 export DeterministicUQInput
 export RandomUQInput
-export ImpreciseUQInput
 export UQInput
 export UQModel
 
@@ -111,6 +109,7 @@ export HaltonSampling
 export HermiteBasis
 export ImportanceSampling
 export Interval
+export IntervalVariable
 export JointDistribution
 export KanaiTajimi
 export LatinHypercubeSampling

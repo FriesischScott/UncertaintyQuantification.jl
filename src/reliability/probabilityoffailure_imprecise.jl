@@ -1,9 +1,14 @@
-## 1st Method -  External: Global Opt ; Internal: Sampling
+
+"""
+    DoubleLoop(lb::AbstractSimulation, ub::AbstractSimulation)
+"""
 struct DoubleLoop
     lb::AbstractSimulation
     ub::AbstractSimulation
 end
-
+"""
+    RandomSlicing(lb::AbstractSimulation, ub::AbstractSimulation)
+"""
 struct RandomSlicing
     lb::AbstractSimulation
     ub::AbstractSimulation
@@ -26,8 +31,8 @@ function probability_of_failure(
     @assert isimprecise(inputs)
 
     inputs = wrap(inputs)
-    imprecise_inputs = filter(x -> isa(x, ImpreciseUQInput), inputs)
-    precise_inputs = filter(x -> !isa(x, ImpreciseUQInput), inputs)
+    imprecise_inputs = filter(x -> isimprecise(x), inputs)
+    precise_inputs = filter(x -> !isimprecise(x), inputs)
 
     function pf_low(x)
         imprecise_inputs_x = map_to_precise_inputs(x, imprecise_inputs)
@@ -70,12 +75,12 @@ function probability_of_failure(
     if pf_lb == pf_ub
         return pf_ub
     else
-        return Interval(pf_lb, pf_ub, :pf), result_lb.x, result_ub.x
+        return Interval(pf_lb, pf_ub), result_lb.x, result_ub.x
     end
 end
 
 function bounds(inputs::AbstractVector{<:UQInput})
-    imprecise_inputs = filter(x -> isa(x, ImpreciseUQInput), inputs)
+    imprecise_inputs = filter(x -> isimprecise(x), inputs)
 
     b = bounds.(imprecise_inputs)
     lb = vcat(getindex.(b, 1)...)
@@ -87,12 +92,23 @@ function map_to_precise_inputs(x::AbstractVector, inputs::AbstractVector{<:UQInp
     precise_inputs = UQInput[]
     params = collect(x)
     for i in inputs
-        if isa(i, Interval)
+        if isa(i, IntervalVariable)
             push!(precise_inputs, map_to_precise(popfirst!(params), i))
-        elseif isa(i, ProbabilityBox)
-            d = length(filter(x -> isa(x, Interval), i.parameters))
+        elseif isa(i, RandomVariable{<:ProbabilityBox})
+            d = count(x -> isa(x, Interval), values(i.dist.parameters))
             p = [popfirst!(params) for _ in 1:d]
             push!(precise_inputs, map_to_precise(p, i))
+        elseif isa(i, JointDistribution)
+            precise_marginals = map(i.marginals) do rv
+                if isimprecise(rv)
+                    d = count(x -> isa(x, Interval), values(rv.dist.parameters))
+                    p = [popfirst!(params) for _ in 1:d]
+                    return map_to_precise(p, rv)
+                else
+                    return rv
+                end
+            end
+            push!(precise_inputs, JointDistribution(precise_marginals, i.copula))
         end
     end
     return precise_inputs
@@ -120,11 +136,11 @@ function probability_of_failure(
 
     out_lb = probability_of_failure(sm_max, df -> df.g_slice, sns_inputs, rs.lb)
 
-    return Interval(out_lb[1], out_ub[1], :pf), out_lb[2:end], out_ub[2:end]
+    return Interval(out_lb[1], out_ub[1]), out_lb[2:end], out_ub[2:end]
 end
 
 function transform_to_sns_input(i::UQInput)
-    if isa(i, RandomVariable) || isa(i, ProbabilityBox)
+    if isa(i, RandomVariable)
         return RandomVariable(Normal(), i.name)
     elseif isa(i, JointDistribution)
         return RandomVariable.(Normal(), names(i))
