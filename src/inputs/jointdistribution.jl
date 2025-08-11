@@ -39,6 +39,10 @@ function sample(jd::JointDistribution{<:Copula,<:RandomVariable}, n::Integer=1)
     return samples
 end
 
+function sample(jd::JointDistribution{<:MultivariateDistribution,<:Symbol}, n::Integer=1)
+    return DataFrame(permutedims(rand(jd.d, n)), jd.m)
+end
+
 function to_physical_space!(jd::JointDistribution{<:Copula,<:RandomVariable}, x::DataFrame)
     correlated_cdf = to_copula_space(jd.d, Matrix{Float64}(x[:, names(jd)]))
     for (i, rv) in enumerate(jd.m)
@@ -76,9 +80,19 @@ function names(jd::JointDistribution{<:Copula,<:RandomVariable})
     return vec(map(x -> x.name, jd.m))
 end
 
+function names(jd::JointDistribution{<:MultivariateDistribution,<:Symbol})
+    return jd.m
+end
+
 mean(jd::JointDistribution{<:Copula,<:RandomVariable}) = mean.(jd.m)
 
-dimensions(jd::JointDistribution) = dimensions(jd.copula)
+function mean(jd::JointDistribution{<:MultivariateDistribution,<:Symbol})
+    return mean(jd.d)
+end
+
+dimensions(jd::JointDistribution{<:Copula,<:RandomVariable}) = dimensions(jd.d)
+
+dimensions(jd::JointDistribution{<:MultivariateDistribution,<:Symbol}) = length(jd.d)
 
 function bounds(
     jd::JointDistribution{
@@ -89,5 +103,3 @@ function bounds(
 
     return vcat(getindex.(b, 1)...), vcat(getindex.(b, 2)...)
 end
-
-dimensions(jd::JointDistribution{<:Copula,<:RandomVariable}) = dimensions(jd.d)
