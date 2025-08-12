@@ -60,6 +60,27 @@ function RandomSlicing(sim::AbstractSimulation)
     return RandomSlicing(sim, deepcopy(sim))
 end
 
+"""
+    probability_of_failure(
+        models::Union{Vector{<:UQModel}, UQModel},
+        performance::Function,
+        inputs::Union{Vector{<:UQInput}, UQInput},
+        dl::DoubleLoop
+    )
+
+Perform an **imprecise reliability analysis** using the *double loop* Monte Carlo method.
+
+The inputs must include at least one imprecise variable.
+
+# Returns
+- **`pf_bounds`**: An [`Interval`](@ref) giving the lower and upper bounds on the probability of failure.  
+- **`result_lb`**: The outputs of the reliability simulation that achieved the lower bound.  
+- **`result_ub`**: The outputs of the reliability simulation that achieved the upper bound. 
+
+If the lower and upper bounds are equal, returns only the scalar probability of failure.
+
+See [`DoubleLoop`](@ref) for details of the random slicing configuration.
+"""
 function probability_of_failure(
     models::Union{Vector{<:UQModel},UQModel},
     performance::Function,
@@ -152,6 +173,25 @@ function map_to_precise_inputs(x::AbstractVector, inputs::AbstractVector{<:UQInp
     return precise_inputs
 end
 
+"""
+    probability_of_failure(
+        models::Union{Vector{<:UQModel}, UQModel},
+        performance::Function,
+        inputs::Union{Vector{<:UQInput}, UQInput},
+        rs::RandomSlicing
+    )
+
+Perform an **imprecise reliability analysis** using the *random slicing* Monte Carlo method
+
+The inputs must include at least one imprecise variable.  
+
+# Returns
+- **`pf_bounds`**: An [`Interval`](@ref) giving the lower and upper bounds on the probability of failure.  
+- **`result_lb`**: The outputs of the reliability simulation that achieved the lower bound.  
+- **`result_ub`**: The outputs of the reliability simulation that achieved the upper bound.
+
+See [`RandomSlicing`](@ref) for details of the random slicing configuration.
+"""
 function probability_of_failure(
     models::Union{Vector{<:UQModel},UQModel},
     performance::Function,
