@@ -75,7 +75,17 @@ Truncated p-boxes can be created by passing optional lower and upper bounds to t
 
 ## Dependencies
 
-*UncertaintyQuantification* supports modelling of dependencies through copulas. By using copulas, the modelling of the dependence structure is separated from the modelling of the univariate marginal distributions. The basis for copulas is given by Sklar's theorem [sklarFonctionsRepartitionDimensions1959](@cite). It states that any multivariate distribution ``H`` in dimensions ``d \geq 2`` can be separated into its marginal distributions ``F_i`` and a copula function ``C``.
+Modelling of dependent variables is exposed through the [`JointDistribution`](@ref). In its simplest form this is a wrapper around any implementation of the `MultivariateDistribution` interface defined by *Distributions.jl*. To construct a [`JointDistribution`](@ref) pass the `MultivariateDistribution` and a `vector{`Symbol`}` of matching dimension.
+
+```@example jd
+using UncertaintyQuantification # hide
+mv = MvNormal([1.0 0.71; 0.71 1.0])
+jd = JointDistribution(mv, [:x, :y])
+```
+
+### Copulas
+
+Alternatively dependencies can be created through copulas. By using copulas, the modelling of the dependence structure is separated from the modelling of the univariate marginal distributions. The basis for copulas is given by Sklar's theorem [sklarFonctionsRepartitionDimensions1959](@cite). It states that any multivariate distribution ``H`` in dimensions ``d \geq 2`` can be separated into its marginal distributions ``F_i`` and a copula function ``C``.
 
 ```math
 H(x_1,\ldots,x_2) = C(F_1(x_1),\ldots,F_d(x_d))
@@ -83,7 +93,7 @@ H(x_1,\ldots,x_2) = C(F_1(x_1),\ldots,F_d(x_d))
 
 For a thorough discussion of copulas, see [joeDependenceModelingCopulas2015](@cite).
 
-In line with Sklar's theorem we build the joint distribution of two dependent random variables by separately defining the marginal distributions.
+In line with Sklar's theorem we build the joint distribution of two dependent random variables by separately defining the marginal distributions through [`RandomVariable`](@ref) objects.
 
 ```@example copula
 using UncertaintyQuantification # hide
@@ -93,13 +103,17 @@ marginals = [x, y]
 return nothing # hide
 ```
 
+Note, that the marginals are not restricted to `UnivariateDistribution`. Dependent p-boxes can be constructed by passing a [`ProbabilityBox`](@ref) instead.
+
 Next, we define the copula to model the dependence. *UncertaintyQuantification* supports Gaussian copulas for multivariate ``d \geq 2`` dependence. Here, we define a Gaussian copula by passing the correlation matrix and then build the `JointDistribution` from the copula and the marginals.
 
 ```@example copula
 cop = GaussianCopula([1 0.8; 0.8 1])
-joint = JointDistribution(marginals, cop)
+joint = JointDistribution(cop, marginals)
 return nothing # hide
 ```
+
+An error is thrown if the dimension of the copula does not agree with the number of marginals.
 
 ## Models
 
