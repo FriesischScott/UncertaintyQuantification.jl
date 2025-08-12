@@ -4,11 +4,175 @@ const _kucherenko_table_header = [
 ]
 
 """
+- `models::Vector{<:UQModel}`: Vector of UQ models to evaluate
+- `inputs::Vector{<:UQInput}`: Vector of input distributions
+- `output::Symbol`: Output quantity name
+- `sim::AbstractMonteCarlo`: == N : Total MC samples = N*(2M+1)
+"""
+function kucherenkoindices(
+    models::Vector{<:UQModel},
+    inputs::Vector{<:UQInput},
+    output::Symbol,
+    sim::AbstractMonteCarlo
+)
+    indices = DataFrame(_kucherenko_table_types, _kucherenko_table_header)
+    
+    samples = sample(inputs, sim)
+    evaluate!(models, samples)
+    
+    random_names = names(filter(i -> isa(i, RandomUQInput), inputs))
+    
+    Y_orig = Vector(samples[:, output])
+    total_var = var(Y_orig)
+    
+    for i in random_names
+        
+        i_cond_samples = _generate_conditional_samples(samples, inputs[1], [i])
+        evaluate!(models, i_cond_samples)
+        S_i = _compute_first_order_kucherenko(samples, i_cond_samples, output, total_var)
+
+        other_vars = setdiff(random_names, [i])
+        other_cond_samples = _generate_conditional_samples(samples, inputs[1], other_vars)
+        evaluate!(models, other_cond_samples)
+        ST_i = length(random_names) == 1 ? S_i : _compute_total_effect_kucherenko(samples, other_cond_samples, output, total_var)
+        
+        push!(indices, [i, S_i, ST_i])
+    end
+    
+    return indices
+end
+
+
+function _compute_first_order_kucherenko(
+    samples::DataFrame,
+    cond_samples::DataFrame,
+    output::Symbol,
+    total_var::Float64
+)
+    Y_orig = Vector(samples[:, output])
+    Y_cond = Vector(cond_samples[:, output])
+    
+    S_i = (mean(Y_orig .* Y_cond) - mean(Y_orig)^2) / total_var  # Kucherenko et. al. 2012  Eq. 5.3
+    
+    return S_i
+end
+
+function _compute_total_effect_kucherenko(
+    samples::DataFrame,
+    cond_samples::DataFrame,
+    output::Symbol,
+    total_var::Float64
+)
+    Y_orig = Vector(samples[:, output])
+    Y_cond = Vector(cond_samples[:, output])
+    
+    ST_i = mean((Y_orig .- Y_cond).^2) / (2 * total_var) # Kucherenko et. al. 2012 Eq. 5.4
+    
+    return ST_i
+end
+
+function _generate_conditional_samples(
+    samples::DataFrame,
+    joint_dist::JointDistribution,
+    var_names::Vector{Symbol}
+)
+    input_var_names = [marginal.name for marginal in joint_dist.marginals]
+    conditional_samples = map(1:nrow(samples)) do i
+        x_values = [samples[i, var_name] for var_name in var_names]
+        sample_conditional_copula(joint_dist, var_names, x_values, 1)
+    end
+    
+    result = vcat(conditional_samples...)
+    return select(result, input_var_names)
+end
+
+"""
+- `models::Vector{<:UQModel}`: Vector of UQ models to evaluate
+- `inputs::Vector{<:UQInput}`: Vector of input distributions
+- `outputs::Vector{Symbol}`: Vector of output quantity names
+- `sim::AbstractMonteCarlo`:  == N : Total MC samples = N*(2M+1)
+"""
+function kucherenkoindices(
+    models::Vector{<:UQModel},
+    inputs::Vector{<:UQInput},
+    outputs::Vector{Symbol},
+    sim::AbstractMonteCarlo
+)
+    
+    random_names = names(filter(i -> isa(i, RandomUQInput), inputs))
+    
+    indices = Dict([
+        (name, DataFrame(_kucherenko_table_types, _kucherenko_table_header)) for name in outputs
+    ])
+    
+    for output in outputs
+        
+        output_indices = kucherenkoindices(models, inputs, output, sim)
+        
+        for (i, var_name) in enumerate(random_names)
+            output_indices[i, :Variables] = var_name
+        end
+        
+        indices[output] = output_indices
+    end
+    
+    return length(outputs) > 1 ? indices : indices[outputs[1]]
+end
+
+function kucherenkoindices(
+    models::Vector{<:UQModel},
+    inputs::UQInput,
+    outputs::Vector{Symbol},
+    sim::AbstractMonteCarlo
+)
+    return kucherenkoindices(models, [inputs], outputs, sim)
+end
+
+
+function kucherenkoindices(
+    models::UQModel,
+    inputs::Vector{<:UQInput},
+    outputs::Symbol,
+    sim::AbstractMonteCarlo
+)
+    return kucherenkoindices([models], inputs, [outputs], sim)
+end
+
+function kucherenkoindices(
+    models::Vector{<:UQModel},
+    inputs::UQInput,
+    outputs::Symbol,
+    sim::AbstractMonteCarlo
+)
+    return kucherenkoindices(models, [inputs], [outputs], sim)
+end
+
+function kucherenkoindices(
+    models::UQModel,
+    inputs::UQInput,
+    outputs::Symbol,
+    sim::AbstractMonteCarlo
+)
+    return kucherenkoindices([models], [inputs], [outputs], sim)
+end
+
+function kucherenkoindices(
+    models::UQModel,
+    inputs::Vector{<:UQInput},
+    outputs::Vector{Symbol},
+    sim::AbstractMonteCarlo
+)
+    return kucherenkoindices([models], inputs, outputs, sim)
+end
+
+
+
+"""
 - `X::Matrix`: Input sample matrix where each row is a sample point and each column is a variable
 - `Y::Vector`: Output sample vector corresponding to the input samples
 - `num_bins::Int=10`: Number of bins to use for conditioning
 """
-function kucherenkoindices(X::Matrix, Y::Vector, num_bins::Int=10)
+function kucherenkoindices_bin(X::Matrix, Y::Vector, num_bins::Int=10)
     n_samples, n_vars = size(X)
     
     if length(Y) != n_samples
@@ -19,9 +183,9 @@ function kucherenkoindices(X::Matrix, Y::Vector, num_bins::Int=10)
     total_var = var(Y)
     
     for i in 1:n_vars
-        S_i = _compute_first_order_kucherenko(X, Y, i, num_bins, total_var)
-        
-        ST_i = n_vars == 1 ? S_i : _compute_total_effect_kucherenko(X, Y, i, num_bins, total_var)
+        S_i = _compute_first_order_kucherenko_bins(X, Y, i, num_bins, total_var)
+
+        ST_i = n_vars == 1 ? S_i : _compute_total_effect_kucherenko_bins(X, Y, i, num_bins, total_var)
         
         push!(indices, [Symbol("X$i"), S_i, ST_i])
     end
@@ -29,7 +193,7 @@ function kucherenkoindices(X::Matrix, Y::Vector, num_bins::Int=10)
     return indices
 end
 
-function _compute_first_order_kucherenko(X::Matrix, Y::Vector, var_idx::Int, num_bins::Int, total_var::Float64)
+function _compute_first_order_kucherenko_bins(X::Matrix, Y::Vector, var_idx::Int, num_bins::Int, total_var::Float64)
     n_samples = length(Y)
     
     x_var = X[:, var_idx]
@@ -71,7 +235,7 @@ function _compute_first_order_kucherenko(X::Matrix, Y::Vector, var_idx::Int, num
     return S_i
 end
 
-function _compute_total_effect_kucherenko(X::Matrix, Y::Vector, var_idx::Int, num_bins::Int, total_var::Float64)
+function _compute_total_effect_kucherenko_bins(X::Matrix, Y::Vector, var_idx::Int, num_bins::Int, total_var::Float64)
     n_samples, n_vars = size(X)
     
     other_vars = setdiff(1:n_vars, var_idx)
@@ -131,9 +295,9 @@ end
 - `inputs::Vector{<:UQInput}`: Vector of input distributions
 - `outputs::Vector{Symbol}`: Vector of output quantity names
 - `sim::AbstractMonteCarlo`: Total MC samples 
-- `num_bins::Int=10`: Number of bins for conditioning (default: 10)
+- `num_bins::Int`: Number of bins for conditioning
 """
-function kucherenkoindices(
+function kucherenkoindices_bin(
     models::Vector{<:UQModel},
     inputs::Vector{<:UQInput},
     outputs::Vector{Symbol},
@@ -155,7 +319,7 @@ function kucherenkoindices(
     for output in outputs
         Y = Vector(samples[:, output])
         
-        output_indices = kucherenkoindices(X, Y, num_bins)
+        output_indices = kucherenkoindices_bin(X, Y, num_bins)
         
         for (i, var_name) in enumerate(random_names)
             output_indices[i, :Variables] = var_name
@@ -167,52 +331,62 @@ function kucherenkoindices(
     return length(outputs) > 1 ? indices : indices[outputs[1]]
 end
 
-function kucherenkoindices(
+function kucherenkoindices_bin(
     models::Vector{<:UQModel},
     inputs::UQInput,
     outputs::Vector{Symbol},
     sim::AbstractMonteCarlo;
     num_bins::Int=10
 )
-    return kucherenkoindices(models, [inputs], outputs, sim; num_bins=num_bins)
+    return kucherenkoindices_bin(models, [inputs], outputs, sim; num_bins=num_bins)
 end
 
-function kucherenkoindices(
+function kucherenkoindices_bin(
     models::Vector{<:UQModel},
     inputs::Vector{<:UQInput},
     outputs::Symbol,
     sim::AbstractMonteCarlo;
     num_bins::Int=10
 )
-    return kucherenkoindices(models, inputs, [outputs], sim; num_bins=num_bins)
+    return kucherenkoindices_bin(models, inputs, [outputs], sim; num_bins=num_bins)
 end
 
-function kucherenkoindices(
+function kucherenkoindices_bin(
     models::UQModel,
     inputs::Vector{<:UQInput},
     outputs::Symbol,
     sim::AbstractMonteCarlo;
     num_bins::Int=10
 )
-    return kucherenkoindices([models], inputs, [outputs], sim; num_bins=num_bins)
+    return kucherenkoindices_bin([models], inputs, [outputs], sim; num_bins=num_bins)
 end
 
-function kucherenkoindices(
+function kucherenkoindices_bin(
     models::Vector{<:UQModel},
     inputs::UQInput,
     outputs::Symbol,
     sim::AbstractMonteCarlo;
     num_bins::Int=10
 )
-    return kucherenkoindices(models, [inputs], [outputs], sim; num_bins=num_bins)
+    return kucherenkoindices_bin(models, [inputs], [outputs], sim; num_bins=num_bins)
 end
 
-function kucherenkoindices(
+function kucherenkoindices_bin(
     models::UQModel,
     inputs::UQInput,
     outputs::Symbol,
     sim::AbstractMonteCarlo;
     num_bins::Int=10
 )
-    return kucherenkoindices([models], [inputs], [outputs], sim; num_bins=num_bins)
+    return kucherenkoindices_bin([models], [inputs], [outputs], sim; num_bins=num_bins)
+end
+
+function kucherenkoindices_bin(
+    models::UQModel,
+    inputs::Vector{<:UQInput},
+    outputs::Vector{Symbol},
+    sim::AbstractMonteCarlo;
+    num_bins::Int=10
+)
+    return kucherenkoindices_bin([models], inputs, outputs, sim; num_bins=num_bins)
 end
