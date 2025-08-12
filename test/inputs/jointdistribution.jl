@@ -96,6 +96,14 @@ copula = GaussianCopula([1 0.8; 0.8 1])
             @test mean(jd) == [0.0, 0.0]
             @test dimensions(jd) == 2
             @test names(jd) == [:x, :y]
+
+            samples = sample(jd, 10^6)
+            @test_throws ErrorException(
+                "Cannot map ZeroMeanFullNormal{Tuple{Base.OneTo{Int64}}} to standard normal space.",
+            ) to_standard_normal_space!(jd, samples)
+            @test_throws ErrorException(
+                "Cannot map ZeroMeanFullNormal{Tuple{Base.OneTo{Int64}}} to physical space."
+            ) to_physical_space!(jd, samples)
         end
     end
 end
