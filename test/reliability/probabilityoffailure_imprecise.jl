@@ -28,16 +28,31 @@
                 :Y,
             )
 
-            c = GaussianCopula([1 0.0; 0.0 1])
+            @testset "independent" begin
+                c = GaussianCopula([1 0.0; 0.0 1])
 
-            jd = JointDistribution(c, [X, Y])
+                jd = JointDistribution(c, [X, Y])
 
-            pf, x_lb, x_ub = probability_of_failure(
-                UQModel[], df -> 9 .+ df.X .+ df.Y, jd, DoubleLoop(FORM())
-            )
+                pf, x_lb, x_ub = probability_of_failure(
+                    UQModel[], df -> 9 .+ df.X .+ df.Y, jd, DoubleLoop(FORM())
+                )
 
-            @test pf.lb ≈ cdf(Normal(2, sqrt(2)), -9) atol = 1e-6
-            @test pf.ub ≈ cdf(Normal(-2, sqrt(8)), -9) atol = 1e-6
+                @test pf.lb ≈ cdf(Normal(2, sqrt(2)), -9) atol = 1e-6
+                @test pf.ub ≈ cdf(Normal(-2, sqrt(8)), -9) atol = 1e-6
+            end
+
+            @testset "dependent" begin
+                c = GaussianCopula([1 0.71; 0.71 1])
+
+                jd = JointDistribution(c, [X, Y])
+
+                pf, x_lb, x_ub = probability_of_failure(
+                    UQModel[], df -> 9 .+ df.X .+ df.Y, jd, DoubleLoop(FORM())
+                )
+
+                @test pf.lb ≈ cdf(Normal(2, sqrt(1^2 + 1^2 + 2 * (0.71 * 1 * 1))), -9)
+                @test pf.ub ≈ cdf(Normal(-2, sqrt(2^2 + 2^2 + 2 * (0.71 * 2 * 2))), -9)
+            end
         end
 
         @testset "Interval - Distribution" begin
