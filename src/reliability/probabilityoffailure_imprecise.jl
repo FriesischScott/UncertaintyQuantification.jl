@@ -136,6 +136,10 @@ function probability_of_failure(
 
     out_lb = probability_of_failure(sm_max, df -> df.g_slice, sns_inputs, rs.lb)
 
+    # If sim is not FORM, transform samples back to physical space
+    typeof(rs.lb) != FORM && to_physical_space!(inputs, out_lb[3])
+    typeof(rs.ub) != FORM && to_physical_space!(inputs, out_ub[3])
+
     return Interval(out_lb[1], out_ub[1]), out_lb[2:end], out_ub[2:end]
 end
 
