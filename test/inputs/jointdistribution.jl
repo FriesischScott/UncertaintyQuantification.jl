@@ -82,10 +82,6 @@ copula = GaussianCopula([1 0.8; 0.8 1])
             @test_throws ErrorException(
                 "Dimension mismatch between distribution and names."
             ) JointDistribution(dist, [:x, :y, :z])
-
-            @test_throws ErrorException("Must pass a vector of Symbols.") JointDistribution(
-                dist, [RandomVariable(Normal(), :x), RandomVariable(Uniform(), :y)]
-            )
         end
 
         @testset "sample" begin

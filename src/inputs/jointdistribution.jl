@@ -38,27 +38,19 @@ struct JointDistribution{
 } <: RandomUQInput
     d::D
     m::Vector{<:M}
-    function JointDistribution(
-        d::D, m::Vector{M}
-    ) where {D<:Union{Copula,MultivariateDistribution},M<:Union{RandomVariable,Symbol}}
-        if d isa Copula
-            if !(eltype(m) <: RandomVariable)
-                error("Must pass a marginal vector of RandomVariables.")
-            end
-            if dimensions(d) != length(m)
-                error("Dimension mismatch between copula and marginals.")
-            end
-            return new{Copula,RandomVariable}(d, m)
-        end
-        if d isa MultivariateDistribution
-            if eltype(m) != Symbol
-                error("Must pass a vector of Symbols.")
-            end
-            if length(d) != length(m)
-                error("Dimension mismatch between distribution and names.")
-            end
-            return new{MultivariateDistribution,Symbol}(d, m)
-        end
+
+    # Copula + RandomVariable
+    function JointDistribution(d::Copula, m::Vector{<:RandomVariable})
+        dimensions(d) == length(m) ||
+            throw(ArgumentError("Dimension mismatch between copula and marginals."))
+        return new{Copula,RandomVariable}(d, m)
+    end
+
+    # MultivariateDistribution + Symbol
+    function JointDistribution(d::MultivariateDistribution, m::Vector{Symbol})
+        length(d) == length(m) ||
+            throw(ArgumentError("Dimension mismatch between distribution and names."))
+        return new{MultivariateDistribution,Symbol}(d, m)
     end
 end
 
