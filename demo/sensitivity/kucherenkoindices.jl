@@ -31,7 +31,7 @@ sim = MonteCarlo(50000)
 
 println("Using Bins")
 try
-    indices = kucherenkoindices_bin([model], inputs, [:y], sim, num_bins=60)
+    indices, bin_samples = kucherenkoindices_bin([model], inputs, [:y], sim, num_bins=60)
 
     println(indices)
 

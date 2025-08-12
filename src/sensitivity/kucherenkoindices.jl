@@ -328,7 +328,7 @@ function kucherenkoindices_bin(
         indices[output] = output_indices
     end
     
-    return length(outputs) > 1 ? indices : indices[outputs[1]]
+    return length(outputs) > 1 ? indices : indices[outputs[1]], samples
 end
 
 function kucherenkoindices_bin(
