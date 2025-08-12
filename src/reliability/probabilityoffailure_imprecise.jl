@@ -1,25 +1,63 @@
 
 """
     DoubleLoop(lb::AbstractSimulation, ub::AbstractSimulation)
+
+Used to estimate imprecise reliability with the *double loop* Monte Carlo method. 
+
+Wraps two simulation objects — one for lower-bound (`lb`) and one for upper-bound (`ub`).
+
+The two simulations can differ in simulation type, complexity, or accuracy settings, since estimating the lower bound often requires more simulation effort.
+
+This approach runs an optimisation loop over interval parameters (outer loop) and computes reliability bounds in an inner loop using the `lb` and `ub` simulation methods.
+
+See also: [`DoubleLoop(sim::AbstractSimulation)`](@ref) for creating 
+a `DoubleLoop` with same simulation method for both bounds.
 """
 struct DoubleLoop
     lb::AbstractSimulation
     ub::AbstractSimulation
 end
+
+"""
+    DoubleLoop(sim::AbstractSimulation)
+
+Construct a [`DoubleLoop`](@ref) where the same simulation method is used for both 
+lower and upper bounds.
+"""
+function DoubleLoop(sim::AbstractSimulation)
+    return DoubleLoop(sim, deepcopy(sim))
+end
+
 """
     RandomSlicing(lb::AbstractSimulation, ub::AbstractSimulation)
+
+Used to estimate imprecise reliability with *random slicing* Monte Carlo method, sometimes known as interval Monte Carlo.
+
+Wraps two simulation objects — one for lower-bound (`lb`) and one for upper-bound (`ub`). 
+
+The two simulations can differ in simulation type, complexity, or accuracy settings, since estimating the lower bound often requires more simulation effort.
+
+In this approach, the `lb` and `ub` simulation methods generate random intervals from the imprecise variables. These intervals are then propagated through the model via optimisation-based interval propagation, yielding lower and upper bounds on the reliability estimate.
+
+See also: [`RandomSlicing(sim::AbstractSimulation)`](@ref) for creating  a `RandomSlicing` with same simulation method for both bounds.
+
+# References
+
+[alvarez2018estimation](@cite)
 """
 struct RandomSlicing
     lb::AbstractSimulation
     ub::AbstractSimulation
 end
 
+"""
+    RandomSlicing(sim::AbstractSimulation)
+
+Construct a [`RandomSlicing`](@ref) where the same simulation method is used for both 
+lower and upper bounds.
+"""
 function RandomSlicing(sim::AbstractSimulation)
     return RandomSlicing(sim, deepcopy(sim))
-end
-
-function DoubleLoop(sim::AbstractSimulation)
-    return DoubleLoop(sim, deepcopy(sim))
 end
 
 function probability_of_failure(
