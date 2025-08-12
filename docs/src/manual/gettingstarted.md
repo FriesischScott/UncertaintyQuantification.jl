@@ -103,6 +103,8 @@ marginals = [x, y]
 return nothing # hide
 ```
 
+Note, that the marginals are not restricted to `UnivariateDistribution`. Dependent p-boxes can be constructed by passing a [`ProbabilityBox`](@ref) instead.
+
 Next, we define the copula to model the dependence. *UncertaintyQuantification* supports Gaussian copulas for multivariate ``d \geq 2`` dependence. Here, we define a Gaussian copula by passing the correlation matrix and then build the `JointDistribution` from the copula and the marginals.
 
 ```@example copula
