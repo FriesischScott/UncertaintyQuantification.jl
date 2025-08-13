@@ -1,27 +1,85 @@
 
 """
     DoubleLoop(lb::AbstractSimulation, ub::AbstractSimulation)
+
+Used to estimate imprecise reliability with the *double loop* Monte Carlo method. 
+
+Wraps two simulation objects — one for lower-bound (`lb`) and one for upper-bound (`ub`).
+
+The two simulations can differ in simulation type, complexity, or accuracy settings, since estimating the lower bound often requires more simulation effort.
+
+This approach runs an optimisation loop over interval parameters (outer loop) and computes reliability bounds in an inner loop using the `lb` and `ub` simulation methods.
+
+Use `DoubleLoop(sim::AbstractSimulation)` for creating a `DoubleLoop` with same simulation method for both bounds.
 """
 struct DoubleLoop
     lb::AbstractSimulation
     ub::AbstractSimulation
 end
+
+"""
+    DoubleLoop(sim::AbstractSimulation)
+
+Construct a [`DoubleLoop`](@ref) where the same simulation method is used for both 
+lower and upper bounds.
+"""
+function DoubleLoop(sim::AbstractSimulation)
+    return DoubleLoop(sim, deepcopy(sim))
+end
+
 """
     RandomSlicing(lb::AbstractSimulation, ub::AbstractSimulation)
+
+Used to estimate imprecise reliability with *random slicing* Monte Carlo method, sometimes known as interval Monte Carlo.
+
+Wraps two simulation objects — one for lower-bound (`lb`) and one for upper-bound (`ub`). 
+
+The two simulations can differ in simulation type, complexity, or accuracy settings, since estimating the lower bound often requires more simulation effort.
+
+In this approach, the `lb` and `ub` simulation methods generate random intervals from the imprecise variables. These intervals are then propagated through the model via optimisation-based interval propagation, yielding lower and upper bounds on the reliability estimate.
+
+Use `RandomSlicing(sim::AbstractSimulation)` for creating a `RandomSlicing` with same simulation method for both bounds.
+
+# References
+
+[alvarez2018estimation](@cite)
 """
 struct RandomSlicing
     lb::AbstractSimulation
     ub::AbstractSimulation
 end
 
+"""
+    RandomSlicing(sim::AbstractSimulation)
+
+Construct a [`RandomSlicing`](@ref) where the same simulation method is used for both 
+lower and upper bounds.
+"""
 function RandomSlicing(sim::AbstractSimulation)
     return RandomSlicing(sim, deepcopy(sim))
 end
 
-function DoubleLoop(sim::AbstractSimulation)
-    return DoubleLoop(sim, deepcopy(sim))
-end
+"""
+    probability_of_failure(
+        models::Union{Vector{<:UQModel}, UQModel},
+        performance::Function,
+        inputs::Union{Vector{<:UQInput}, UQInput},
+        dl::DoubleLoop
+    )
 
+Perform an **imprecise reliability analysis** using the *double loop* Monte Carlo method.
+
+The inputs must include at least one imprecise variable.
+
+# Returns
+- **`pf_bounds`**: An [`Interval`](@ref) giving the lower and upper bounds on the probability of failure.  
+- **`result_lb`**: The outputs of the reliability simulation that achieved the lower bound.  
+- **`result_ub`**: The outputs of the reliability simulation that achieved the upper bound. 
+
+If the lower and upper bounds are equal, returns only the scalar probability of failure.
+
+See [`DoubleLoop`](@ref) for details of the random slicing configuration.
+"""
 function probability_of_failure(
     models::Union{Vector{<:UQModel},UQModel},
     performance::Function,
@@ -114,6 +172,25 @@ function map_to_precise_inputs(x::AbstractVector, inputs::AbstractVector{<:UQInp
     return precise_inputs
 end
 
+"""
+    probability_of_failure(
+        models::Union{Vector{<:UQModel}, UQModel},
+        performance::Function,
+        inputs::Union{Vector{<:UQInput}, UQInput},
+        rs::RandomSlicing
+    )
+
+Perform an **imprecise reliability analysis** using the *random slicing* Monte Carlo method
+
+The inputs must include at least one imprecise variable.  
+
+# Returns
+- **`pf_bounds`**: An [`Interval`](@ref) giving the lower and upper bounds on the probability of failure.  
+- **`result_lb`**: The outputs of the reliability simulation that achieved the lower bound.  
+- **`result_ub`**: The outputs of the reliability simulation that achieved the upper bound.
+
+See [`RandomSlicing`](@ref) for details of the random slicing configuration.
+"""
 function probability_of_failure(
     models::Union{Vector{<:UQModel},UQModel},
     performance::Function,
@@ -135,6 +212,10 @@ function probability_of_failure(
     sm_max = SlicingModel(models, inputs, true)
 
     out_lb = probability_of_failure(sm_max, df -> df.g_slice, sns_inputs, rs.lb)
+
+    # If sim is not FORM, transform samples back to physical space
+    typeof(rs.lb) != FORM && to_physical_space!(inputs, out_lb[3])
+    typeof(rs.ub) != FORM && to_physical_space!(inputs, out_ub[3])
 
     return Interval(out_lb[1], out_ub[1]), out_lb[2:end], out_ub[2:end]
 end
