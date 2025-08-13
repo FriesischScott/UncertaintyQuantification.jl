@@ -19,7 +19,7 @@ DEFAULT_TICK_SIZE = 12
 ###
 #   Plots for UQInputs
 ###
-@recipe function _plot(x::RandomVariable; cdf_on = DEFAULT_CDF)
+@recipe function _plot(x::RandomVariable{T}; cdf_on = DEFAULT_CDF) where {T <: UnivariateDistribution}
 
     grid --> DEFAULT_GRID
     legend --> DEFAULT_LEGEND
@@ -62,7 +62,7 @@ DEFAULT_TICK_SIZE = 12
     end
 end
 
-@recipe function _plot(x::Interval)
+@recipe function _plot(x::IntervalVariable)
 
     grid --> DEFAULT_GRID
     legend --> DEFAULT_LEGEND
@@ -107,7 +107,7 @@ end
 
 end
 
-@recipe function _plot(x::ProbabilityBox)
+@recipe function _plot(x::RandomVariable{T}) where {T <: ProbabilityBox}
 
     grid --> DEFAULT_GRID
     legend --> DEFAULT_LEGEND
@@ -216,7 +216,7 @@ end
         grid --> DEFAULT_GRID
         legend --> DEFAULT_LEGEND
 
-        xlabel --> x[1].name
+        # xlabel --> x[1].name
         ylabel --> "cdf"
         N_samples = length(x)
 
