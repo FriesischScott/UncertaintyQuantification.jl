@@ -84,7 +84,7 @@ function sample(inputs::Vector{<:UQInput}, sim::AbstractSubSetSimulation)
     to_physical_space!(random_inputs, samples)
 
     if !isempty(deterministic_inputs)
-        samples = hcat(samples, sample(deterministic_inputs, sim.n))
+        DataFrames.hcat!(samples, sample(deterministic_inputs, sim.n))
     end
     return samples
 end
@@ -301,11 +301,23 @@ function nextlevelsamples(
 
             α_ss[i] = 1 - mean(reject)
 
-            new_samples[reject, :] = nextlevelsamples[end][α_accept_indices[reject], :]
-            new_samplesperformance[reject] = nextlevelperformance[end][α_accept_indices[reject]]
+            if length(reject) == 1
+                # only a single chain moved forward in the MH step
+                if reject
+                    new_samples[1, :] = nextlevelsamples[end][α_accept_indices[1], :]
+                    new_samplesperformance = nextlevelperformance[end][α_accept_indices]
+                end
 
-            chainsamples[α_accept_indices, :] = new_samples
-            chainperformance[α_accept_indices] = new_samplesperformance
+                chainsamples[α_accept_indices[1], :] = new_samples[1, :]
+                chainperformance[α_accept_indices[1]] = new_samplesperformance[1]
+
+            else
+                new_samples[reject, :] = nextlevelsamples[end][α_accept_indices[reject], :]
+                new_samplesperformance[reject] = nextlevelperformance[end][α_accept_indices[reject]]
+
+                chainsamples[α_accept_indices, :] = new_samples
+                chainperformance[α_accept_indices] = new_samplesperformance
+            end
         end
 
         push!(nextlevelsamples, chainsamples)
@@ -437,7 +449,7 @@ function conditional_sampling(
     chain_performance[1] = performance
 
     for k in 2:N
-        chain_samples[k] = copy(chain_samples[k - 1])
+        chain_samples[k] = copy(chain_samples[k - 1][:, names(inputs)])
 
         to_standard_normal_space!(inputs, chain_samples[k])
 
@@ -460,13 +472,7 @@ function conditional_sampling(
     return vcat(chain_samples...), vcat(chain_performance...), α / (N - 1)
 end
 
-"""
-	estimate_cov(Iᵢ::AbstractMatrix, pf::Float64, n::Int64)
-
-Evaluates the coefficient of variation at a subset simulation level.
-
-Reference: Au & Beck, (2001), 'Estimation of small failure probabilities in high dimensions by subset simulation'
-"""
+#Evaluates the coefficient of variation at a subset simulation level.
 function estimate_cov(Iᵢ::AbstractMatrix, pf::Float64)
     Nc, Ns = size(Iᵢ) # Number of samples per seed, number of seeds
     n = Nc * Ns

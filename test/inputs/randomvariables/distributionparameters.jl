@@ -4,6 +4,10 @@
     μ = mean(d)
     σ = std(d)
     @test [distribution_parameters(μ, σ, Beta)...] ≈ [0.5, 0.5]
+    μ = -0.1
+    @test_throws ErrorException(
+        "provided mean value -0.1 is not compatible with Beta distribution support: (0; 1)"
+    ) distribution_parameters(μ, σ, Beta)
 
     # Gamma
     d = Gamma(3.0, 2.0)

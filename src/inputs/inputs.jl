@@ -1,5 +1,5 @@
 """
-	sample(inputs::Vector{<:UQInput}, n::Integer)
+	sample(inputs::Vector{<:UQInput}, n::Integer=1)
 
 Generates n correlated samples from a collection of inputs. Returns a DataFrame
 
@@ -27,7 +27,7 @@ function names(inputs::Vector{<:UQInput})
     _names = Symbol[]
 
     for i in inputs
-        if i isa JointDistribution
+        if i isa JointDistribution || i isa SpectralRepresentation
             append!(_names, names(i))
         else
             push!(_names, getproperty(i, :name))
@@ -43,3 +43,18 @@ function count_rvs(inputs::Vector{<:UQInput})
 end
 
 mean(inputs::Vector{<:UQInput}) = mapreduce(mean, vcat, inputs)
+
+function sns_zero_point(inputs::AbstractVector{<:UQInput})
+    random_inputs = filter(i -> isa(i, RandomUQInput), inputs)
+    deterministic_inputs = filter(i -> isa(i, DeterministicUQInput), inputs)
+
+    sns = DataFrame(names(random_inputs) .=> zeros(count_rvs(random_inputs)))
+
+    if !isempty(deterministic_inputs)
+        DataFrames.hcat!(sns, sample(deterministic_inputs, 1))
+    end
+
+    return sns
+end
+
+Base.broadcastable(i::T) where {T<:UQInput} = Ref(i)

@@ -5,18 +5,16 @@ struct SlicingModel <: UQModel
     max::Bool
 end
 
-"""
- evaluates the transformed SNS problem
-"""
+# evaluates the transformed SNS problem
 function evaluate!(m::SlicingModel, df::DataFrame)
-    intervals = filter(x -> isa(x, Interval), m.inputs)
+    intervals = filter(x -> isa(x, IntervalVariable), m.inputs)
 
     physical = copy(df)
 
     to_physical_space!(m.inputs, physical)
 
     if !isempty(intervals)
-        physical = hcat(physical, sample(intervals, size(df, 1)))
+        DataFrames.hcat!(physical, sample(intervals, size(df, 1)))
     end
 
     perf = m.models[end].name

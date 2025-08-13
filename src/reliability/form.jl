@@ -1,3 +1,12 @@
+"""
+    FORM(n::Integer=10,tol::Real=1e-3,fdm::FiniteDifferencesMethod=CentralFiniteDifferences(3))
+
+used to perform the first order reliability method using the HLRF algorithm with `n` iterations and tolerance `tol`. Gradients are estimated through `fdm`.
+
+# References
+
+[rackwitzStructuralReliability1978](@cite)
+"""
 struct FORM <: AbstractSimulation
     n::Integer
     tol::Real
@@ -12,6 +21,17 @@ struct FORM <: AbstractSimulation
     end
 end
 
+"""
+    probability_of_failure(models::Union{Vector{<:UQModel},UQModel},performance::Function),inputs::Union{Vector{<:UQInput},UQInput},sim::FORM)
+
+Perform a reliability analysis using the first order reliability method (FORM), see [`FORM`](@ref).
+Returns the estimated probability of failure `pf`, the reliability index `β` and the design point `dp`.
+
+## Examples
+```
+pf, β, dp = probability_of_failure(model, performance, inputs, sim)
+```
+"""
 function probability_of_failure(
     models::Union{Vector{<:UQModel},UQModel},
     performance::Function,
@@ -30,9 +50,7 @@ function probability_of_failure(
 
     G = [models..., Model(performance, :performance)]
 
-    deterministic_inputs = filter(i -> isa(i, DeterministicUQInput), inputs)
-    parameters =
-        !isempty(deterministic_inputs) ? sample(deterministic_inputs, 1) : DataFrame()
+    sns = sample(inputs, 1)
 
     α = Vector{Float64}(undef, length(random_names))
     β::Float64 = 0.0
@@ -40,19 +58,16 @@ function probability_of_failure(
 
     # compute pf through HLRF algorithm
     for it in 1:(sim.n)
-        physical = DataFrame(random_names .=> y)
-        to_physical_space!(inputs, physical)
-        physical = hcat(physical, parameters)
+        sns[1, random_names] .= y
 
-        H = gradient_in_standard_normal_space(
-            G, inputs, physical, :performance; fdm=sim.fdm
-        )
+        H = gradient_in_standard_normal_space(G, inputs, sns, :performance; fdm=sim.fdm)
 
         H = map(n -> H[n], random_names)
 
-        evaluate!(G, physical)
+        to_physical_space!(inputs, sns)
+        evaluate!(G, sns)
 
-        h = physical[1, :performance]
+        h = sns[1, :performance]
 
         α = H ./ norm(H)
 

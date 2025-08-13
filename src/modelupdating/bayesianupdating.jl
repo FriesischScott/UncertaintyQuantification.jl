@@ -149,14 +149,18 @@ Alternative constructors
 
 """
 struct TransitionalMarkovChainMonteCarlo <: AbstractBayesianMethod # Transitional Markov Chain Monte Carlo
-    prior::Vector{RandomVariable}
+    prior::Vector{<:RandomVariable{<:UnivariateDistribution}}
     n::Int
     burnin::Int
     β::Real
     islog::Bool
 
     function TransitionalMarkovChainMonteCarlo(
-        prior::Vector{RandomVariable}, n::Int, burnin::Int, β::Real=0.2, islog::Bool=true
+        prior::Vector{<:RandomVariable{<:UnivariateDistribution}},
+        n::Int,
+        burnin::Int,
+        β::Real=0.2,
+        islog::Bool=true,
     )
         if n <= 0
             error("Number of samples `n` must be positive")
@@ -291,11 +295,7 @@ function bayesianupdating(
     return bayesianupdating(prior, likelihood, UQModel[], tmcmc)
 end
 
-"""
-    _beta_and_weights(β, likelihood)
-
-Compute the next value for `β` and the nominal weights `w` using bisection.
-"""
+# Compute the next value for `β` and the nominal weights `w` using bisection.
 function _beta_and_weights(β::Real, L::AbstractVector{<:Real})
     low = β
     high = 2

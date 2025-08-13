@@ -1,6 +1,6 @@
 # Bayesian Updating
 
-Markov Chain Monte Carlo Methods for Bayesian updating.
+Methods for Bayesian updating.
 
 ## Index
 
@@ -14,6 +14,9 @@ Pages = ["bayesianupdating.md"]
 AbstractBayesianMethod
 SingleComponentMetropolisHastings
 TransitionalMarkovChainMonteCarlo
+AbstractBayesianPointEstimate
+MaximumAPosterioriBayesian
+MaximumLikelihoodBayesian
 ```
 
 ## Methods

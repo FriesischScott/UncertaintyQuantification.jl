@@ -34,6 +34,8 @@ prior = RandomVariable.(Uniform(0.01, 4), [:θ1, :θ2])
 n = 1000
 burnin = 0
 
+x0 = [[1., 1.],[3.,.5],[2.,2.]]
+
 tmcmc = TransitionalMarkovChainMonteCarlo(prior, n, burnin)
 
 samples, evidence = bayesianupdating(likelihood, [λ1, λ2], tmcmc)

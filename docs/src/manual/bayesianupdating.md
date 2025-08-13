@@ -10,7 +10,7 @@ Bayes' theorem is defined as
 P(\theta|Y) = \frac{P(Y|\theta)P(\theta)}{P(Y)},
 ```
 
-where $P(\theta)$ is the prior distribution, describing prior belief on $\theta$. $P(Y|\theta)$ is the likelihood function evaluating how the data Y supports our belief. This is a function of $\theta$ not $Y$. $P(\theta|Y)$ is called the posterior distribution and expresses an updated belief under data $Y$. The term $P(Y)$, often called the marginal likelihood, or the evidence. It can be calculated as the integral of the likelihood multiplied by the prior distribution over the sample space of $\theta$
+where ``P(\theta)`` is the prior distribution, describing prior belief on ``\theta``. ``P(Y|\theta)`` is the likelihood function evaluating how the data Y supports our belief. This is a function of ``\theta`` not ``Y``. ``P(\theta|Y)`` is called the posterior distribution and expresses an updated belief under data ``Y``. The term ``P(Y)``, often called the marginal likelihood, or the evidence. It can be calculated as the integral of the likelihood multiplied by the prior distribution over the sample space of ``\theta``
 
 ```math
 P(Y) = \int{}P(Y|\theta)P(\theta), d\theta{}.
@@ -22,11 +22,11 @@ This term serves as a normalizing constant for the posterior probability. Howeve
 P(\theta|Y) \propto P(Y|\theta)P(\theta).
 ```
 
-Based on this relationship, the posterior probability can be approximated without calculation of $P(Y)$ using a variety of sampling methods. Classic approaches such as rejection sampling can be inefficient, especially for multivariate cases due to high rejection rates. Instead, Metropolis et al., proposed the use of Markov chains to increase efficiency [metropolisEquationStateCalculations1953](@cite).
+Based on this relationship, the posterior probability can be approximated without calculation of ``P(Y)`` using a variety of sampling methods. Classic approaches such as rejection sampling can be inefficient, especially for multivariate cases due to high rejection rates. Instead, Metropolis et al., proposed the use of Markov chains to increase efficiency [metropolisEquationStateCalculations1953](@cite).
 
 ## Markov Chain Monte Carlo
 
-Markov chains are sequences of variables, where each variable is dependent on the last. In a discrete space $\Omega$ the series of random variables $\{X_1,X_2,\ldots,X_t\}$ is called a Marko chain if
+Markov chains are sequences of variables, where each variable is dependent on the last. In a discrete space ``\Omega`` the series of random variables ``\{X_1,X_2,\ldots,X_t\}`` is called a Marko chain if
 
 ```math
 p(X_t=x_t|X_{t-1}=x_{t-1},\ldots,X_1=x_1) = p(X_t=x_t|X_{t-1}=x_{t-1}) .
@@ -42,7 +42,7 @@ The goal of Markov chain Monte Carlo (MCMC) sampling methods is to construct a M
 
 ### Metropolis Hastings
 
-The Metropolis-Hastings algorithm, was published in 1970 by W. K. Hastings [hastingsMonteCarloSampling1970](@cite). The MH algorithm is a random-walk algorithm that provides a selection criteria for choosing the next sample $(\theta_{i + 1})$ in a Markov chain. This is done through a so-called proposal distribution $q(\theta_{i + 1}|\theta_i)$ which is well known and relatively easy to sample from. Usually, symmetric proposal distributions centred at $(\theta_i)$ are used, for example Normal and Uniform distributions. A candidate sample $\theta^*$ is sampled from the proposal distribution and accepted with probability $\alpha$
+The Metropolis-Hastings algorithm, was published in 1970 by W. K. Hastings [hastingsMonteCarloSampling1970](@cite). The MH algorithm is a random-walk algorithm that provides a selection criteria for choosing the next sample ``(\theta_{i + 1})`` in a Markov chain. This is done through a so-called proposal distribution ``q(\theta_{i + 1}|\theta_i)`` which is well known and relatively easy to sample from. Usually, symmetric proposal distributions centred at ``(\theta_i)`` are used, for example Normal and Uniform distributions. A candidate sample ``\theta^*`` is sampled from the proposal distribution and accepted with probability ``\alpha``
 
 ```math
 \alpha = \min\left[1,\frac{P(\theta^*|Y)}{P(\theta_i|Y)}\cdot{}\frac{q(\theta_i|\theta^*)}{q(\theta^*|\theta_i)}\right].
@@ -54,13 +54,13 @@ Substituting the posterior with Bayes' theorem yields
 \alpha = \min\left[1,\frac{P(Y|\theta^*)\cdot{}P(\theta^*)/P(Y)}{P(Y|\theta_i)\cdot{}P(\theta_i)/P(Y)}\cdot{}\frac{q(\theta_i|\theta^*)}{q(\theta^*|\theta_i)}\right].
 ```
 
-Note, how the normalization constant $P(Y)$ cancels out. When the proposal is symmetric $q(\theta_i|\theta^*) = q(\theta^*|\theta_i)$ the acceptance probability further simplifies to
+Note, how the normalization constant ``P(Y)`` cancels out. When the proposal is symmetric ``q(\theta_i|\theta^*) = q(\theta^*|\theta_i)`` the acceptance probability further simplifies to
 
 ```math
 \alpha = \min\left[1,\frac{P(\theta^*|Y)}{P(\theta_i|Y)}\right].
 ```
 
-In practice, a random number $r \sim U(0,1)$ is sampled, and the candidate sample is accepted if $a \leq r$
+In practice, a random number ``r \sim U(0,1)`` is sampled, and the candidate sample is accepted if ``a \leq r``
 
 ```math
 \theta_{i + 1} = \theta^*     \qquad  \text{if} \quad a \leq r,\\
@@ -76,7 +76,7 @@ using UncertaintyQuantification # hide
  return nothing # hide
 ```
 
-The likelihood function which, similar to a `Model` must accept a `DataFrame`, follows a Binomial distribution and returns the likelihood for each row in the `DataFrame` as a vector. The prior is chosen as a beta distribution with $\alpha=\beta=1$ (uniform on $[0, 1]$). It is often beneficial to use the log-likelihood and log-prior for numerical reasons.
+The likelihood function which, similar to a `Model` must accept a `DataFrame`, follows a Binomial distribution and returns the likelihood for each row in the `DataFrame` as a vector. The prior is chosen as a beta distribution with ``\alpha=\beta=1`` (uniform on ``[0, 1]``). It is often beneficial to use the log-likelihood and log-prior for numerical reasons.
 
 ```@example metropolis
     function loglikelihood(df)
@@ -123,10 +123,13 @@ y = pdf.(posterior, x) # hide
 plot!(x, y, label="analytical posterior", linewidth=2) # hide
 
 xlims!(0.5, 1.0) # hide
-return p # hide
+
+savefig(p, "mh.svg"); nothing # hide
 ```
 
-As a second example we will attempt to sample from a bimodial target distribution in two dimensions. The prior is uniform over $[-2, 2]$ in each dimension and the likelihood is a mixture of two Gaussian functions centred at $[0.5, 0.5]$ and $[-0.5, -0.5]$.  The standard deviation for both Gaussians are identical and if small enough will effectively disconnect the two functions.
+![](mh.svg)
+
+As a second example we will attempt to sample from a bimodal target distribution in two dimensions. The prior is uniform over ``[-2, 2]`` in each dimension and the likelihood is a mixture of two Gaussian functions centred at ``[0.5, 0.5]`` and ``[-0.5, -0.5]``.  The standard deviation for both Gaussians are identical and if small enough will effectively disconnect the two functions.
 
 ```@example tmcmc
 using UncertaintyQuantification # hide
@@ -153,17 +156,19 @@ mh = SingleComponentMetropolisHastings(proposal, x0, n, burnin)
 
 mh_samples, α = bayesianupdating(logprior, loglikelihood, mh)
 
-scatter(mh_samples.x, mh_samples.y; lim=[-2, 2], legend = :none)
+scatter(mh_samples.x, mh_samples.y; lim=[-2, 2], legend = :none) # hide
 
 xs = range(-2, 2, length = 100); ys = range(-2, 2, length = 100) # hide
 sample_points = reduce(vcat,[[x y] for x in xs, y in ys][:]) # hide
 df_points = DataFrame(sample_points, :auto) # hide
 likelihood_eval = exp.(loglikelihood(df_points)) # hide
 contour!(xs, ys, likelihood_eval, lim = [-2,2], legend = :none) # hide
-
+savefig("mh-bimodal.svg"); nothing # hide
 ```
 
-The scatter plot clearly shows that the MH algorithm has converged to only one of the two peaks of the bimodial target (contour also plotted). In fact, this is a known weakness of the MH algorithm. However, there are a number of alternative MCMC methods that aim to solve this problem. One of these methods, known as Transitional Markov Chain Monte Carlo [chingTransitionalMarkovChain2007](@cite), will be presented next.
+![](mh-bimodal.svg)
+
+The scatter plot clearly shows that the MH algorithm has converged to only one of the two peaks of the bimodal target (contour also plotted). In fact, this is a known weakness of the MH algorithm. However, there are a number of alternative MCMC methods that aim to solve this problem. One of these methods, known as Transitional Markov Chain Monte Carlo [chingTransitionalMarkovChain2007](@cite), will be presented next.
 
 ### Transitional Markov Chain Monte Carlo
 
@@ -173,7 +178,7 @@ The Transitional Markov Chain Monte Carlo (TMCMC) method [chingTransitionalMarko
     P^j \propto P(Y|\theta)^{\beta_j} \cdot P(\theta),
 ```
 
-where $j \in \{1, \ldots, m \}$ is the number of the transition step and $\beta_j$ is a tempering parameter with $\beta_1 < \cdots, \beta_m =1$. This enables a slow transition from the prior to the posterior distribution. An important part of the TMCMC algorithm is that the tempering parameter has to be selected as to ensure the transition is smooth and gradual. The algorithm's authors suggest choosing the parameter such that a coefficient of variation of 100% is maintained in the likelihood $P(Y\theta_i)^{\beta_j-\beta_{j - 1}}$. At each level $j$ the starting points for the independent Markov Chains are randomly samples (with replacement) from the current set of samples using statistical weights
+where ``j \in \{1, \ldots, m \}`` is the number of the transition step and ``\beta_j`` is a tempering parameter with ``\beta_1 < \cdots, \beta_m =1``. This enables a slow transition from the prior to the posterior distribution. An important part of the TMCMC algorithm is that the tempering parameter has to be selected as to ensure the transition is smooth and gradual. The algorithm's authors suggest choosing the parameter such that a coefficient of variation of 100% is maintained in the likelihood ``P(Y\theta_i)^{\beta_j-\beta_{j - 1}}``. At each level ``j`` the starting points for the independent Markov Chains are randomly samples (with replacement) from the current set of samples using statistical weights
 
 ```math
 w(\theta_i) = \frac{P(Y|\theta_i)^{\beta_j-\beta_{j-1}}}{\sum_{i=1}^N P(Y|\theta_i)^{\beta_j-\beta_{j-1}}}.
@@ -181,14 +186,14 @@ w(\theta_i) = \frac{P(Y|\theta_i)^{\beta_j-\beta_{j-1}}}{\sum_{i=1}^N P(Y|\theta
 
 The complete TMCMC algorithm can be summarized as
 
-1. Set $j=0$ and $\beta_j=0$. Sample $\theta_i \sim P(\theta)$.
-2. Set $j = j+1$.
-3. Compute the next tempering parameter $\beta_j$.
-4. Determine the weights $w(\theta_i)$.
-5. Generate a single-step Markov chain for each $\theta_i$.
-6. Repeat steps (2) to (5) until (and including) $(\beta_j=1)$.
+1. Set ``j=0`` and ``\beta_j=0``. Sample ``\theta_i \sim P(\theta)``.
+2. Set ``j = j+1``.
+3. Compute the next tempering parameter ``\beta_j``.
+4. Determine the weights ``w(\theta_i)``.
+5. Generate a single-step Markov chain for each ``\theta_i``.
+6. Repeat steps (2) to (5) until (and including) ``(\beta_j=1)``.
 
-Returning to the bimodial example, this time using the TMCMC algorithm. In order to apply a different MCMC algorithm we only need to construct a `TransitionalMarkovChainMonteCarlo` object and pass it to the `bayesianupdating` method. The definition of prior and likelihood remains the same. In difference to the `SingleComponentMetropolisHastings` the log evidence is returned instead of the acceptance rate.
+Returning to the bimodal example, this time using the TMCMC algorithm. In order to apply a different MCMC algorithm we only need to construct a `TransitionalMarkovChainMonteCarlo` object and pass it to the `bayesianupdating` method. The definition of prior and likelihood remains the same. In difference to the `SingleComponentMetropolisHastings` the log evidence is returned instead of the acceptance rate.
 
 ```@example tmcmc
 
@@ -196,10 +201,13 @@ tmcmc = TransitionalMarkovChainMonteCarlo(RandomVariable.(Uniform(-2,2), [:x, :y
 
 tmcmc_samples, S = bayesianupdating(logprior, loglikelihood, tmcmc)
 
-scatter(tmcmc_samples.x, tmcmc_samples.y; lim=[-2, 2], label="TMCMC")
+scatter(tmcmc_samples.x, tmcmc_samples.y; lim=[-2, 2], label="TMCMC") # hide
+savefig("tmcmc.svg"); nothing # hide
 ```
 
-The resulting scatter plot shows how TMCMC is able to sample both peaks of the bimodal target distribution. The standard implementation of TMCMC uses a multivariate Gaussian proposal distribution centred at each $\theta_i$ with covariance matrix $\Sigma$ estimated from the current likelihood scaled by a factor $\beta^2$. This scaling factor defaults to $0.2$ as suggested by the authors, but can optionally be passed to the constructor as a fourth argument. Application of different MCMC Algorithms nested in the TMCMC give rise to variants of the algorithm. For example, it is possible to use the previously introduced `SingleComponentMetropolisHastings` resulting in `SingleComponentTransitionalMarkovChainMonteCarlo`.
+![](tmcmc.svg)
+
+The resulting scatter plot shows how TMCMC is able to sample both peaks of the bimodal target distribution. The standard implementation of TMCMC uses a multivariate Gaussian proposal distribution centred at each ``\theta_i`` with covariance matrix ``\Sigma`` estimated from the current likelihood scaled by a factor ``\beta^2``. This scaling factor defaults to ``0.2`` as suggested by the authors, but can optionally be passed to the constructor as a fourth argument. Application of different MCMC Algorithms nested in the TMCMC give rise to variants of the algorithm. For example, it is possible to use the previously introduced `SingleComponentMetropolisHastings` resulting in `SingleComponentTransitionalMarkovChainMonteCarlo`.
 
 !!! note "Note"
     `SingleComponentTransitionalMarkovChainMonteCarlo` is currently not available but planned for implementation.
@@ -212,8 +220,72 @@ tmcmc = TransitionalMarkovChainMonteCarlo(RandomVariable.(Uniform(-2,2), [:x, :y
 tmcmc_samples, S = bayesianupdating(loglikelihood, tmcmc)
 ```
 
+## Maximum likelihood and maximum a posteriori estimates
+
+Instead of using sample-based methods it is also possible to calculate the local maxima of likelihood ($P(Y|\theta)$) or posterior ($P(\theta|Y)$). While this does not directly give an esimate of the full parameter distribution, it allows for the estimation of the most probable parameter values. Calculating the maximum (or maxima, depending on the use case) is referred to as maximum likelihood estimate (MLE), using the full (unnormalized) posterior is referred to as maximum a posteriori (MAP) estimate. Note that technically MLE is not a Bayesian estimate as the prior distribution is ignored. More formally,
+
+```math
+\theta_{\text{MLE}} = \underset{\theta}{\arg \max} P(Y|\theta)
+```
+
+```math
+\theta_{\text{MAP}} = \underset{\theta}{\arg \max} P(Y|\theta) P(\theta)
+```
+
+Generally, the MAP estimate can be considered as regularized version of the MLE, since the prior distribution is used to constrain the estimates. Both estimates are found with optimization schemes and thus come with the usual drawbacks, including convergence to local maxima. Both methods are therefore sensitive to initial conditions. Further note that both estimates do not calculate the mean but the mode of the respective distributions, i.e. for distributions that have a high variance these estimates do not provide much information about the parmater distribution.
+
+The implementation in **UncertaintyQuantification.jl** is analgous to the sampling methods. A `MaximumAPosterioriBayesian` or a `MaximumLikelihoodBayesian` object is created that takes the important settings as input. These are the prior, the optimization method to use and the starting points for optimization. For convenience, multiple points can be specified here. The optimization method is given as a string such that the `Optim.jl` package does not need to be included in the script. Finally, the `bayesianupdate`-function can be used again with the known syntax, i.e. a likelihood, `UQ-Model`-array and the desired object for the method are given and a `DataFrame` is returned. The log-densities are given in the `DataFrame` as the variable `:maxval`. Below is an example for the implementation.
+
+```@example pointestimates
+using UncertaintyQuantification # hide
+using Plots # hide
+using DataFrames # hide
+
+μ = 0
+σ = .2
+
+prior = RandomVariable.(Normal(μ,σ), [:x, :y])
+
+N1 = MvNormal([-0.5, -0.5], 0.1)
+N2 = MvNormal([0.5, 0.5], 0.1)
+
+loglikelihood =
+    df -> log.([0.5 * pdf(N1, collect(x)) + 0.5 * pdf(N2, collect(x)) for x in eachrow(df)])
+
+priorFunction =
+    df -> prod.([pdf(Normal(μ, σ), collect(x)) for x in eachrow(df)])
+
+x0 = [[.1, .1],[-.1,-.1]]
+
+MAP = MaximumAPosterioriBayesian(prior, "LBFGS", x0)
+MLE = MaximumLikelihoodBayesian(prior, "LBFGS", x0)
+
+mapestimate = bayesianupdating(loglikelihood, UQModel[], MAP)
+mlestimate = bayesianupdating(loglikelihood, UQModel[], MLE)
+
+xs = range(-2, 2, length = 100); ys = range(-2, 2, length = 100) # hide
+sample_points = reduce(vcat,[[x y] for x in xs, y in ys][:]) # hide
+df_points = DataFrame(sample_points, :auto) # hide
+likelihood_eval = exp.(loglikelihood(df_points)) # hide
+prior_eval = priorFunction(df_points) # hide
+contour(xs, ys, likelihood_eval, lim = [-2,2], c = :red) # hide
+contour!(xs, ys, prior_eval, lim = [-2,2], c = :blue) # hide
+contour!(xs, ys, likelihood_eval.*prior_eval/.05, lim = [-2,2], c = :black)
+scatter!(mapestimate.x, mapestimate.y; lim=[-2, 2], label = "MAP estimate", c = :black)
+scatter!(mlestimate.x, mlestimate.y; lim=[-2,2], label = "ML estimate", c = :red)
+plot!([0,0],[0,0],c = :red, label = "Likelihood")
+plot!([0,0],[0,0],c = :blue, label = "Prior")
+plot!([0,0],[0,0],c = :black, label = "Posterior")
+
+savefig("point-estimates.svg"); nothing # hide
+```
+
+The figure shows the (bimodal) likelihood in red and the prior distribution in blue. The difference in MAP and MLE is clearly visible, as the MLE conincides directly with the maxima of the likelihood, while MAP is shifted in the direction of the prior mean.
+
+![Point estimates](point-estimates.svg)
+
 ## Bayesian calibration of computer simulations
 
-*UncertaintyQuantification.jl* allows for complex computer models to be included in the Bayesian updating procedure, if for example one wishes to infer unknown model parameters from experimental data of model outputs. Several models can be evaluated in order to compute the likelihood function, by passing a vector of [`UQModel`](@ref)s to the [`bayesianupdating`](@ref) method. These will be executed before the likelihood is evaluated and models outputs will be available in the `DataFrame` inside the likelihood function. There is no restriction on the type of [`UQModel`](@ref) used. For example, it is possible to use an [`ExternalModel`](@ref) and call an external solver.
+*UncertaintyQuantification.jl* allows for complex computer models to be included in the Bayesian updating procedure, if for example one wishes to infer unknown model parameters from experimental data of model outputs. Several models can be evaluated in order to compute the likelihood function, by passing a vector of [`UQModel`](@ref)s to the [`bayesianupdating`](@ref) method. These will be executed before the likelihood is evaluated and models outputs will be available in the `DataFrame` inside the likelihood function. There is no restriction on the type of [`UQModel`](@ref) used. For example, it is possible to use an `ExternalModel` and call an external solver.
 
 For a complete example refer to the [Inverse eigenvalue problem](@ref).

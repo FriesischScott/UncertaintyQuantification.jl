@@ -12,16 +12,20 @@ A Julia package for uncertainty quantification. Current functionality includes:
 
 * Simulation-based reliability analysis
   * Monte Carlo simulation
-  * Quasi Monte Carlo simulation (Sobol, Halton, Latin Hypercube, Lattice Rule)
-  * Line Sampling
+  * Quasi Monte Carlo simulation (Sobol, Halton)
+  * (Advanced) Line Sampling
   * Subset Simulation
 * Sensitivity analysis
   * Gradients
   * Sobol indices
 * Metamodeling
   * Polyharmonic splines
+  * Response Surface
   * Polynomial Chaos Expansion
-  * Response Surface Methodology
+* Bayesian Updating
 * Third-party solvers
   * Connect to any solver by injecting random samples into source files
   * HPC interfacing with slurm
+* Stochastic Dynamics
+  * Power Spectral Density Estimation
+  * Stochastic Process Generation

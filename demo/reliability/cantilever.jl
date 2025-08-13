@@ -15,7 +15,7 @@ P = RandomVariable(LogNormal(μ, σ), :P) # tip load
 ρ = RandomVariable(LogNormal(μ, σ), :ρ) # density
 
 c = GaussianCopula([1 0.8; 0.8 1])
-jd = JointDistribution([E, ρ], c)
+jd = JointDistribution(c, [E, ρ])
 
 inputs = [l, b, h, P, jd]
 
@@ -53,6 +53,16 @@ is_pf, is_std, is_samples = probability_of_failure(
 
 println(
     "Importance Sampling probability of failure: $is_pf ($(size(is_samples, 1)) model evaluations)",
+)
+
+rbis = RadialBasedImportanceSampling(10^4, β)
+
+rbis_pf, rbis_cov, rbis_samples = probability_of_failure(
+    [inertia, displacement], df -> max_displacement .- df.w, inputs, rbis
+)
+
+println(
+    "Radial Based Importance Sampling probability of failure $rbis_pf ($(size(rbis_samples, 1)) model evaluations)",
 )
 
 # Compute probability of failure using Line Sampling

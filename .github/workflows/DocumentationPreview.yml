@@ -1,0 +1,23 @@
+name: Documentation Preview
+
+on:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment:
+      name: pr-${{github.event.number}}
+      url: https://friesischscott.github.io/UncertaintyQuantification.jl/previews/PR${{github.event.number}}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: julia-actions/setup-julia@v2
+        with:
+          version: "1.11"
+      - name: Build and deploy
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}
+        run: ./scripts/buildVitePressDocs.sh

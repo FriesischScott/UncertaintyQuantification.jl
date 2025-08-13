@@ -1,30 +1,62 @@
+"""
+    EmpiricalDistribution(x::Vector{<:Real}, n::Integer=10000)
+
+    Creates an empirical distribution from the data given in `x` using kernel density estimation.
+    The kernel used is Gaussian and the bandwidth is obtained through the Sheather-Jones method.
+    The support is inferred from the kde using numerical root finding.
+    The `cdf` and `quantile` functions are linearly interpolated using `n` data points.
+"""
 struct EmpiricalDistribution <: ContinuousUnivariateDistribution
     data::Vector{<:Real}
-    cdf::ECDF
-    quantile::Spline1D
-    pdf::InterpKDE
+    lb::Real
+    ub::Real
+    h::Real
+    c::Spline1D
+    q::Spline1D
 
-    function EmpiricalDistribution(x::Vector{<:Real}, kernel=Normal)
-        cdf = ecdf(x)
+    function EmpiricalDistribution(data::Vector{<:Real}, n::Integer=10000)
+        h = sheather_jones_bandwidth(data)
 
-        f = cdf.(cdf.sorted_values)
-        quantile = Spline1D(f, cdf.sorted_values)
+        lb = find_zero(u -> kde(h, u, data), minimum(data), Order2())
 
-        pdf = InterpKDE(kde_lscv(x; kernel=kernel))
-        return new(x, cdf, quantile, pdf)
+        ub = find_zero(u -> kde(h, u, data), maximum(data), Order2())
+
+        x = collect(range(lb, ub, n))
+
+        y = zeros(eltype(x), size(x))
+        for i in eachindex(x)
+            y[i] = if i == 1
+                quadgk(x -> kde(h, x, data), lb, x[i])[1]
+            else
+                y[i - 1] + quadgk(x -> kde(h, x, data), x[i - 1], x[i])[1]
+            end
+        end
+
+        clamp!(y, 0.0, 1.0)
+
+        y[1] = 0.0
+        y[end] = 1.0
+
+        c = Spline1D(x, y; k=1, s=0.0)
+
+        unique_idx = findlast.(isequal.(unique(y)), [y])
+
+        q = Spline1D(y[unique_idx], x[unique_idx]; k=1, s=0.0)
+
+        return new(data, lb, ub, h, c, q)
     end
 end
 
 function cdf(d::EmpiricalDistribution, x::Real)
-    return clamp(d.cdf(x), 0, 1)
+    return d.c(x)
 end
 
-function quantile(d::EmpiricalDistribution, x::Real)
-    return d.quantile(x)
+function quantile(d::EmpiricalDistribution, u::Real)
+    return d.q(u)
 end
 
 function pdf(d::EmpiricalDistribution, x::Real)
-    return insupport(d, x) ? abs(pdf(d.pdf, x)) : zero(x)
+    return insupport(d, x) ? kde(d.h, x, d.data) : zero(x)
 end
 
 function logpdf(d::EmpiricalDistribution, x::Real)
@@ -35,8 +67,8 @@ function rand(rng::AbstractRNG, d::EmpiricalDistribution)
     return quantile(d, rand(rng))
 end
 
-insupport(d::EmpiricalDistribution, x::Real) = minimum(d) <= x <= maximum(d)
-minimum(d::EmpiricalDistribution) = minimum(d.data)
-maximum(d::EmpiricalDistribution) = maximum(d.data)
-mean(d::EmpiricalDistribution) = mean(d.data)
-var(d::EmpiricalDistribution) = var(d.data)
+insupport(d::EmpiricalDistribution, x::Real) = d.lb <= x <= d.ub
+minimum(d::EmpiricalDistribution) = d.lb
+maximum(d::EmpiricalDistribution) = d.ub
+mean(d::EmpiricalDistribution) = quadgk(x -> x * pdf(d, x), d.lb, d.ub)[1]
+var(d::EmpiricalDistribution) = quadgk(x -> x^2 * pdf(d, x), d.lb, d.ub)[1] - mean(d)^2

@@ -11,7 +11,7 @@ The ones implemented here are `TwoLevelFactorial`, `FullFactorial`, `FractionalF
 #===
 ## Response Surface
 
-A Response Surface is a structure used for modeling. 
+A Response Surface is a structure used for modeling.
     It can be trained by providing it with evaluated points of a function.
     It will then, using polynomial regression, compute a model of that function.
 ===#
@@ -19,9 +19,13 @@ A Response Surface is a structure used for modeling.
 #===
 ## Example
 
-In this example, we will model the following test function (known as Himmelblau's function) $\newline$in the range $x1, x2 ∈ [-5, 5]$. It is defined as $\newline$
+In this example, we will model the following test function (known as Himmelblau's function)
 
-$f(x1, x2) = (x1^2 + x2 - 11)^2 + (x1 + x2^2 - 7)^2$.
+in the range ``x1, x2 ∈ [-5, 5]``. It is defined as
+
+```math
+f(x1, x2) = (x1^2 + x2 - 11)^2 + (x1 + x2^2 - 7)^2.
+```
 ===#
 
 #md using Plots #hide
@@ -29,9 +33,11 @@ $f(x1, x2) = (x1^2 + x2 - 11)^2 + (x1 + x2^2 - 7)^2$.
 #md b = range(5, -5; length=1000)   #hide
 #md himmelblau_f(x1, x2) = (x1^2 + x2 - 11)^2 + (x1 + x2^2 - 7)^2 #hide
 #md s1 = surface(a, b, himmelblau_f; plot_title="Himmelblau's function")   #hide
+#md savefig(s1, "himmelblau.svg"); nothing # hide
 
+# ![](himmelblau.svg)
 #===
-At first we need to create an array of random variables, that will be used when evaluating the points that our desgin produces.
+At first we need to create an array of random variables, that will be used when evaluating the points that our design produces.
 It will also define the range of the function we want the design to fit.
 This is also a good time to declare the function that we are working with.
 ===#
@@ -60,7 +66,7 @@ That functions degree is set as an Integer in the constructor.
 ===#
 
 #md # !!! note
-#md #     The choice of the degree and the design and its parameters may be crucial to obtaining a sufficient model. 
+#md #     The choice of the degree and the design and its parameters may be crucial to obtaining a sufficient model.
 
 training_data = sample(x, design)
 evaluate!(himmelblau, training_data)
@@ -70,15 +76,17 @@ test_data = sample(x, 1000)
 evaluate!(rs, test_data)
 
 #===
-To evaluate the `ResponseSurface`use `evaluate!(rs::ResponseSurface, data::DataFrame)` with the dataframe containing the points you want to evaluate.
+To evaluate the `ResponseSurface`use `evaluate!(rs::ResponseSurface, data::DataFrame)` with the `DataFrame` containing the points you want to evaluate.
 
 The model in this case has an mse of about 1e-26 and looks like this in comparison to the original:
 ===#
 
-#md f(x1, x2) = map(m -> m([x1, x2]), rs.monomials') * rs.β #hide
-#md 
+#md f(x1, x2) = sum(rs.monomials([x1, x2]) .* rs.β) #hide
 #md s2 = surface(a, b, f; plot_title="Response Surface", plot_titlefontsize=16) #hide
 #md surface(s1, s2; layout=(1, 2), legend=false, size=(800, 400))  #hide
+#md savefig("himmelblau-comparison.svg"); nothing # hide
+
+# ![](himmelblau-comparison.svg)
 
 #jl p_data = test_data[:, [:x1, :x2]]
 #jl evaluate!(himmelblau, p_data)

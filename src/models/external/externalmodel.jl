@@ -68,6 +68,9 @@ function makedirectory(m::ExternalModel, sample, path::String)
     end
 
     for file in m.extras
+        if isempty(file)
+            continue
+        end
         cp(joinpath(m.sourcedir, file), joinpath(path, file))
     end
     return nothing
@@ -124,8 +127,9 @@ function evaluate!(
         makedirectory(m, df[i, :], path)
     end
 
-    generate_HPC_job(scheduler, m, n, datetime)
-    run_HPC_job(scheduler, m, datetime)
+    setup_hpc_jobs(scheduler, m, n, datetime)
+
+    run_hpc_jobs(scheduler, m, n, datetime)
 
     results = map(1:n) do i
         path = joinpath(m.workdir, datetime, "sample-$(lpad(i, digits, "0"))")
@@ -144,12 +148,20 @@ function formatinputs(row::DataFrameRow, formats::Dict{Symbol,String})
     values = []
     for symbol in names
         if haskey(formats, symbol)
-            push!(values, fmt(formats[symbol], row[symbol]))
+            push!(values, formatinput(row[symbol], formats[symbol]))
         elseif haskey(formats, :*)
-            push!(values, fmt(formats[:*], row[symbol]))
+            push!(values, formatinput(row[symbol], formats[:*]))
         else
             push!(values, row[symbol])
         end
     end
     return (; zip(names, values)...)
+end
+
+function formatinput(data::Real, formatstring::String)
+    return pyfmt(formatstring, data)
+end
+
+function formatinput(data::AbstractVector{<:Real}, formatstring::String)
+    return pyfmt.(formatstring, data)
 end
