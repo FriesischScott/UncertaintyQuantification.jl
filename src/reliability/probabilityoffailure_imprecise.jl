@@ -10,8 +10,7 @@ The two simulations can differ in simulation type, complexity, or accuracy setti
 
 This approach runs an optimisation loop over interval parameters (outer loop) and computes reliability bounds in an inner loop using the `lb` and `ub` simulation methods.
 
-See also: [`DoubleLoop(sim::AbstractSimulation)`](@ref) for creating 
-a `DoubleLoop` with same simulation method for both bounds.
+Use `DoubleLoop(sim::AbstractSimulation)` for creating a `DoubleLoop` with same simulation method for both bounds.
 """
 struct DoubleLoop
     lb::AbstractSimulation
@@ -39,7 +38,7 @@ The two simulations can differ in simulation type, complexity, or accuracy setti
 
 In this approach, the `lb` and `ub` simulation methods generate random intervals from the imprecise variables. These intervals are then propagated through the model via optimisation-based interval propagation, yielding lower and upper bounds on the reliability estimate.
 
-See also: [`RandomSlicing(sim::AbstractSimulation)`](@ref) for creating  a `RandomSlicing` with same simulation method for both bounds.
+Use `RandomSlicing(sim::AbstractSimulation)` for creating a `RandomSlicing` with same simulation method for both bounds.
 
 # References
 
