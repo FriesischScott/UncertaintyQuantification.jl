@@ -28,7 +28,7 @@ This function depends on the vector ``\omega``, which is uniformly distributed f
 The spectral representation method (SRM) [shinozuka1991simulation](@cite) can be utilised to generate realisations of stochastic processes ``x(t)`` which are carrying the characteristics of a PSD function ``S(\omega)`` in time domain. The stochastic character of these processes is represented by random phase angles ``\varphi``. The spectral representation method reads as follows
 
 ```math
-    x(t) = \sqrt{2} \sum \limits_{n=0}^{N_{\omega}-1}\sqrt{2 S(\omega_n) \Delta \omega} \cos(\omega_n t + \varphi),
+    x(t) = \sqrt{2} \sum \limits_{n=0}^{N_{\omega}-1}\sqrt{2 S(\omega_n) \Delta \omega} \cos(\omega_n t + \varphi_n),
 ```
 
 where ``\Delta \omega`` is the frequency increment, ``\omega_n`` is the frequency at coordinate ``n``, ``t`` is the time vector and ``N_{\omega}`` is the total number of frequency points.
