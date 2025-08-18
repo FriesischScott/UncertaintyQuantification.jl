@@ -27,7 +27,7 @@ m = MixtureModel(MvNormal[
     MvNormal([3.0, 3.0], [1.0 0.2; 0.2 1.0])], [0.4, 0.3, 0.3]
 )
 
-gmm = GaussianMixtureModel(m, [:x1, :x2])
+gmm = JointDistribution(m, [:x1, :x2])
 
 samples = sample(gmm, 1000)
 

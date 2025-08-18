@@ -77,7 +77,7 @@ m = MixtureModel(MvNormal[
 )
 
 # Then, we can create our `GaussianMixtureModel` from the `MixtureModel` and specify the names of the dimensions.
-gmm = GaussianMixtureModel(m, [:x1, :x2])
+gmm = JointDistribution(m, [:x1, :x2])
 #md nothing # hide
 
 # Again, we can sample from the GMM and, for example, evaluate the PDF and plot those results:
