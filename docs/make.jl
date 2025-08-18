@@ -44,6 +44,7 @@ makedocs(;
             "High Performance Computing" => "manual/hpc.md",
         ],
         "Examples" => [
+            "Gaussian Mixture Model" => "examples/inputs.md",
             "External Models" => "examples/external.md",
             "Metamodels" => "examples/metamodels.md",
             "Bayesian Updating" => "examples/bayesianupdating.md",
