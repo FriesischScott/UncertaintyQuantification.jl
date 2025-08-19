@@ -2,7 +2,8 @@ struct GaussianProcess <: UQModel
     gp::AbstractGPs.PosteriorGP
     input::Union{Symbol, Vector{Symbol}}
     output::Symbol
-    datatransformer::DataTransform
+    input_transform::Function
+    output_transform::Function
 end
 
 # Build from Dataframe
