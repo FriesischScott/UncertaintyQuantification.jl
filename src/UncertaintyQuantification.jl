@@ -15,6 +15,7 @@ using MeshAdaptiveDirectSearch
 using Monomials
 using Mustache
 using Optim
+using ParameterHandling
 using Primes
 using QuadGK
 using QuasiMonteCarlo
@@ -125,7 +126,7 @@ export LineSampling
 export SingleComponentMetropolisHastings
 export MaximumAPosterioriBayesian
 export MaximumLikelihoodBayesian
-export MLE
+export MaximumLikelihoodEstimation
 export Model
 export MonteCarlo
 export ParallelModel
