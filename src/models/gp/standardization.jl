@@ -1,25 +1,18 @@
 """
-    AbstractInputTransform
+Input/output transformations for datasets.
 
-Abstract type for input transformations used to describe how input features (columns of a DataFrame) should be
-preprocessed before fitting a model (e.g. no transform, z-score standardization).
+- `AbstractInputTransform` / `AbstractOutputTransform`: base types for input and output preprocessing.
+- `DataStandardization`: holds the chosen input and output transformations.
+- `build_datatransform(data, input/output, transform)`: returns functions that apply (and, for outputs, invert) the transformations to a `DataFrame`.
+
+Predefined transforms include:
+    - `NoInputTransform` / `NoOutputTransform`: no change.
+    - `ZScoreInputTransform` / `ZScoreOutputTransform`: standardize to zero mean, unit variance.
 """
+
 abstract type AbstractInputTransform end
-
-"""
-    AbstractOutputTransform
-
-Abstract type for output transformations used to describe how model output (columns of a DataFrame) should be
-preprocessed before fitting a model (e.g. no transform, z-score standardization).
-"""
 abstract type AbstractOutputTransform end
 
-"""
-    DataStandardization(input::AbstractInputTransform, output::AbstractOutputTransform)
-
-Container that holds the input and output transformation strategies to be applied
-to a dataset.
-"""
 struct DataStandardization
     input_transform::AbstractInputTransform
     output_transform::AbstractOutputTransform
@@ -29,46 +22,20 @@ DataStandardization() = DataStandardization(NoInputTransform(), NoOutputTransfor
 
 # ---------------- Input transforms ----------------
 
-"""
-    NoInputTransform(input)
-
-No transformation is applied to the specified input columns.
-"""
 struct NoInputTransform <: AbstractInputTransform end
-
-"""
-    ZScoreInputTransform(input)
-
-Applies z-score standardization (mean 0, variance 1) to the specified input columns.
-"""
-
 struct ZScoreInputTransform <: AbstractInputTransform end
 
 # ---------------- Output transforms ----------------
 
-"""
-    NoOutputTransform(output)
-
-No transformation is applied to the specified output column.
-"""
 struct NoOutputTransform <: AbstractOutputTransform end
-
-"""
-    ZScoreOutputTransform(output)
-
-Applies z-score standardization (mean 0, variance 1) to the specified output column.
-Provides both forward (`f`) and inverse (`f⁻¹`) transformations.
-"""
 struct ZScoreOutputTransform <: AbstractOutputTransform end
 
 # ---------------- Builders ----------------
 
 """
-    build_datatransform(data::DataFrame, transform::AbstractInputTransform)
+build_datatransform(data, input/output, transform)
 
-Builds a transformation function `f(df::DataFrame) -> Array` that converts
-the specified input columns of `df` into an array, optionally applying a
-standardization transform.
+Returns a function (or pair of functions for outputs) that applies the specified transformation to the dataset.
 """
 function build_datatransform(
     data::DataFrame, 
@@ -105,14 +72,6 @@ build_datatransform(
     transform::ZScoreInputTransform
  ) = build_datatransform(data, names(input), transform)
 
-"""
-    build_datatransform(data::DataFrame, transform::AbstractOutputTransform)
-
-Builds a tuple `(f, f⁻¹)` of transformation functions for the specified output column:
-
-- `f(df)` applies the output transformation to data.
-- `f⁻¹(Y)` reverses the transformation for predictions.
-"""
 function build_datatransform(
     data::DataFrame, 
     output::Symbol, 
