@@ -1,5 +1,6 @@
 module UncertaintyQuantification
 
+using AbstractGPs
 using Bootstrap
 using CovarianceEstimation
 using DataFrames
@@ -14,6 +15,7 @@ using MeshAdaptiveDirectSearch
 using Monomials
 using Mustache
 using Optim
+using ParameterHandling
 using Primes
 using QuadGK
 using QuasiMonteCarlo
@@ -21,6 +23,7 @@ using Random
 using Reexport
 using Roots
 using StatsBase
+using Zygote
 
 @reexport using Distributions
 
@@ -88,6 +91,7 @@ export UQModel
 # Structs
 export AdvancedLineSampling
 export EmpiricalDistribution
+export ExperimentalDesign # Currently used for gps
 export BackwardFiniteDifferences
 export BoxBehnken
 export CentralComposite
@@ -104,6 +108,7 @@ export ForwardFiniteDifferences
 export FractionalFactorial
 export FullFactorial
 export GaussianCopula
+export GaussianProcess
 export GaussQuadrature
 export HaltonSampling
 export HermiteBasis
@@ -121,6 +126,7 @@ export LineSampling
 export SingleComponentMetropolisHastings
 export MaximumAPosterioriBayesian
 export MaximumLikelihoodBayesian
+export MaximumLikelihoodEstimation
 export Model
 export MonteCarlo
 export ParallelModel
@@ -137,6 +143,8 @@ export ResponseSurface
 export ShinozukaDeodatis
 export SobolSampling
 export Solver
+export StandardizeInput
+export StandardizeOutput
 export SpectralRepresentation
 export StochasticProcessModel
 export SubSetInfinity
@@ -172,6 +180,7 @@ export to_copula_space
 export to_physical_space!
 export to_standard_normal_space
 export to_standard_normal_space!
+export with_gaussian_noise
 
 include("inputs/empiricaldistribution.jl")
 include("inputs/inputs.jl")
@@ -197,6 +206,10 @@ include("models/imprecise/propagation.jl")
 include("models/polyharmonicspline.jl")
 include("models/responsesurface.jl")
 include("models//slicingmodel.jl")
+include("models/gp/standardization.jl")
+include("models/gp/parameterization.jl")
+include("models/gp/hyperparametertuning.jl")
+include("models/gp/gaussianprocess.jl")
 
 include("hpc/slurm.jl")
 
