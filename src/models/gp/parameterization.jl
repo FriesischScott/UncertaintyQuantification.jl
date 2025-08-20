@@ -1,21 +1,184 @@
+"""
+    Parameterized{T}
+
+Wraps an object of type `T` to make it callable with parameters `θ`.
+Calling `p(θ)` returns the object updated with the parameters.
+"""
 struct Parameterized{T}
     object::T
 end
 
+"""
+    (p::Parameterized)(θ)
+
+Apply the parameters `θ` to the underlying object, returning a new object
+with those parameters.
+"""
 function (p::Parameterized)(θ)
     return apply_parameters(p.object, ParameterHandling.value(θ))
 end
 
-# """
-#     parameterize(object) -> model, θ
+"""
+    parameterize(object) -> (model, θ)
 
-# Turn `object` into a callable parameterized version of itself and a parameter `θ`.
-# After assigning `model, θ = parameterize(object)`, calling `model(θ)` will yield the same
-# `object` back. 
-# """
+Wrap `object` into a `Parameterized` callable and return its current parameters `θ`.
+Calling `model(θ)` will return the model with its current paramters.
+"""
 parameterize(object) = Parameterized(object), extract_parameters(object)
 
-# Custom wrappers
+# ---------------- Mean functions ----------------
+"""
+    extract_parameters(m::MeanType)
+
+Return the free parameters of a mean function, wrapped in `ParameterHandling`.
+- `ZeroMean` has no parameters → returns `nothing`.
+- `ConstMean` has one parameter → returns the constant value.
+"""
+extract_parameters(::ZeroMean) = nothing
+extract_parameters(m::ConstMean) = m.c
+
+"""
+    apply_parameters(m::MeanType, θ)
+
+Return a new mean function with parameters `θ` applied.
+- For `ZeroMean`, returns the same object.
+- For `ConstMean`, returns a new `ConstMean` with `c = θ`.
+"""
+apply_parameters(m::ZeroMean, θ) = m
+apply_parameters(::ConstMean, θ) = ConstMean(θ)
+
+# ---------------- Kernel functions ----------------
+# Kernels and transforms without parameters
+BaseKernelsWithoutParameters = Union{
+    ZeroKernel, WhiteKernel, CosineKernel,
+    SqExponentialKernel, ExponentialKernel,
+    ExponentiatedKernel, Matern32Kernel,
+    Matern52Kernel, NeuralNetworkKernel,
+    PiecewisePolynomialKernel, WienerKernel
+}
+
+# TODO: GibbsKernel has a lengthscale function which could depend on trainable parameters
+KernelsWithoutParameters = Union{GibbsKernel} 
+
+# TODO: FunctionTransform has a transformation function which could depend on trainable parameters
+TransformsWithoutParameters = Union{FunctionTransform, SelectTransform, IdentityTransform}
+
+AllWithoutParameters = Union{
+    BaseKernelsWithoutParameters, 
+    KernelsWithoutParameters, 
+    TransformsWithoutParameters
+}
+
+"""
+    extract_parameters(obj)
+
+Return the free parameters of `obj` wrapped in `ParameterHandling`.
+- For kernels: positive or bounded constraints are enforced.
+- For kernel compositions (sum, product, tensor, scaled, transformed), returns a tuple or vector of parameter sets.
+- For kernels without parameters, returns `nothing`.
+- For transforms: returns trainable parameters if any, otherwise `nothing`.
+"""
+# no paramters
+extract_parameters(::T) where {T<:AllWithoutParameters} = nothing
+
+# basekernels (see KernelFunctions.jl src/basekernels)
+extract_parameters(k::ConstantKernel) = ParameterHandling.positive(k.c)
+extract_parameters(k::GammaExponentialKernel) = ParameterHandling.bounded(k.γ, 0.0, 2.0)
+extract_parameters(k::FBMKernel) = ParameterHandling.bounded(k.h, 0.0, 1.0)
+extract_parameters(k::MaternKernel) = ParameterHandling.positive(k.ν)
+extract_parameters(k::PeriodicKernel) = ParameterHandling.positive(k.r)
+extract_parameters(k::LinearKernel) = ParameterHandling.positive(k.c)
+extract_parameters(k::PolynomialKernel) = ParameterHandling.positive(k.c)
+extract_parameters(k::RationalKernel) = ParameterHandling.positive(k.α)
+extract_parameters(k::RationalQuadraticKernel) = ParameterHandling.positive(k.α)
+extract_parameters(k::GammaRationalKernel) = (
+    ParameterHandling.positive(k.α), 
+    ParameterHandling.bounded(k.γ, 0.0, 2.0)
+)
+
+# kernels (see KernelFunctions.jl src/kernels)
+# TODO: NeuralKernelNetwork not implemented
+extract_parameters(k::KernelProduct) = map(extract_parameters, k.kernels)
+extract_parameters(k::KernelSum) = map(extract_parameters, k.kernels)
+extract_parameters(k::KernelTensorProduct) = map(extract_parameters, k.kernels)
+extract_parameters(k::NormalizedKernel) = extract_parameters(k.kernel)
+extract_parameters(k::ScaledKernel) = (extract_parameters(k.kernel), ParameterHandling.positive(only(k.σ²)))
+extract_parameters(k::TransformedKernel) = (extract_parameters(k.kernel), extract_parameters(k.transform))
+
+# transform (see KernelFunctions.jl src/transform)
+extract_parameters(t::ARDTransform) = ParameterHandling.positive(t.v)
+extract_parameters(t::ChainTransform) = map(extract_parameters, t.transforms)
+extract_parameters(t::LinearTransform) = t.A
+extract_parameters(t::PeriodicTransform) = ParameterHandling.positive(t.f)
+extract_parameters(t::ScaleTransform) = ParameterHandling.positive(t.s)
+
+"""
+    apply_parameters(obj, θ)
+
+Return a new object with parameters `θ` applied.
+- Works for kernels, compositions, and transforms.
+- For objects without parameters, returns the object unchanged.
+- For compositions, expects a tuple or vector of parameter sets matching the structure.
+"""
+# no parameters
+apply_parameters(k::T, θ) where {T<:AllWithoutParameters} = k
+
+# basekernels
+apply_parameters(::ConstantKernel, θ) = ConstantKernel(; c=only(θ))
+apply_parameters(::GammaExponentialKernel, θ) = GammaExponentialKernel(; γ=only(θ))
+apply_parameters(::FBMKernel, θ) = FBMKernel(; h=only(θ))
+apply_parameters(::MaternKernel, θ) = MaternKernel(; ν=only(θ))
+apply_parameters(::PeriodicKernel, θ) = PeriodicKernel(; r=θ)
+apply_parameters(::LinearKernel, θ) = LinearKernel(; c=only(θ))
+apply_parameters(::PolynomialKernel, θ) = PolynomialKernel(; c=only(θ))
+apply_parameters(::RationalKernel, θ) = RationalKernel(; α=only(θ))
+apply_parameters(::RationalQuadraticKernel, θ) = RationalQuadraticKernel(; α=only(θ))
+apply_parameters(::GammaRationalKernel, θ) = GammaRationalKernel(; α=only(θ[1]), γ=only(θ[2]))
+
+# kernels
+# TODO: NeuralKernelNetwork not implemented
+apply_parameters(k::KernelProduct, θ) = KernelProduct(map(apply_parameters, k.kernels, θ))
+apply_parameters(k::KernelSum, θ) = KernelSum(map(apply_parameters, k.kernels, θ))
+apply_parameters(k::KernelTensorProduct, θ) = KernelTensorProduct(map(apply_parameters, k.kernels, θ))
+apply_parameters(k::NormalizedKernel, θ) = NormalizedKernel(apply_parameters(k.kernel, θ))
+apply_parameters(k::ScaledKernel, θ) = ScaledKernel(apply_parameters(k.kernel, θ[1]), θ[2])
+apply_parameters(k::TransformedKernel, θ) = TransformedKernel(
+    apply_parameters(k.kernel, θ[1]), apply_parameters(k.transform, θ[2])
+    )
+
+# transform
+apply_parameters(::ARDTransform, θ) = ARDTransform(θ)
+apply_parameters(t::ChainTransform, θ) = ChainTransform(map(apply_parameters, t.transforms, θ))
+apply_parameters(::LinearTransform, θ) = LinearTransform(θ)
+apply_parameters(::PeriodicTransform, θ) = PeriodicTransform(θ)
+apply_parameters(::ScaleTransform, θ) = ScaleTransform(θ)
+
+# ---------------- Gaussian Processes ----------------
+
+"""
+    extract_parameters(f::GP)
+
+Return the free parameters of a GP as a tuple: `(mean_params, kernel_params)`.
+"""
+extract_parameters(f::GP) = (extract_parameters(f.mean), extract_parameters(f.kernel))
+
+"""
+    apply_parameters(f::GP, θ)
+
+Return a new GP with parameters `θ` applied:
+- `θ[1]` → mean parameters
+- `θ[2]` → kernel parameters
+"""
+apply_parameters(f::GP, θ) = GP(
+    apply_parameters(f.mean, θ[1]), 
+    apply_parameters(f.kernel, θ[2])
+)
+
+"""
+    NoisyGP
+
+A wrapper around `GP` that adds Gaussian observation noise `obs_noise`.
+"""
 struct NoisyGP{T<:GP,Tn<:Real}
     gp::T
     obs_noise::Tn
@@ -23,61 +186,30 @@ end
 
 (gp::NoisyGP)(x) = gp.gp(x, gp.obs_noise)
 
+"""
+    with_gaussian_noise(gp::GP, obs_noise::Real)
+
+Wrap a GP with Gaussian observation noise.
+"""
 with_gaussian_noise(gp::GP, obs_noise::Real) = NoisyGP(gp, obs_noise)
 
+"""
+    extract_parameters(f::NoisyGP)
+
+Return the free parameters of a noisy GP:
+- `(gp_params, obs_noise_param)`
+- Observation noise is constrained positive using `ParameterHandling`.
+"""
 extract_parameters(f::NoisyGP) = (
     extract_parameters(f.gp), 
     ParameterHandling.positive(f.obs_noise, exp, 1e-6)
-    )
+)
+
+"""
+    apply_parameters(f::NoisyGP, θ)
+
+Return a new noisy GP with parameters `θ` applied:
+- `θ[1]` → GP parameters
+- `θ[2]` → observation noise
+"""
 apply_parameters(f::NoisyGP, θ) = NoisyGP(apply_parameters(f.gp, θ[1]), θ[2])
-
-# Mean functions
-extract_parameters(::ZeroMean) = nothing
-apply_parameters(m::ZeroMean, θ) = m
-
-extract_parameters(m::ConstMean) = m.c
-apply_parameters(::ConstMean, θ) = ConstMean(θ)
-
-# Simple kernels
-KernelsWithoutParameters = Union{SEKernel,Matern32Kernel,Matern52Kernel,WhiteKernel}
-
-extract_parameters(::T) where {T<:KernelsWithoutParameters} = nothing
-apply_parameters(k::T, θ) where {T<:KernelsWithoutParameters} = k
-
-extract_parameters(k::PeriodicKernel) = ParameterHandling.positive(only(k.r))
-apply_parameters(::PeriodicKernel, θ) = PeriodicKernel(; r=[θ])
-
-extract_parameters(k::RationalQuadraticKernel) = ParameterHandling.positive(only(k.α))
-apply_parameters(k::RationalQuadraticKernel, θ) = RationalQuadraticKernel(; α=θ, metric=k.metric)
-
-extract_parameters(k::ConstantKernel) = ParameterHandling.positive(only(k.c))
-apply_parameters(k::ConstantKernel, θ) = ConstantKernel(; c=θ)
-
-# Composite kernels
-extract_parameters(k::KernelSum) = map(extract_parameters, k.kernels)
-apply_parameters(k::KernelSum, θ) = KernelSum(map(apply_parameters, k.kernels, θ))
-
-extract_parameters(k::KernelProduct) = map(extract_parameters, k.kernels)
-apply_parameters(k::KernelProduct, θ) = KernelProduct(map(apply_parameters, k.kernels, θ))
-
-extract_parameters(k::TransformedKernel) = (extract_parameters(k.kernel), extract_parameters(k.transform))
-apply_parameters(k::TransformedKernel, θ) = TransformedKernel(
-    apply_parameters(k.kernel, θ[1]), apply_parameters(k.transform, θ[2])
-    )
-
-extract_parameters(k::ScaledKernel) = (extract_parameters(k.kernel), ParameterHandling.positive(only(k.σ²)))
-apply_parameters(k::ScaledKernel, θ) = ScaledKernel(apply_parameters(k.kernel, θ[1]), θ[2])
-
-# Transforms
-# !WARNING: Incomplete
-extract_parameters(t::ScaleTransform) = ParameterHandling.positive(only(t.s))
-apply_parameters(::ScaleTransform, θ) = ScaleTransform(θ)
-
-extract_parameters(t::ARDTransform) = ParameterHandling.positive(t.v)
-apply_parameters(::ARDTransform, θ) = ARDTransform(θ)
-
-# GPs
-extract_parameters(f::GP) = (extract_parameters(f.mean), extract_parameters(f.kernel))
-apply_parameters(f::GP, θ) = GP(
-    apply_parameters(f.mean, θ[1]), apply_parameters(f.kernel, θ[2])
-    )
