@@ -27,11 +27,11 @@ inputs = [
 
 model = Model(df -> df.x1 .+ df.x2 .+ df.x3, :y)
 
-sim = MonteCarlo(50000)
+sim = MonteCarlo(100000)
 
 println("Using Bins")
 try
-    indices, bin_samples = kucherenkoindices_bin([model], inputs, [:y], sim, num_bins=60)
+    indices, bin_samples = kucherenkoindices_bin([model], inputs, [:y], sim; min_bin_sample=2000, min_bin_sample_multi_dims=10)
 
     println(indices)
 

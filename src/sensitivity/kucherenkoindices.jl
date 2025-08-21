@@ -170,14 +170,17 @@ end
 """
 - `X::Matrix`: Input sample matrix where each row is a sample point and each column is a variable
 - `Y::Vector`: Output sample vector corresponding to the input samples
-- `num_bins::Int=10`: Number of bins to use for conditioning
+- `min_bin_sample::Int=25`: Minimum samples per bin for 1 dimension for conditioning; Recommended amount is at least 25 samples per bin with bin amount around 100
+- `min_bin_sample_multi_dims::Int=25`: Minimum samples per bin-dimension in multiple dimensions for conditioning; Recommended amount is about 10-25 samples per bin
 """
-function kucherenkoindices_bin(X::Matrix, Y::Vector, num_bins::Int=10)
+function kucherenkoindices_bin(X::Matrix, Y::Vector; min_bin_sample=nothing, min_bin_sample_multi_dims::Int=25)
     n_samples, n_vars = size(X)
+
+    num_bins = min_bin_sample === nothing ? min(100, floor(Int, n_samples / 25)) : floor(Int, n_samples / min_bin_sample)
+    num_bins_multi = floor(Int, n_samples / min_bin_sample_multi_dims)
     
-    if length(Y) != n_samples
-        throw(ArgumentError("Number of output samples must match number of input samples"))
-    end
+    if num_bins > 500 @warn "More than 500 bins in single dimension: $num_bins" end
+    if length(Y) != n_samples throw(ArgumentError("Number of output samples must match number of input samples")) end
     
     indices = DataFrame(_kucherenko_table_types, _kucherenko_table_header)
     total_var = var(Y)
@@ -185,7 +188,7 @@ function kucherenkoindices_bin(X::Matrix, Y::Vector, num_bins::Int=10)
     for i in 1:n_vars
         S_i = _compute_first_order_kucherenko_bins(X, Y, i, num_bins, total_var)
 
-        ST_i = n_vars == 1 ? S_i : _compute_total_effect_kucherenko_bins(X, Y, i, num_bins, total_var)
+        ST_i = n_vars == 1 ? S_i : _compute_total_effect_kucherenko_bins(X, Y, i, num_bins_multi, total_var)
         
         push!(indices, [Symbol("X$i"), S_i, ST_i])
     end
@@ -195,15 +198,10 @@ end
 
 function _compute_first_order_kucherenko_bins(X::Matrix, Y::Vector, var_idx::Int, num_bins::Int, total_var::Float64)
     n_samples = length(Y)
-    
     x_var = X[:, var_idx]
-    
-    x_min, x_max = extrema(x_var)
-    if x_min ≈ x_max
-        return 0.0 
-    end
-    
-    bin_edges = range(x_min, x_max, length=num_bins+1)
+
+    quantiles = range(0, 1; length=num_bins+1)
+    bin_edges = quantile(x_var, quantiles)
     
     bin_means = Float64[]
     bin_weights = Float64[]
@@ -265,24 +263,20 @@ end
 
 function _assign_multidimensional_bins(X::Matrix, num_bins::Int)
     n_samples, n_dims = size(X)
-    
-    X_norm = similar(X)
-    for j in 1:n_dims
-        x_min, x_max = extrema(X[:, j])
-        if x_min ≈ x_max
-            X_norm[:, j] .= 0.5
-        else
-            X_norm[:, j] = (X[:, j] .- x_min) ./ (x_max - x_min)
-        end
-    end
+    bins_per_dim = floor(Int, num_bins^(1/n_dims))
+
+    quantile_edges = [quantile(X[:, j], range(0, 1; length=bins_per_dim+1)) for j in 1:n_dims]
     
     bin_assignments = zeros(Int, n_samples)
     
     for i in 1:n_samples
         bin_id = 0
         for j in 1:n_dims
-            bin_idx = min(floor(Int, X_norm[i, j] * num_bins), num_bins - 1)
-            bin_id += bin_idx * (num_bins ^ (j - 1))
+            edges = quantile_edges[j]
+            x = X[i, j]
+            bin_idx = searchsortedlast(edges, x)
+            bin_idx = clamp(bin_idx, 1, bins_per_dim)
+            bin_id += (bin_idx - 1) * (bins_per_dim ^ (j - 1))
         end
         bin_assignments[i] = bin_id + 1
     end
@@ -294,18 +288,19 @@ end
 - `models::Vector{<:UQModel}`: Vector of UQ models to evaluate
 - `inputs::Vector{<:UQInput}`: Vector of input distributions
 - `outputs::Vector{Symbol}`: Vector of output quantity names
-- `sim::AbstractMonteCarlo`: Total MC samples 
-- `num_bins::Int`: Number of bins for conditioning
+- `sim::AbstractMonteCarlo`: Total MC samples
+- `min_bin_sample::Int=25`: Minimum samples per bin for 1 dimension for conditioning; Recommended amount is at least 25 samples per bin but bin amount not higher than 100
+- `min_bin_sample_multi_dims::Int=25`: Minimum samples per bin-dimension in multiple dimensions for conditioning; Recommended amount is about 10-25 samples per bin
 """
 function kucherenkoindices_bin(
     models::Vector{<:UQModel},
     inputs::Vector{<:UQInput},
     outputs::Vector{Symbol},
     sim::AbstractMonteCarlo;
-    num_bins::Int=10
+    min_bin_sample=nothing,
+    min_bin_sample_multi_dims::Int=25
 )
     samples = sample(inputs, sim)
-    
     evaluate!(models, samples)
     
     random_names = names(filter(i -> isa(i, RandomUQInput), inputs))
@@ -319,7 +314,7 @@ function kucherenkoindices_bin(
     for output in outputs
         Y = Vector(samples[:, output])
         
-        output_indices = kucherenkoindices_bin(X, Y, num_bins)
+        output_indices = kucherenkoindices_bin(X, Y; min_bin_sample = min_bin_sample, min_bin_sample_multi_dims = min_bin_sample_multi_dims)
         
         for (i, var_name) in enumerate(random_names)
             output_indices[i, :Variables] = var_name
@@ -336,9 +331,10 @@ function kucherenkoindices_bin(
     inputs::UQInput,
     outputs::Vector{Symbol},
     sim::AbstractMonteCarlo;
-    num_bins::Int=10
+    min_bin_sample=nothing,
+    min_bin_sample_multi_dims::Int=25
 )
-    return kucherenkoindices_bin(models, [inputs], outputs, sim; num_bins=num_bins)
+    return kucherenkoindices_bin(models, [inputs], outputs, sim; min_bin_sample=min_bin_sample, min_bin_sample_multi_dims=min_bin_sample_multi_dims)
 end
 
 function kucherenkoindices_bin(
@@ -346,9 +342,10 @@ function kucherenkoindices_bin(
     inputs::Vector{<:UQInput},
     outputs::Symbol,
     sim::AbstractMonteCarlo;
-    num_bins::Int=10
+    min_bin_sample=nothing,
+    min_bin_sample_multi_dims::Int=25
 )
-    return kucherenkoindices_bin(models, inputs, [outputs], sim; num_bins=num_bins)
+    return kucherenkoindices_bin(models, inputs, [outputs], sim; min_bin_sample=min_bin_sample, min_bin_sample_multi_dims=min_bin_sample_multi_dims)
 end
 
 function kucherenkoindices_bin(
@@ -356,9 +353,10 @@ function kucherenkoindices_bin(
     inputs::Vector{<:UQInput},
     outputs::Symbol,
     sim::AbstractMonteCarlo;
-    num_bins::Int=10
+    min_bin_sample=nothing,
+    min_bin_sample_multi_dims::Int=25
 )
-    return kucherenkoindices_bin([models], inputs, [outputs], sim; num_bins=num_bins)
+    return kucherenkoindices_bin([models], inputs, [outputs], sim; min_bin_sample=min_bin_sample, min_bin_sample_multi_dims=min_bin_sample_multi_dims)
 end
 
 function kucherenkoindices_bin(
@@ -366,9 +364,10 @@ function kucherenkoindices_bin(
     inputs::UQInput,
     outputs::Symbol,
     sim::AbstractMonteCarlo;
-    num_bins::Int=10
+    min_bin_sample=nothing,
+    min_bin_sample_multi_dims::Int=25
 )
-    return kucherenkoindices_bin(models, [inputs], [outputs], sim; num_bins=num_bins)
+    return kucherenkoindices_bin(models, [inputs], [outputs], sim; min_bin_sample=min_bin_sample, min_bin_sample_multi_dims=min_bin_sample_multi_dims)
 end
 
 function kucherenkoindices_bin(
@@ -376,9 +375,10 @@ function kucherenkoindices_bin(
     inputs::UQInput,
     outputs::Symbol,
     sim::AbstractMonteCarlo;
-    num_bins::Int=10
+    min_bin_sample=nothing,
+    min_bin_sample_multi_dims::Int=25
 )
-    return kucherenkoindices_bin([models], [inputs], [outputs], sim; num_bins=num_bins)
+    return kucherenkoindices_bin([models], [inputs], [outputs], sim; min_bin_sample=min_bin_sample, min_bin_sample_multi_dims=min_bin_sample_multi_dims)
 end
 
 function kucherenkoindices_bin(
@@ -386,7 +386,8 @@ function kucherenkoindices_bin(
     inputs::Vector{<:UQInput},
     outputs::Vector{Symbol},
     sim::AbstractMonteCarlo;
-    num_bins::Int=10
+    min_bin_sample=nothing,
+    min_bin_sample_multi_dims::Int=25
 )
-    return kucherenkoindices_bin([models], inputs, outputs, sim; num_bins=num_bins)
+    return kucherenkoindices_bin([models], inputs, outputs, sim; min_bin_sample=min_bin_sample, min_bin_sample_multi_dims=min_bin_sample_multi_dims)
 end
