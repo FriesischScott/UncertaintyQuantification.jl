@@ -54,7 +54,7 @@ In the context of discretising continuous signals, the Nyquist frequency ``f_Ny`
 ```math
     f_Ny = \frac{f_s}{2}.
 ```
-Frequencies higher than ``f_Ny`` cannot be uniquely represented in the sampled signal. Instead, they are folded back into the interval ``[0, f_Ny]`` and appear as lower frequency components, a phenomenon known as *aliasing*. To avoid this effect, the sampling rate must be chosen such that the maximum frequency of the signal does not exceed the Nyquist frequency:
+Frequencies higher than ``f_Ny`` cannot be uniquely represented in the sampled signal. Instead, they appear as lower frequencies within the interval ``[0, f_Ny]``, a distortion known as *aliasing*. To avoid this effect, the sampling rate must be chosen such that the maximum frequency of the signal does not exceed the Nyquist frequency:
 
 ```math
     f_max < f_Ny
