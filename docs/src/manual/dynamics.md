@@ -47,6 +47,21 @@ A frequently used estimator of the stationary PSD function from time records is 
 
 where ``\Delta t`` is the time discretisation, ``T`` is duration of the record, $N_t$ is the total number of data points, ``i`` is the imaginary unit and $k$ is the integer frequency for ``\omega_k = \frac{2 \pi k}{T}``.
 
+## Nyquist Frequency
+
+In the context of discretising continuous signals, the Nyquist frequency ``f_Ny`` is an essential concept. It is defined as half of the sampling frequency ``f_s``, i.e.
+
+```math
+    f_Ny = \frac{f_s}{2}.
+```
+Frequencies higher than ``f_Ny`` cannot be uniquely represented in the sampled signal. Instead, they are folded back into the interval ``[0, f_Ny]`` and appear as lower frequency components, a phenomenon known as *aliasing*. To avoid this effect, the sampling rate must be chosen such that the maximum frequency of the signal does not exceed the Nyquist frequency:
+
+```math
+    f_max < f_Ny
+```
+
+If the chosen parameters do not satisfy this condition, the code does not stop the computation, but issues a warning to indicate the potential occurrence of aliasing.
+
 ## Implementation
 
 To follow the procedure of generating signals that approximate homogeneous gaussian processes, as presented in [shinozuka1991simulation](@cite), first we need to define parameters for the frequency domain of the PSD function.
