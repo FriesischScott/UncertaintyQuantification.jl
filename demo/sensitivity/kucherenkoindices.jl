@@ -1,8 +1,9 @@
-include("../../src/UncertaintyQuantification.jl")
-using .UncertaintyQuantification
+using Pkg
+Pkg.activate(".")
+using UncertaintyQuantification
 using LinearAlgebra
 
-# --- Test Case 2: Portfolio model with analytical indices ---
+# Kucherenko et al. (2012) (DOI: 10.1016/j.cpc.2011.12.020)  --- Test Case 2: Portfolio model with analytical indices ---
 
 μ = [0.0, 0.0, 250.0, 400.0]
 
@@ -62,6 +63,7 @@ ST4_analytical = σ2_2 * σ2_4 * (1 - ρ34^2) / D
 
 try
     indices, bin_samples = kucherenkoindices_bin([model], inputs, [:y], sim; min_bin_sample_multi_dims=5)
+    println("Sample-based Kucherenko Indices calculation using bins:")
     println(indices)
 
     tol = 0.01
@@ -83,6 +85,7 @@ end
 
 try 
     indices = indices = kucherenkoindices([model], inputs, [:y], sim)
+    println("Standard Kucherenko Indices calculation:")
     println(indices)
 
     tol = 0.01
