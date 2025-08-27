@@ -1,5 +1,3 @@
-using Pkg
-Pkg.activate(".")
 using UncertaintyQuantification
 using LinearAlgebra
 
@@ -31,7 +29,7 @@ Dvec = sqrt.(diag(Σ))
 R = Σ ./ (Dvec * Dvec')
 
 inputs = [
-    JointDistribution(marginals, GaussianCopula(R))
+    JointDistribution(GaussianCopula(R), marginals)
 ]
 
 model = Model(df -> df.x1 .* df.x3 .+ df.x2 .* df.x4, :y)

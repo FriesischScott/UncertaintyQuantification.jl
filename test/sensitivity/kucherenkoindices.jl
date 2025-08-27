@@ -10,7 +10,7 @@
         RandomVariable(Normal(0, σ), :x3)
     ]
 
-    inputs = [ JointDistribution(marginals, GaussianCopula(R)) ]
+    inputs = [ JointDistribution(GaussianCopula(R), marginals) ]
     model = Model(df -> df.x1 .+ df.x2 .+ df.x3, :y)
     sim = MonteCarlo(50000)
 
@@ -64,7 +64,7 @@
     @testset "_generate_conditional_samples" begin
         marginals = [RandomVariable(Normal(0,1), :x1), RandomVariable(Normal(0,1), :x2)]
         R = [1.0 0.5; 0.5 1.0]
-        joint_dist = JointDistribution(marginals, GaussianCopula(R))
+        joint_dist = JointDistribution(GaussianCopula(R), marginals)
         samples_df = DataFrame(sample([joint_dist], MonteCarlo(100)))
         cond_samples = UncertaintyQuantification._generate_conditional_samples(samples_df, joint_dist, [:x1])
         @test names(cond_samples) == ["x1", "x2"]

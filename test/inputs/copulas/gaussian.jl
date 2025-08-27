@@ -15,11 +15,11 @@ correlation = [1 0.7071; 0.7071 1]
 
     @testset "sample_conditional_copula" begin
         marginals = [RandomVariable(Normal(0,1), :x1), RandomVariable(Normal(0,1), :x2), RandomVariable(Normal(0,1), :x3)]
-        joint_dist = JointDistribution(marginals, GaussianCopula([1 0.7071 0.5; 0.7071 1 0.3; 0.5 0.3 1]))
+        joint_dist = JointDistribution(GaussianCopula([1 0.7071 0.5; 0.7071 1 0.3; 0.5 0.3 1]), marginals)
         unconditional = sample(joint_dist, 500000)
     
         x_val = 0.5
-        cond1 = sample_conditional_copula(joint_dist, [:x1], [x_val], 10000)
+        cond1 = sample_conditional_copula(joint_dist, [(:x1, x_val)], 10000)
         filtered1 = unconditional[abs.(unconditional[:, :x1] .- x_val) .< 0.1, :]
         @test mean(filtered1[:, :x2]) ≈ mean(cond1[:, :x2]) rtol=0.1
         @test std(filtered1[:, :x2]) ≈ std(cond1[:, :x2]) rtol=0.1
@@ -27,7 +27,7 @@ correlation = [1 0.7071; 0.7071 1]
         @test std(filtered1[:, :x3]) ≈ std(cond1[:, :x3]) rtol=0.1
     
         x_val2, x_val3 = -0.5, 0.2
-        cond2 = sample_conditional_copula(joint_dist, [:x2, :x3], [x_val2, x_val3], 10000)
+        cond2 = sample_conditional_copula(joint_dist, [(:x2, x_val2), (:x3, x_val3)], 10000)
         filtered2 = unconditional[(abs.(unconditional[:, :x2] .- x_val2) .< 0.1) .& (abs.(unconditional[:, :x3] .- x_val3) .< 0.1), :]
         @test mean(filtered2[:, :x1]) ≈ mean(cond2[:, :x1]) rtol=0.1
         @test std(filtered2[:, :x1]) ≈ std(cond2[:, :x1]) rtol=0.1

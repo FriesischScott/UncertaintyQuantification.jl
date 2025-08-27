@@ -43,7 +43,7 @@ struct JointDistribution{
     function JointDistribution(d::Copula, m::Vector{<:RandomVariable})
         dimensions(d) == length(m) ||
             throw(ArgumentError("Dimension mismatch between copula and marginals."))
-        return new{Copula,RandomVariable}(d, m)
+        return new{typeof(d),RandomVariable}(d, m)
     end
 
     # MultivariateDistribution + Symbol
@@ -70,15 +70,12 @@ function sample(jd::JointDistribution{<:MultivariateDistribution,<:Symbol}, n::I
     return DataFrame(permutedims(rand(jd.d, n)), jd.m)
 end
 
-function sample_conditional_copula(joint::JointDistribution, var_names::Vector{Symbol}, x_values::Vector{Float64}, N::Int)
-    length(var_names) != length(x_values) && error("Number of variable names ($(length(var_names))) must match number of values ($(length(x_values)))")
-    !isa(joint.d, GaussianCopula) && error("This function for conditional sampling is only implemented for Gaussian copulas.")
-    
+function sample_conditional_copula(joint::JointDistribution{<:GaussianCopula,<:RandomVariable}, var_values::Vector{Tuple{Symbol,Float64}}, N::Int)
     marginals, copula, R = joint.m, joint.d, joint.d.correlation
     all_var_names, d = [marginal.name for marginal in marginals], length(marginals)
     
     v_indices = Int[]
-    for var_name in var_names
+    for (var_name, _) in var_values
         idx = findfirst(==(var_name), all_var_names)
         idx === nothing && error("Variable $var_name not found in joint distribution. Available variables: $all_var_names")
         push!(v_indices, idx)
@@ -88,8 +85,8 @@ function sample_conditional_copula(joint::JointDistribution, var_names::Vector{S
     
     w_indices = setdiff(1:d, v_indices)
     
-    z_v = zeros(length(v_indices))
-    for (i, (idx, x_val)) in enumerate(zip(v_indices, x_values))
+    z_v = zeros(length(var_values))
+    for (i, (idx, (_, x_val))) in enumerate(zip(v_indices, var_values))
         z_v[i] = quantile(Normal(0,1), cdf(marginals[idx].dist, x_val))
     end
     
@@ -108,8 +105,8 @@ function sample_conditional_copula(joint::JointDistribution, var_names::Vector{S
     Z_w = rand(MvNormal(μ_cond, Symmetric(Σ_cond)), N)'
     
     samples = DataFrame()
-    for (i, var_name) in enumerate(var_names)
-        samples[!, var_name] = fill(x_values[i], N)
+    for (var_name, x_val) in var_values
+        samples[!, var_name] = fill(x_val, N)
     end
     for (i, idx) in enumerate(w_indices)
         samples[!, all_var_names[idx]] = quantile.(marginals[idx].dist, cdf.(Normal(), Z_w[:,i]))
@@ -119,7 +116,7 @@ function sample_conditional_copula(joint::JointDistribution, var_names::Vector{S
 end
 
 function sample_conditional_copula(joint::JointDistribution, var_name::Symbol, x_v::Float64, N::Int)
-    return sample_conditional_copula(joint, [var_name], [x_v], N)
+    return sample_conditional_copula(joint, [(var_name, x_v)], N)
 end
 
 function to_physical_space!(jd::JointDistribution{<:Copula,<:RandomVariable}, x::DataFrame)
