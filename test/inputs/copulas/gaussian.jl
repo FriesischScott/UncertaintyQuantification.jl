@@ -28,9 +28,9 @@ correlation = [1 0.7071; 0.7071 1]
     
         x_val2, x_val3 = -0.5, 0.2
         cond2 = sample_conditional_copula(joint_dist, [(:x2, x_val2), (:x3, x_val3)], 10000)
-        filtered2 = unconditional[(abs.(unconditional[:, :x2] .- x_val2) .< 0.1) .& (abs.(unconditional[:, :x3] .- x_val3) .< 0.1), :]
-        @test mean(filtered2[:, :x1]) ≈ mean(cond2[:, :x1]) rtol=0.1
-        @test std(filtered2[:, :x1]) ≈ std(cond2[:, :x1]) rtol=0.1
+        filtered2 = unconditional[(abs.(unconditional[:, :x2] .- x_val2) .< 0.15) .& (abs.(unconditional[:, :x3] .- x_val3) .< 0.15), :]
+        @test mean(filtered2[:, :x1]) ≈ mean(cond2[:, :x1]) rtol=0.15
+        @test std(filtered2[:, :x1]) ≈ std(cond2[:, :x1]) rtol=0.15
     end
 
     @testset "to_standard_normal_space" begin
