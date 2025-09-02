@@ -84,6 +84,8 @@ export AbstractQuasiMonteCarlo
 export AbstractSimulation
 export Copula
 export DeterministicUQInput
+export NoInputTransform, ZScoreInputTransform, UnitRangeInputTransform, SNSInputTransform
+export NoOutputTransform, ZScoreOutputTransform, UnitRangeOutputTransform
 export RandomUQInput
 export UQInput
 export UQModel
@@ -91,7 +93,6 @@ export UQModel
 # Structs
 export AdvancedLineSampling
 export EmpiricalDistribution
-export ExperimentalDesign # Currently used for gps
 export BackwardFiniteDifferences
 export BoxBehnken
 export CentralComposite
@@ -143,8 +144,6 @@ export ResponseSurface
 export ShinozukaDeodatis
 export SobolSampling
 export Solver
-export StandardizeInput
-export StandardizeOutput
 export SpectralRepresentation
 export StochasticProcessModel
 export SubSetInfinity
