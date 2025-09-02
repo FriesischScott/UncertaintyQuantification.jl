@@ -1,32 +1,28 @@
 using UncertaintyQuantification
 using AbstractGPs
 using Random
+using Optim
+
 
 # Setup Himmelblau example
 x = RandomVariable.(Uniform(-5, 5), [:x1, :x2])
 himmelblau = Model(
     df -> (df.x1 .^ 2 .+ df.x2 .- 11) .^ 2 .+ (df.x1 .+ df.x2 .^ 2 .- 7) .^ 2, :y
 )
-design = FullFactorial([8, 8])
+design = LatinHypercubeSampling(100)
 training_data = sample(x, design)
 evaluate!(himmelblau, training_data)
 
-# This will be used for proper initial guesses for the parameters of the GP
-mean_data = mean(training_data[!, :y])
-std_data = std(training_data[!, :y])
-
 # Setup the GP
-# Note: If we do not initialize the parameters here properly the optimization will fail. Standardization should help with that.
 σ² = 1e-5
-kernel = SqExponentialKernel() ∘ ARDTransform([1.0, 1.0])
+kernel = SqExponentialKernel() ∘ ARDTransform([0.5, 0.5])
 gp = with_gaussian_noise(GP(0.0, kernel), σ²)
 
-optimizer = MLE()
-# TODO: StandardizeInput breaks currently due to -Inf and Inf values from to_standard_normal_space!()
-# TODO: Optimization is extremely unstable
-# TODO: Not all kernels have a extract_parameters and apply_parameters function 
+optimizer = MaximumLikelihoodEstimation(Optim.Adam(alpha=0.01), Optim.Options(; iterations=1000, show_trace=false))
+# optimizer = MaximumLikelihoodEstimation(Optim.LBFGS(), Optim.Options(; iterations=10, show_trace=false))
+
 gpr = GaussianProcess(
-    gp, x, himmelblau, :y, design, StandardizeOutput(), MLE()
+    gp, x, himmelblau, :y, design; input_transform=UnitRangeInputTransform(), output_transform=UnitRangeOutputTransform(), optimization=optimizer
 )
 
 test_data = sample(x, 1000)
@@ -40,6 +36,7 @@ println("MSE is:  $mse")
 
 using Plots
 using DataFrames
+# SNSInputTransform will crash the plotting routine on -5 and 5 values
 a = range(-5, 5; length=1000) 
 b = range(5, -5; length=1000)
 himmelblau_f(x1, x2) = (x1^2 + x2 - 11)^2 + (x1 + x2^2 - 7)^2
