@@ -11,31 +11,31 @@ end
 
 MaximumLikelihoodEstimation() = MaximumLikelihoodEstimation(
     Optim.LBFGS(),
-    Optim.Options(; iterations=1000, show_trace=false)
+    Optim.Options(; iterations=10, show_trace=false)
 )
 
 function optimize_hyperparameters(
     gp::Union{AbstractGPs.GP, NoisyGP}, 
-    x, 
-    y, 
-    opt::NoOptimization
+    ::Union{RowVecs{<:Real}, Vector{<:Real}}, 
+    ::Vector{<:Real}, 
+    ::NoOptimization
 )
     return gp
 end
 
 objective(
     f::Union{AbstractGPs.GP, NoisyGP}, 
-    x, 
-    y, 
-    mle::MaximumLikelihoodEstimation
+    x::Union{RowVecs{<:Real}, Vector{<:Real}}, 
+    y::Vector{<:Real}, 
+    ::MaximumLikelihoodEstimation
 ) = -logpdf(f(x), y)
 
 function optimize_hyperparameters(
     gp::Union{AbstractGPs.GP, NoisyGP}, 
-    x, 
-    y, 
+    x::Union{RowVecs{<:Real}, Vector{<:Real}}, 
+    y::Vector{<:Real}, 
     mle::MaximumLikelihoodEstimation
-) #!TYPES
+)
     model, θ₀ = parameterize(gp)
     θ₀_flat, unflatten = ParameterHandling.flatten(θ₀)
 
@@ -43,7 +43,7 @@ function optimize_hyperparameters(
         θ -> objective(model(unflatten(θ)), x, y, mle), 
         θ₀_flat, 
         mle.optimizer, mle.options; 
-        autodiff=AutoZygote()
+        autodiff= AutoZygote()
         )
     return model(unflatten(result.minimizer))
 end
