@@ -30,6 +30,7 @@ struct DataStandardizer
     fᵢ::Function
     fₒ::Function
     fₒ⁻¹::Function
+    var_fₒ⁻¹::Function
 end
 
 # ---------------- Constructor ----------------
@@ -41,8 +42,8 @@ function DataStandardizer(
     output_transform::OutputTransform
 )
     fᵢ = build_datatransform(data, input, input_transform)
-    fₒ, fₒ⁻¹ = build_datatransform(data, output, output_transform)
-    return DataStandardizer(fᵢ, fₒ, fₒ⁻¹)
+    fₒ, fₒ⁻¹, var_fₒ⁻¹ = build_datatransform(data, output, output_transform)
+    return DataStandardizer(fᵢ, fₒ, fₒ⁻¹, var_fₒ⁻¹)
 end
 
 # ---------------- Transform builders ----------------
@@ -148,7 +149,8 @@ function build_datatransform(
     f(df::DataFrame) = to_gp_format(
         dataframe_to_array(df, output)
     )
-    f⁻¹(Y::AbstractArray) = Y
+    mean_f⁻¹(Y::AbstractArray) = Y
+    var_f⁻¹(Y::AbstractArray) = Y
     return (f, f⁻¹)
 end
 
@@ -170,7 +172,8 @@ function build_datatransform(
         )
     )
     f⁻¹(Y::AbstractArray) = StatsBase.reconstruct(zscore_transform, Y)
-    return return (f, f⁻¹)
+    var_f⁻¹(Y::AbstractArray) = only(zscore_transform.scale)^2 * Y 
+    return (f, f⁻¹, var_f⁻¹)
 end
 
 # UnitRange output transformation
@@ -191,7 +194,8 @@ function build_datatransform(
         )
     )
     f⁻¹(Y::AbstractArray) = StatsBase.reconstruct(unitrange_transform, Y)
-    return return (f, f⁻¹)
+    var_f⁻¹(Y::AbstractArray) = only(unitrange_transform.scale)^2 * Y 
+    return (f, f⁻¹, var_f⁻¹)
 end
 
 function build_datatransform(
