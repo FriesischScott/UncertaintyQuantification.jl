@@ -163,6 +163,7 @@ export evaluate!
 export gradient
 export gradient_in_standard_normal_space
 export mean
+export mean_and_var!
 export multivariate_indices
 export periodogram
 export polynomialchaos
@@ -178,6 +179,7 @@ export to_copula_space
 export to_physical_space!
 export to_standard_normal_space
 export to_standard_normal_space!
+export var!
 export with_gaussian_noise
 
 include("inputs/empiricaldistribution.jl")

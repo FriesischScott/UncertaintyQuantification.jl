@@ -79,8 +79,29 @@ end
 # what should this calculate? Calculates only mean for now
 function evaluate!(gp::GaussianProcess, data::DataFrame)
     x = gp.standardizer.fᵢ(data)
-    y = mean(gp.gp(x))
+    μ = mean(gp.gp(x))
 
-    data[!, gp.output] = gp.standardizer.fₒ⁻¹(y) # applying inverse transform to output
+    data[!, gp.output] = gp.standardizer.fₒ⁻¹(μ)
+    return nothing
+end
+
+function var!(gp::GaussianProcess, data::DataFrame)
+    x = gp.standardizer.fᵢ(data)
+    σ² = var(gp.gp(x))
+
+    column_name = Symbol(string(gp.output, "_", "var"))
+    data[!, column_name] = gp.standardizer.var_fₒ⁻¹(σ²)
+    return nothing
+end
+
+function mean_and_var!(gp::GaussianProcess, data::DataFrame)
+    x = gp.standardizer.fᵢ(data)
+    μ = mean(gp.gp(x))
+    σ² = var(gp.gp(x))
+
+    column_name_mean = Symbol(string(gp.output, "_", "mean"))
+    column_name_var = Symbol(string(gp.output, "_", "var"))
+    data[!, column_name_mean] = gp.standardizer.fₒ⁻¹(μ)
+    data[!, column_name_var] = gp.standardizer.var_fₒ⁻¹(σ²)
     return nothing
 end
