@@ -9,39 +9,40 @@ Predefined transforms include:
     - `NoInputTransform` / `NoOutputTransform`: no change.
     - `ZScoreInputTransform` / `ZScoreOutputTransform`: standardize to zero mean, unit variance.
 """
+abstract type AbstractDataTransform end
 
-abstract type AbstractInputTransform end
-abstract type AbstractOutputTransform end
+# ---------------- Input/Output transforms ----------------
+struct IdentityTransform <: AbstractDataTransform end
+struct ZScoreTransform <: AbstractDataTransform end
+struct UnitRangeTransform <: AbstractDataTransform end
+struct StandardNormalTransform <: AbstractDataTransform end
 
-# ---------------- Input transforms ----------------
-struct NoInputTransform <: AbstractInputTransform end
-struct ZScoreInputTransform <: AbstractInputTransform end
-struct UnitRangeInputTransform <: AbstractInputTransform end
-struct SNSInputTransform <: AbstractInputTransform end
+struct InputTransform{T <: AbstractDataTransform} end
+InputTransform(::Type{T}) where {T <: AbstractDataTransform} = InputTransform{T}()
+InputTransform(x::AbstractDataTransform) = InputTransform(typeof(x))
 
-# ---------------- Output transforms ----------------
-struct NoOutputTransform <: AbstractOutputTransform end
-struct ZScoreOutputTransform <: AbstractOutputTransform end
-struct UnitRangeOutputTransform <: AbstractOutputTransform end
+struct OutputTransform{T <: AbstractDataTransform} end
+OutputTransform(::Type{T}) where {T <: AbstractDataTransform} = OutputTransform{T}()
+OutputTransform(x::AbstractDataTransform) = OutputTransform(typeof(x))
 
-# ---------------- Struct for bundled transforms ----------------
-struct DataTransforms
+# ---------------- Struct for bundled transform functions ----------------
+struct DataStandardizer
     fᵢ::Function
     fₒ::Function
     fₒ⁻¹::Function
 end
 
 # ---------------- Constructor ----------------
-function DataTransforms(
+function DataStandardizer(
     data::DataFrame,
     input::Union{Symbol, Vector{<:Symbol}, UQInput, Vector{<:UQInput}},
     output::Symbol,
-    input_transform::AbstractInputTransform, 
-    output_transform::AbstractOutputTransform
+    input_transform::InputTransform, 
+    output_transform::OutputTransform
 )
     fᵢ = build_datatransform(data, input, input_transform)
     fₒ, fₒ⁻¹ = build_datatransform(data, output, output_transform)
-    return DataTransforms(fᵢ, fₒ, fₒ⁻¹)
+    return DataStandardizer(fᵢ, fₒ, fₒ⁻¹)
 end
 
 # ---------------- Transform builders ----------------
@@ -55,7 +56,7 @@ Returns a function (or pair of functions for outputs) that applies the specified
 function build_datatransform(
     ::DataFrame, 
     input::Union{Symbol, Vector{<:Symbol}}, 
-    ::NoInputTransform
+    ::InputTransform{IdentityTransform}
 )
     f(df::DataFrame) = to_gp_format(
         dataframe_to_array(df, input)
@@ -66,17 +67,17 @@ end
 build_datatransform(
     data::DataFrame, 
     input::Union{UQInput, Vector{<:UQInput}}, 
-    transform::NoInputTransform
+    transform::InputTransform{IdentityTransform}
  ) = build_datatransform(data, names(input), transform)
 
  # ZScore input transformation
 function build_datatransform(
     data::DataFrame,
     input::Union{Symbol, Vector{<:Symbol}},
-    ::ZScoreInputTransform
+    ::InputTransform{ZScoreTransform}
 )
     zscore_transform = fit(
-        ZScoreTransform, 
+        StatsBase.ZScoreTransform, 
         dataframe_to_array(data, input); 
         dims=1
     )
@@ -92,17 +93,17 @@ end
 build_datatransform(
     data::DataFrame, 
     input::Union{UQInput, Vector{<:UQInput}}, 
-    transform::ZScoreInputTransform
+    transform::InputTransform{ZScoreTransform}
  ) = build_datatransform(data, names(input), transform)
 
 # UnitRange input transformation
 function build_datatransform(
     data::DataFrame,
     input::Union{Symbol, Vector{<:Symbol}},
-    ::UnitRangeInputTransform
+    ::InputTransform{UnitRangeTransform}
 )
     unitrange_transform = fit(
-        UnitRangeTransform, 
+        StatsBase.UnitRangeTransform, 
         dataframe_to_array(data, input); 
         dims=1
     )
@@ -118,14 +119,14 @@ end
 build_datatransform(
     data::DataFrame, 
     input::Union{UQInput, Vector{<:UQInput}}, 
-    transform::UnitRangeInputTransform
+    transform::InputTransform{UnitRangeTransform}
  ) = build_datatransform(data, names(input), transform)
 
 # SNS input transform
 function build_datatransform(
     ::DataFrame,
     input::Union{UQInput, Vector{<:UQInput}},
-    ::SNSInputTransform
+    ::InputTransform{StandardNormalTransform}
 )
     function f(df::DataFrame)
         df_copy = copy(df)
@@ -142,7 +143,7 @@ end
 function build_datatransform(
     ::DataFrame, 
     output::Symbol, 
-    ::NoOutputTransform
+    ::OutputTransform{IdentityTransform}
 )
     f(df::DataFrame) = to_gp_format(
         dataframe_to_array(df, output)
@@ -155,10 +156,10 @@ end
 function build_datatransform(
     data::DataFrame, 
     output::Symbol,
-    ::ZScoreOutputTransform
+    ::OutputTransform{ZScoreTransform}
 )
     zscore_transform = fit(
-        ZScoreTransform, 
+        StatsBase.ZScoreTransform, 
         dataframe_to_array(data, output); 
         dims=1
     )
@@ -176,10 +177,10 @@ end
 function build_datatransform(
     data::DataFrame, 
     output::Symbol,
-    ::UnitRangeOutputTransform
+    ::OutputTransform{UnitRangeTransform}
 )
     unitrange_transform = fit(
-        UnitRangeTransform, 
+        StatsBase.UnitRangeTransform, 
         dataframe_to_array(data, output); 
         dims=1
     )
@@ -191,6 +192,16 @@ function build_datatransform(
     )
     f⁻¹(Y::AbstractArray) = StatsBase.reconstruct(unitrange_transform, Y)
     return return (f, f⁻¹)
+end
+
+function build_datatransform(
+    ::DataFrame, 
+    ::Symbol, 
+    ::OutputTransform{StandardNormalTransform}
+)
+    throw(ArgumentError(
+        "StandardNormalTransform is only valid for input transforms."
+    ))
 end
 
 # ---------------- Utility ----------------
