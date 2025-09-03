@@ -2,7 +2,7 @@ struct GaussianProcess <: UQModel
     gp::AbstractGPs.PosteriorGP
     input::Union{Symbol, Vector{Symbol}}
     output::Symbol
-    data_transforms::DataTransforms
+    standardizer::DataStandardizer
 end
 
 # ---------------- Build from DataFrame ----------------
@@ -10,17 +10,17 @@ function GaussianProcess(
     gp::Union{AbstractGPs.GP, NoisyGP},
     data::DataFrame,
     output::Symbol;
-    input_transform::AbstractInputTransform=ZScoreInputTransform(),
-    output_transform::AbstractOutputTransform=ZScoreOutputTransform(),
+    input_transform::AbstractDataTransform=IdentityTransform(),
+    output_transform::AbstractDataTransform=IdentityTransform(),
     optimization::AbstractHyperparameterOptimization=MaximumLikelihoodEstimation()
 ) 
     input = propertynames(data[:, Not(output)]) # Is this always the case?
 
     # build in- and output transforms
-    dts = DataTransforms(
+    dts = DataStandardizer(
         data, input, output, 
-        input_transform, 
-        output_transform
+        InputTransform(input_transform), 
+        OutputTransform(output_transform)
     )
 
     # transform data
@@ -45,8 +45,8 @@ function GaussianProcess(
     model::Union{UQModel, Vector{<:UQModel}},
     output::Symbol,
     experimentaldesign::Union{AbstractMonteCarlo, AbstractDesignOfExperiments};
-    input_transform::AbstractInputTransform=ZScoreInputTransform(),
-    output_transform::AbstractOutputTransform=ZScoreOutputTransform(),
+    input_transform::AbstractDataTransform=IdentityTransform(),
+    output_transform::AbstractDataTransform=IdentityTransform(),
     optimization::AbstractHyperparameterOptimization=MaximumLikelihoodEstimation()
 )
     # build DataFrame
@@ -54,10 +54,10 @@ function GaussianProcess(
     evaluate!(model, data)
 
     # build in- and output transforms
-    dts = DataTransforms(
+    dts = DataStandardizer(
         data, input, output, 
-        input_transform, 
-        output_transform
+        InputTransform(input_transform), 
+        OutputTransform(output_transform)
     )
 
     # transform data
@@ -78,9 +78,9 @@ end
 
 # what should this calculate? Calculates only mean for now
 function evaluate!(gp::GaussianProcess, data::DataFrame)
-    x = gp.data_transforms.fᵢ(data)
+    x = gp.standardizer.fᵢ(data)
     y = mean(gp.gp(x))
 
-    data[!, gp.output] = gp.data_transforms.fₒ⁻¹(y) # applying inverse transform to output
+    data[!, gp.output] = gp.standardizer.fₒ⁻¹(y) # applying inverse transform to output
     return nothing
 end

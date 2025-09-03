@@ -84,8 +84,6 @@ export AbstractQuasiMonteCarlo
 export AbstractSimulation
 export Copula
 export DeterministicUQInput
-export NoInputTransform, ZScoreInputTransform, UnitRangeInputTransform, SNSInputTransform
-export NoOutputTransform, ZScoreOutputTransform, UnitRangeOutputTransform
 export RandomUQInput
 export UQInput
 export UQModel
@@ -113,6 +111,7 @@ export GaussianProcess
 export GaussQuadrature
 export HaltonSampling
 export HermiteBasis
+export IdentityTransform, ZScoreTransform, UnitRangeTransform, StandardNormalTransform
 export ImportanceSampling
 export Interval
 export IntervalVariable
