@@ -149,9 +149,9 @@ function build_datatransform(
     f(df::DataFrame) = to_gp_format(
         dataframe_to_array(df, output)
     )
-    mean_f⁻¹(Y::AbstractArray) = Y
+    f⁻¹(Y::AbstractArray) = Y
     var_f⁻¹(Y::AbstractArray) = Y
-    return (f, f⁻¹)
+    return (f, f⁻¹, var_f⁻¹)
 end
 
 # ZScore output transformation
