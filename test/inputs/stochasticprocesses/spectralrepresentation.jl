@@ -42,6 +42,9 @@
     @test_logs (:warn, r"The frequency of the signal") SpectralRepresentation(sd, t, :ShnzkNySR)
 
     @testset "Reliability" begin
+
+        Random.seed!(1234)
+        
         ω = collect(range(0, 50, 100))
 
         cp = CloughPenzien(ω, 0.1, 0.8π, 0.6, 8π, 0.6)
