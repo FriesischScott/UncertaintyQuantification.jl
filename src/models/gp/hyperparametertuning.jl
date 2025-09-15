@@ -2,7 +2,7 @@ using DifferentiationInterface
 
 abstract type AbstractHyperparameterOptimization end
 
-struct NoOptimization <: AbstractHyperparameterOptimization end
+struct NoHyperparameterOptimization <: AbstractHyperparameterOptimization end
 
 struct MaximumLikelihoodEstimation <: AbstractHyperparameterOptimization
     optimizer::Optim.FirstOrderOptimizer
@@ -18,7 +18,7 @@ function optimize_hyperparameters(
     gp::Union{AbstractGPs.GP, NoisyGP}, 
     ::Union{RowVecs{<:Real}, Vector{<:Real}}, 
     ::Vector{<:Real}, 
-    ::NoOptimization
+    ::NoHyperparameterOptimization
 )
     return gp
 end
