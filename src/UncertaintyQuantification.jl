@@ -129,6 +129,7 @@ export MaximumLikelihoodBayesian
 export MaximumLikelihoodEstimation
 export Model
 export MonteCarlo
+export NoHyperparameterOptimization
 export ParallelModel
 export Parameter
 export PlackettBurman
