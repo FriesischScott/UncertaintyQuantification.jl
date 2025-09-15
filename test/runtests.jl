@@ -26,6 +26,7 @@ using UncertaintyQuantification
 
 # include("models/external/solvers.jl")
 # include("models/external/externalmodel.jl")
+include("models/gp/gaussianprocess.jl")
 include("models/gp/standardization.jl")
 # include("models/model.jl")
 # include("models/polyharmonicspline.jl")
