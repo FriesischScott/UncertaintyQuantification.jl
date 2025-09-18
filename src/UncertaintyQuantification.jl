@@ -1,5 +1,6 @@
 module UncertaintyQuantification
 
+using AbstractGPs
 using Bootstrap
 using CovarianceEstimation
 using DataFrames
@@ -14,6 +15,7 @@ using MeshAdaptiveDirectSearch
 using Monomials
 using Mustache
 using Optim
+using ParameterHandling
 using Primes
 using QuadGK
 using QuasiMonteCarlo
@@ -21,6 +23,7 @@ using Random
 using Reexport
 using Roots
 using StatsBase
+using Zygote
 
 @reexport using Distributions
 
@@ -104,9 +107,11 @@ export ForwardFiniteDifferences
 export FractionalFactorial
 export FullFactorial
 export GaussianCopula
+export GaussianProcess
 export GaussQuadrature
 export HaltonSampling
 export HermiteBasis
+export IdentityTransform, ZScoreTransform, UnitRangeTransform, StandardNormalTransform
 export ImportanceSampling
 export Interval
 export IntervalVariable
@@ -121,8 +126,10 @@ export LineSampling
 export SingleComponentMetropolisHastings
 export MaximumAPosterioriBayesian
 export MaximumLikelihoodBayesian
+export MaximumLikelihoodEstimation
 export Model
 export MonteCarlo
+export NoHyperparameterOptimization
 export ParallelModel
 export Parameter
 export PlackettBurman
@@ -157,6 +164,7 @@ export evaluate!
 export gradient
 export gradient_in_standard_normal_space
 export mean
+export mean_and_var!
 export multivariate_indices
 export periodogram
 export polynomialchaos
@@ -172,6 +180,8 @@ export to_copula_space
 export to_physical_space!
 export to_standard_normal_space
 export to_standard_normal_space!
+export var!
+export with_gaussian_noise
 
 include("inputs/empiricaldistribution.jl")
 include("inputs/inputs.jl")
@@ -197,6 +207,10 @@ include("models/imprecise/propagation.jl")
 include("models/polyharmonicspline.jl")
 include("models/responsesurface.jl")
 include("models//slicingmodel.jl")
+include("models/gp/standardization.jl")
+include("models/gp/parameterization.jl")
+include("models/gp/hyperparametertuning.jl")
+include("models/gp/gaussianprocess.jl")
 
 include("hpc/slurm.jl")
 
