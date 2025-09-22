@@ -84,7 +84,7 @@ function _initialize_gaussian_mixture_model(
     number_samples, dimensions = size(data)
     μ = data[rand(1:number_samples, number_components), :]  # random initialization of means
     Σ = [I(dimensions) for _ in 1:number_components]        # identity covariance matrices
-    π = fill(1 / number_components, number_components)        # equal mixing weights
+    π = fill(1 / number_components, number_components)      # equal mixing weights
     return μ, Σ, π
 end
 

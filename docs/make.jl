@@ -35,6 +35,7 @@ makedocs(;
             "Introduction" => "manual/introduction.md",
             "Getting Started" => "manual/gettingstarted.md",
             "Kernel Density Estimation" => "manual/kde.md",
+            "Gaussian Mixture Models" => "manual/gaussianmixture.md",
             "Reliability Analysis" => "manual/reliability.md",
             "Metamodelling" => "manual/metamodels.md",
             "Simulations" => "manual/simulations.md",

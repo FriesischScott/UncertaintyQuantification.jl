@@ -41,3 +41,7 @@ Next, we plot the normalized histogram of the data and the resulting PDF.
 ```
 
 ![Kernel Density Plot](kernel-density.svg)
+
+!!! note "Multivariate Density Estimation with Gaussian Mixture Models"
+    Multivariate density estimation can be performed using Gaussian mixture models.
+    For more information see [Gaussian Mixture Models](@ref).
