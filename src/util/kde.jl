@@ -1,19 +1,28 @@
-
 # standard gaussian pdf
-ϕ(x) = exp(-x^2 / 2) / sqrt(2 * π)
+function ϕ(x::Real)
+    return exp(-x^2 / 2) / sqrt(2 * π)
+end
 # 4th derivative of the standard gaussian pdf
-ϕ4(x) = (exp(-x^2 / 2) * (x^4 - 6x^2 + 3)) / sqrt(2 * π)
+function ϕ4(x::Real)
+    return (exp(-x^2 / 2) * (x^4 - 6x^2 + 3)) / sqrt(2 * π)
+end
 # 6th derivative of the standard gaussian pdf
-ϕ6(x) = (exp(-x^2 / 2) * (x^6 - 15x^4 + 45x^2 - 15)) / sqrt(2 * π)
+function ϕ6(x::Real)
+    return (exp(-x^2 / 2) * (x^6 - 15x^4 + 45x^2 - 15)) / sqrt(2 * π)
+end
 
 function TD(b::Real, x::AbstractVector{<:Real})
     n = length(x)
 
     val = zero(eltype(x))
 
-    for xᵢ in x, xⱼ in x
-        val += ϕ6(b^(-1) * (xᵢ - xⱼ))
+    @inbounds @simd for i in 1:(n - 1)
+        for j in (i + 1):n
+            val += @views 2 * ϕ6(b^(-1) * (x[i] - x[j]))
+        end
     end
+
+    val += n * ϕ6(zero(eltype(x)))
 
     return -1 * (n * (n - 1))^(-1) * b^(-7) * val
 end
@@ -23,9 +32,13 @@ function SD(α::Real, x::AbstractVector)
 
     val = zero(eltype(x))
 
-    for xᵢ in x, xⱼ in x
-        val += ϕ4(α^(-1) .* (xᵢ .- xⱼ))
+    @inbounds @simd for i in 1:(n - 1)
+        for j in (i + 1):n
+            val += @views 2 * ϕ4(α^(-1) * (x[i] - x[j]))
+        end
     end
+
+    val += n * ϕ4(zero(eltype(x)))
 
     return (n * (n - 1))^(-1) * α^(-5) * val
 end
