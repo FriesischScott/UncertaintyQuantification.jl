@@ -13,6 +13,7 @@ using LinearAlgebra
 using MeshAdaptiveDirectSearch
 using Monomials
 using Mustache
+using NearestNeighbors
 using Optim
 using Primes
 using QuadGK
