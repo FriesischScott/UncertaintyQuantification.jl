@@ -16,22 +16,26 @@ struct EmpiricalDistribution <: ContinuousUnivariateDistribution
     c::Spline1D
     q::Spline1D
 
-    function EmpiricalDistribution(X::AbstractVector{<:Real}, n::Integer=10000; nbins::Integer=0)
-
+    function EmpiricalDistribution(
+        X::AbstractVector{<:Real}, n::Integer=10000; nbins::Integer=0
+    )
         h, data = sheather_jones_bandwidth(X, nbins)
 
-        lb = find_zero(u -> kde(h, u, data), quantile(X, 0.01), Order2())
+        f = u -> kde(h, u, data)
+        ∇ = u -> ForwardDiff.derivative(f, u)
 
-        ub = find_zero(u -> kde(h, u, data), quantile(X, 0.99), Order2())
+        lb = find_zero((f, ∇), quantile(X, 0.01), Roots.Newton())
+
+        ub = find_zero((f, ∇), quantile(X, 0.99), Roots.Newton())
 
         x = collect(range(lb, ub, n))
 
         y = zeros(eltype(x), size(x))
         for i in eachindex(x)
             y[i] = if i == 1
-                quadgk(x -> kde(h, x, data), lb, x[i])[1]
+                quadgk(f, lb, x[i])[1]
             else
-                y[i - 1] + quadgk(x -> kde(h, x, data), x[i - 1], x[i])[1]
+                y[i - 1] + quadgk(f, x[i - 1], x[i])[1]
             end
         end
 
