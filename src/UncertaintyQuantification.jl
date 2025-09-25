@@ -13,7 +13,6 @@ using LinearAlgebra
 using MeshAdaptiveDirectSearch
 using Monomials
 using Mustache
-using NearestNeighbors
 using Optim
 using Primes
 using QuadGK
@@ -174,6 +173,12 @@ export to_physical_space!
 export to_standard_normal_space
 export to_standard_normal_space!
 
+include("util/binning.jl")
+include("util/fourier-transform.jl")
+include("util/wrap.jl")
+include("util/imprecise.jl")
+include("util/kde.jl")
+
 include("inputs/empiricaldistribution.jl")
 include("inputs/inputs.jl")
 include("inputs/parameter.jl")
@@ -221,11 +226,5 @@ include("simulations/importancesampling.jl")
 include("reliability/probabilityoffailure.jl")
 include("reliability/probabilityoffailure_imprecise.jl")
 include("sensitivity/sobolindices.jl")
-
-include("util/binning.jl")
-include("util/fourier-transform.jl")
-include("util/wrap.jl")
-include("util/imprecise.jl")
-include("util/kde.jl")
 
 end

@@ -1,3 +1,8 @@
+struct BinnedData
+    grid::AbstractVector{<:Real}
+    weights::AbstractVector{<:Real}
+end
+
 function linear_binning(x::AbstractVector, nbins::Integer)
     xmin = minimum(x)
     xmax = maximum(x)
@@ -20,5 +25,5 @@ function linear_binning(x::AbstractVector, nbins::Integer)
             w[idx + 1] += w_right
         end
     end
-    return g, w
+    return BinnedData(g, w)
 end

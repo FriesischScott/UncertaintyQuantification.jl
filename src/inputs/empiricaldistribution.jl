@@ -9,19 +9,20 @@
     For large datasets linear binning can be used by passing the keyword `nbins`.
 """
 struct EmpiricalDistribution <: ContinuousUnivariateDistribution
-    data::Vector{<:Real}
+    data::Union{AbstractVector{<:Real},BinnedData}
     lb::Real
     ub::Real
     h::Real
     c::Spline1D
     q::Spline1D
 
-    function EmpiricalDistribution(data::Vector{<:Real}, n::Integer=10000; nbins::Integer=0)
-        h = sheather_jones_bandwidth(data, nbins)
+    function EmpiricalDistribution(X::AbstractVector{<:Real}, n::Integer=10000; nbins::Integer=0)
 
-        lb = find_zero(u -> kde(h, u, data), minimum(data), Order2())
+        h, data = sheather_jones_bandwidth(X, nbins)
 
-        ub = find_zero(u -> kde(h, u, data), maximum(data), Order2())
+        lb = find_zero(u -> kde(h, u, data), quantile(X, 0.01), Order2())
+
+        ub = find_zero(u -> kde(h, u, data), quantile(X, 0.99), Order2())
 
         x = collect(range(lb, ub, n))
 
