@@ -49,6 +49,9 @@
     @test mean(ed) ≈ 34.95964999999962
     @test var(ed) ≈ 120.7690583345086
 
+    @test all(insupport.(ed, data))
+    @test all(pdf.(ed, data) .>= 0)
+
     samples = rand(ed, 10000)
 
     @test all(insupport.(ed, samples))
@@ -68,6 +71,9 @@
         x = randn(10_000)
 
         ed = EmpiricalDistribution(x; nbins=2^12)
+
+        @test all(insupport.(ed, x))
+        @test all(pdf.(ed, x) .>= 0)
 
         samples = rand(ed, 10000)
 
