@@ -35,6 +35,7 @@ makedocs(;
             "Introduction" => "manual/introduction.md",
             "Getting Started" => "manual/gettingstarted.md",
             "Kernel Density Estimation" => "manual/kde.md",
+            "Gaussian Mixture Models" => "manual/gaussianmixture.md",
             "Reliability Analysis" => "manual/reliability.md",
             "Metamodelling" => "manual/metamodels.md",
             "Simulations" => "manual/simulations.md",
@@ -44,6 +45,7 @@ makedocs(;
             "High Performance Computing" => "manual/hpc.md",
         ],
         "Examples" => [
+            "Gaussian Mixture Model" => "examples/inputs.md",
             "External Models" => "examples/external.md",
             "Metamodels" => "examples/metamodels.md",
             "Bayesian Updating" => "examples/bayesianupdating.md",
