@@ -63,4 +63,25 @@
     @test logpdf.(ed, samples) ≈ log.(pdf.(ed, samples))
 
     @test quantile.(ed, cdf.(ed, samples)) ≈ samples
+
+    @testset "Linear binning" begin
+        x = randn(10_000)
+
+        ed = EmpiricalDistribution(x; nbins=2^12)
+
+        samples = rand(ed, 10000)
+
+        @test all(insupport.(ed, samples))
+        @test all(pdf.(ed, samples) .>= 0)
+
+        @test pdf(ed, minimum(ed)) ≈ 0.0 atol = 1e-10
+        @test pdf(ed, maximum(ed)) ≈ 0.0 atol = 1e-10
+
+        pdf_area, _ = hquadrature(x -> pdf(ed, x), minimum(ed), maximum(ed))
+
+        @test pdf_area ≈ 1 atol = 0.01
+        @test logpdf.(ed, samples) ≈ log.(pdf.(ed, samples))
+
+        @test quantile.(ed, cdf.(ed, samples)) ≈ samples
+    end
 end
