@@ -5,6 +5,8 @@
     The kernel used is Gaussian and the bandwidth is obtained through the Sheather-Jones method.
     The support is inferred from the kde using numerical root finding.
     The `cdf` and `quantile` functions are linearly interpolated using `n` data points.
+
+    For large datasets linear binning can be used by passing the keyword `nbins`.
 """
 struct EmpiricalDistribution <: ContinuousUnivariateDistribution
     data::Vector{<:Real}
@@ -14,8 +16,8 @@ struct EmpiricalDistribution <: ContinuousUnivariateDistribution
     c::Spline1D
     q::Spline1D
 
-    function EmpiricalDistribution(data::Vector{<:Real}, n::Integer=10000)
-        h = sheather_jones_bandwidth(data)
+    function EmpiricalDistribution(data::Vector{<:Real}, n::Integer=10000; nbins::Integer=0)
+        h = sheather_jones_bandwidth(data, nbins)
 
         lb = find_zero(u -> kde(h, u, data), minimum(data), Order2())
 
