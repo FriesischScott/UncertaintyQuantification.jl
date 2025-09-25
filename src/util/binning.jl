@@ -25,5 +25,13 @@ function linear_binning(x::AbstractVector, nbins::Integer)
             w[idx + 1] += w_right
         end
     end
-    return BinnedData(g, w)
+
+    # find all nonzero weights
+    idx = findall(!iszero, w)
+
+    if length(nbins - length(idx)) > 0
+        @info "Dropped $(nbins - length(idx)) zero-weight grid points"
+    end
+
+    return BinnedData(g[idx], w[idx])
 end
