@@ -9,7 +9,6 @@ using Distributed
 using FastGaussQuadrature
 using FiniteDifferences
 using Format
-using ForwardDiff
 using LinearAlgebra
 using MeshAdaptiveDirectSearch
 using Monomials

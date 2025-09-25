@@ -16,9 +16,9 @@ function TD(b::Real, x::Vector{<:Real})
 
     val = zero(eltype(x))
 
-    @inbounds @simd for i in 1:(n-1)
-        for j in (i+1):n
-                val += @views 2 * ϕ6(b^(-1) * (x[i] - x[j]))
+    @inbounds @simd for i in 1:(n - 1)
+        for j in (i + 1):n
+            val += @views 2 * ϕ6(b^(-1) * (x[i] - x[j]))
         end
     end
 
@@ -33,13 +33,16 @@ function TD(b::Real, data::BinnedData)
 
     val = zero(eltype(data.grid))
 
-    @inbounds @simd for i in 1:nbins-1
-        for j in (i+1):nbins
-                val += @views 2 * data.weights[i] * data.weights[j] * ϕ6(b^(-1) * (data.grid[i] - data.grid[j]))
+    @inbounds @simd for i in 1:(nbins - 1)
+        for j in (i + 1):nbins
+            val += @views 2 *
+                data.weights[i] *
+                data.weights[j] *
+                ϕ6(b^(-1) * (data.grid[i] - data.grid[j]))
         end
     end
 
-    val += sum(data.weights.^2) * ϕ6(zero(eltype(data.grid)))
+    val += sum(data.weights .^ 2) * ϕ6(zero(eltype(data.grid)))
 
     return -1 * (n * (n - 1))^(-1) * b^(-7) * val
 end
@@ -67,11 +70,14 @@ function SD(α::Real, data::BinnedData)
 
     @inbounds @simd for i in 1:(nbins - 1)
         for j in (i + 1):nbins
-            val += @views 2 * data.weights[i] * data.weights[j] * ϕ4(α^(-1) * (data.grid[i] - data.grid[j]))
+            val += @views 2 *
+                data.weights[i] *
+                data.weights[j] *
+                ϕ4(α^(-1) * (data.grid[i] - data.grid[j]))
         end
     end
 
-    val += sum(data.weights.^2) * ϕ4(zero(eltype(data.grid)))
+    val += sum(data.weights .^ 2) * ϕ4(zero(eltype(data.grid)))
 
     return (n * (n - 1))^(-1) * α^(-5) * val
 end
@@ -92,7 +98,7 @@ function sheather_jones_bandwidth(x::AbstractVector, nbins::Integer=0)
     a = 0.920λ * n^(-1 / 7)
     b = 0.912λ * n^(-1 / 9)
 
-    α₂ = 1.357 * (SD(a, data) / TD(b,data))^(1 / 7)
+    α₂ = 1.357 * (SD(a, data) / TD(b, data))^(1 / 7)
 
     function f(h)
         α₂_h = α₂ * h^(5 / 7)
@@ -100,13 +106,14 @@ function sheather_jones_bandwidth(x::AbstractVector, nbins::Integer=0)
         return ((1 / (2 * sqrt(π))) / (3 * SD(α₂_h, data)))^(1 / 5) * n^(-1 / 5) - h
     end
 
-    return newtonraphson(1.0,f, 1e-3, 1e-5, 10^3), data
+    return newtonraphson(1.0, f, 1e-3, 1e-5, 10^3), data
 end
 
-function kde(h, x, X)
+function kde(h::Real, x::Real, X::AbstractVector{<:Real})
     return length(X)^(-1) * sum([h^(-1) * ϕ(h^(-1) * (x - xⱼ)) for xⱼ in X])
 end
 
-function kde(h, x, X::BinnedData)
-    return sum(X.weights)^(-1) * sum([h^(-1) * wⱼ * ϕ(h^(-1) * (x - xⱼ)) for (xⱼ, wⱼ) in zip(X.grid, X.weights)])
+function kde(h::Real, x::Real, X::BinnedData)
+    return sum(X.weights)^(-1) *
+           sum([h^(-1) * wⱼ * ϕ(h^(-1) * (x - xⱼ)) for (xⱼ, wⱼ) in zip(X.grid, X.weights)])
 end

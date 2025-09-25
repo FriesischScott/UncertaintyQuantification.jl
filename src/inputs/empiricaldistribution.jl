@@ -22,11 +22,10 @@ struct EmpiricalDistribution <: ContinuousUnivariateDistribution
         h, data = sheather_jones_bandwidth(X, nbins)
 
         f = u -> kde(h, u, data)
-        ∇ = u -> ForwardDiff.derivative(f, u)
 
-        lb = find_zero((f, ∇), quantile(X, 0.01), Roots.Newton())
+        lb = find_zero(f, minimum(X), Order0(); atol=1e-3, maxevals=10^3)
 
-        ub = find_zero((f, ∇), quantile(X, 0.99), Roots.Newton())
+        ub = find_zero(f, maximum(X), Order0(); atol=1e-3, maxevals=10^3)
 
         x = collect(range(lb, ub, n))
 
