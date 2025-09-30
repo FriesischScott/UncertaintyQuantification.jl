@@ -75,9 +75,9 @@ makedocs(;
 )
 
 DocumenterVitepress.deploydocs(;
-    repo="github.com/YourName/YourPackage.jl",
+    repo="github.com/FriesischScott/UncertaintyQuantification.jl",
     target=joinpath(@__DIR__, "build"),
     branch="gh-pages",
-    devbranch="main", # or master, trunk, ...
+    devbranch="main",
     push_preview=true,
 )
