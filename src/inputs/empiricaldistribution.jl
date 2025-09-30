@@ -42,6 +42,8 @@ struct EmpiricalDistribution <: ContinuousUnivariateDistribution
 
         x = collect(range(lb, ub, n))
 
+        f = u -> kde(h, u, data)
+
         y = zeros(eltype(x), size(x))
         for i in eachindex(x)
             y[i] = if i == 1
