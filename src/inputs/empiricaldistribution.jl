@@ -23,9 +23,9 @@ struct EmpiricalDistribution <: ContinuousUnivariateDistribution
 
         f = u -> kde(h, u, data)
 
-        lb = find_zero(f, minimum(X), Order0(); atol=1e-3, maxevals=10^3)
+        lb = find_zero(f, minimum(X), Order0(); atol=1e-10, maxevals=10^3)
 
-        ub = find_zero(f, maximum(X), Order0(); atol=1e-3, maxevals=10^3)
+        ub = find_zero(f, maximum(X), Order0(); atol=1e-10, maxevals=10^3)
 
         x = collect(range(lb, ub, n))
 

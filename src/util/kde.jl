@@ -106,7 +106,7 @@ function sheather_jones_bandwidth(x::AbstractVector, nbins::Integer=0)
         return ((1 / (2 * sqrt(π))) / (3 * SD(α₂_h, data)))^(1 / 5) * n^(-1 / 5) - h
     end
 
-    return newtonraphson(1.0, f, 1e-3, 1e-5, 10^3), data
+    return newtonraphson(1.0, f, 1e-3, 1e-10, 10^3), data
 end
 
 function kde(h::Real, x::Real, X::AbstractVector{<:Real})
