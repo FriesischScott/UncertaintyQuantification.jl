@@ -29,15 +29,15 @@ struct EmpiricalDistribution <: ContinuousUnivariateDistribution
         lb = if f(xmin - 10 * h) < 0 && f(xmin) > 0
             find_zero(f, (xmin - 10 * h, xmin); maxevals=10^3)
         else
-            @warn "EmpiricalDistribution: Unable to compute lower bound. Using minimum."
-            xmin
+            @warn "EmpiricalDistribution: Unable to compute compute accurate lower bound."
+            xmin - 10 * h # conservative estimate for the lower bound
         end
 
         ub = if f(xmax) > 0 && f(xmax + 10 * h) < 0
             find_zero(f, (xmax, xmax + 10 * h); maxevals=10^3)
         else
-            @warn "EmpiricalDistribution: Unable to compute upper bound.  Using maximum."
-            xmax
+            @warn "EmpiricalDistribution: Unable to compute compute accurate lower bound."
+            xmax + 10 * h # conservative estimate for the upper bound
         end
 
         x = collect(range(lb, ub, n))
