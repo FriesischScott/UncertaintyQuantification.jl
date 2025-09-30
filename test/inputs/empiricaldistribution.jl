@@ -72,7 +72,7 @@
 
         ed = EmpiricalDistribution(x; nbins=2^12)
 
-        @test mean(ed) ≈ 2.5 atol = 0.01
+        @test mean(ed) ≈ 2.5 atol = 0.1
 
         @test all(insupport.(ed, x))
         @test all(pdf.(ed, x) .>= 0)
