@@ -68,9 +68,11 @@
     @test quantile.(ed, cdf.(ed, samples)) ≈ samples
 
     @testset "Linear binning" begin
-        x = randn(10_000)
+        x = [randn(10_000)..., (5 .+ randn(10_000))...]
 
         ed = EmpiricalDistribution(x; nbins=2^12)
+
+        @test mean(ed) ≈ 2.5 atol = 0.01
 
         @test all(insupport.(ed, x))
         @test all(pdf.(ed, x) .>= 0)
