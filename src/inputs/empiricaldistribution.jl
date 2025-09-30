@@ -21,11 +21,24 @@ struct EmpiricalDistribution <: ContinuousUnivariateDistribution
     )
         h, data = sheather_jones_bandwidth(X, nbins)
 
-        f = u -> kde(h, u, data)
+        f = u -> kde(h, u, data) - eps(eltype(X))
 
-        lb = find_zero(f, quantile(X, 0.01), Order0(); atol=1e-10, maxevals=10^3)
+        xmin = minimum(X)
+        xmax = maximum(X)
 
-        ub = find_zero(f, quantile(X, 0.99), Order0(); atol=1e-10, maxevals=10^3)
+        lb = if f(xmin - 10 * h) < 0 && f(xmin) > 0
+            find_zero(f, (xmin - 10 * h, xmin); maxevals=10^3)
+        else
+            @warn "EmpiricalDistribution: Unable to compute lower bound. Using minimum."
+            xmin
+        end
+
+        ub = if f(xmax) > 0 && f(xmax + 10 * h) < 0
+            find_zero(f, (xmax, xmax + 10 * h); maxevals=10^3)
+        else
+            @warn "EmpiricalDistribution: Unable to compute upper bound.  Using maximum."
+            xmax
+        end
 
         x = collect(range(lb, ub, n))
 
