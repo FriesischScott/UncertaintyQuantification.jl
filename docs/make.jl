@@ -45,6 +45,7 @@ makedocs(;
             "Introduction" => "manual/introduction.md",
             "Getting Started" => "manual/gettingstarted.md",
             "Kernel Density Estimation" => "manual/kde.md",
+            "Gaussian Mixture Models" => "manual/gaussianmixture.md",
             "Reliability Analysis" => "manual/reliability.md",
             "Metamodelling" => "manual/metamodels.md",
             "Simulations" => "manual/simulations.md",
@@ -54,6 +55,7 @@ makedocs(;
             "High Performance Computing" => "manual/hpc.md",
         ],
         "Examples" => [
+            "Gaussian Mixture Model" => "examples/inputs.md",
             "External Models" => "examples/external.md",
             "Metamodels" => "examples/metamodels.md",
             "Bayesian Updating" => "examples/bayesianupdating.md",
@@ -72,6 +74,7 @@ makedocs(;
             "Power Spectral Density Functions" => "api/psd.md",
             "Stochastic Processes (Spectral Representation)" => "api/spectralrepresentation.md",
             "SlurmInterface" => "api/slurm.md",
+            "Polynomial Chaos Expansions" => "api/polynomialchaos.md",
         ],
         "References" => "references.md",
     ],
@@ -81,6 +84,10 @@ makedocs(;
     build="build",
 )
 
-deploydocs(;
-    repo="github.com/FriesischScott/UncertaintyQuantification.jl", push_preview=true
+DocumenterVitepress.deploydocs(;
+    repo="github.com/FriesischScott/UncertaintyQuantification.jl",
+    target=joinpath(@__DIR__, "build"),
+    branch="gh-pages",
+    devbranch="main",
+    push_preview=true,
 )

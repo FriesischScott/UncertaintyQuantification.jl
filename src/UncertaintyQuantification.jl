@@ -30,7 +30,6 @@ import Statistics: mean, var
 
 abstract type UQInput end
 abstract type DeterministicUQInput <: UQInput end
-abstract type ImpreciseUQInput <: UQInput end
 abstract type RandomUQInput <: UQInput end
 
 """
@@ -47,7 +46,7 @@ abstract type AbstractQuasiMonteCarlo <: AbstractMonteCarlo end
 """
     AbstractBayesianMethod
 
-Subtypes are used to dispatch to the differenct MCMC methods in [`bayesianupdating`](@ref).
+Subtypes are used to dispatch to the different MCMC methods in [`bayesianupdating`](@ref).
 
 Subtypes are:
 
@@ -59,7 +58,7 @@ abstract type AbstractBayesianMethod end
 """
     AbstractBayesianPointEstimate
 
-Subtypes are used to dispatch to the differenct point estimation methods in [`bayesianupdating`](@ref).
+Subtypes are used to dispatch to the different point estimation methods in [`bayesianupdating`](@ref).
 
 Subtypes are:
 
@@ -83,7 +82,6 @@ export AbstractSimulation
 export Copula
 export DeterministicUQInput
 export RandomUQInput
-export ImpreciseUQInput
 export UQInput
 export UQModel
 
@@ -106,16 +104,19 @@ export ForwardFiniteDifferences
 export FractionalFactorial
 export FullFactorial
 export GaussianCopula
+export GaussianMixtureModel
 export GaussQuadrature
 export HaltonSampling
 export HermiteBasis
 export ImportanceSampling
 export Interval
+export IntervalVariable
 export JointDistribution
 export KanaiTajimi
 export LatinHypercubeSampling
 export LatticeRuleSampling
 export LeastSquares
+export WeightedApproximateFetekePoints
 export LegendreBasis
 export LineSampling
 export SingleComponentMetropolisHastings
@@ -183,6 +184,7 @@ include("inputs/imprecise/p-box.jl")
 include("inputs/randomvariables/randomvariable.jl")
 include("inputs/randomvariables/distributionparameters.jl")
 include("inputs/copulas/gaussian.jl")
+include("inputs/gaussianmixtures.jl")
 include("inputs/jointdistribution.jl")
 
 include("dynamics/psd.jl")
