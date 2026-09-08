@@ -20,7 +20,7 @@ Throws an error if `n ≤ 0`.
 ```julia
 sobol = QuasiMonteCarlo.SobolSample()
 qmc = QuasiMonteCarloSampling(1024, sobol)
-
+```
 """
 struct QuasiMonteCarloSampling <: AbstractMonteCarlo
     n::Integer
@@ -51,7 +51,6 @@ function sample(inputs::Vector{<:UQInput}, sim::QuasiMonteCarloSampling, T::Type
     return samples
 end
 
-
 function sample(input::RandomUQInput, sim::QuasiMonteCarloSampling, T::Type = Float64)
     u = QuasiMonteCarlo.sample(sim.n, 1, sim.m, T)
 
@@ -62,7 +61,6 @@ function sample(input::RandomUQInput, sim::QuasiMonteCarloSampling, T::Type = Fl
 
     return samples
 end
-
 
 double_samples(sim::MonteCarlo) = MonteCarlo(2 * sim.n)
 double_samples(sim::QuasiMonteCarloSampling) = QuasiMonteCarloSampling(2 * sim.n, sim.m)
