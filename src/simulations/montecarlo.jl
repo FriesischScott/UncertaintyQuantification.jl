@@ -3,7 +3,26 @@ struct MonteCarlo <: AbstractMonteCarlo
     MonteCarlo(n) = n > 0 ? new(n) : error("n must be greater than zero")
 end
 
-struct QuasiMonteCarloSampling <: AbstractQuasiMonteCarlo
+"""
+    QuasiMonteCarloSampling(n::Integer, m::QuasiMonteCarlo.SamplingAlgorithm)
+
+A structure to facilitate Quasi Monte Carlo (QMC) sampling.
+
+# Fields
+- `n::Integer`: The number of samples to generate. Must be greater than 0.
+- `m::QuasiMonteCarlo.SamplingAlgorithm`: The desired QMC sampling method from QuasiMonteCarlo.jl.
+
+# Errors
+Throws an error if `n ≤ 0`.
+
+# Example
+
+```julia
+sobol = QuasiMonteCarlo.SobolSample()
+qmc = QuasiMonteCarloSampling(1024, sobol)
+
+"""
+struct QuasiMonteCarloSampling <: AbstractMonteCarlo
     n::Integer
     m::QuasiMonteCarlo.SamplingAlgorithm
     QuasiMonteCarloSampling(n, m) = n > 0 ? new(n, m) : error("n must be greater than zero")

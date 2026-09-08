@@ -15,5 +15,5 @@ RadialBasedImportanceSampling
 SubSetSimulation
 SubSetInfinity
 SubSetInfinityAdaptive
-
+QuasiMonteCarloSampling
 ```

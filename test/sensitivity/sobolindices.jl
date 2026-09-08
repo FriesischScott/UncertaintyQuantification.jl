@@ -45,13 +45,13 @@ end
     @test si.TotalEffect ≈ totaleffect_analytical1 rtol = 0.1
 end
 
-# @testitem "Latin Hypercube" begin
-#     si = sobolindices(ishigami1, x, :f1, LatinHypercubeSampling(n_qmc))
+@testitem "Latin Hypercube" setup = [sobolindices] begin
+    si = sobolindices(ishigami1, x, :f1, QuasiMonteCarloSampling(n_qmc, LatinHypercubeSample()))
 
-#     @test si.FirstOrder[1:2] ≈ firstorder_analytical1[1:2] rtol = 0.1
-#     @test si.FirstOrder[3] ≈ firstorder_analytical1[3] atol = 0.1
-#     @test si.TotalEffect ≈ totaleffect_analytical1 rtol = 0.1
-# end
+    @test si.FirstOrder[1:2] ≈ firstorder_analytical1[1:2] rtol = 0.1
+    @test si.FirstOrder[3] ≈ firstorder_analytical1[3] atol = 0.1
+    @test si.TotalEffect ≈ totaleffect_analytical1 rtol = 0.1
+end
 
 @testitem "Sobol Indices: Multiple Outputs" setup = [sobolindices] begin
     si = sobolindices(

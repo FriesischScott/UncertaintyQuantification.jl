@@ -6,8 +6,7 @@
     @test double_samples(mc).n == 2000
 end
 
-@testitem "QuasiMonteCarlo" begin
-    using QuasiMonteCarlo
+@testitem "QuasiMonteCarlo" setup = [QMC] begin
 
     sobol = QuasiMonteCarloSampling(4, SobolSample())
     @test isa(sobol, QuasiMonteCarloSampling)

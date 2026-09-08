@@ -1,5 +1,4 @@
-@testitem "ResponseSurface" setup = [TestSetup] begin
-    using QuasiMonteCarlo
+@testitem "ResponseSurface" setup = [TestSetup, QMC] begin
 
     x = RandomVariable.(Uniform(-5, 5), [:x1, :x2])
 
