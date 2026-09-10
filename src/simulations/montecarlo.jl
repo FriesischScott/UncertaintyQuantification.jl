@@ -36,6 +36,9 @@ function sample(inputs::Vector{<:UQInput}, sim::QuasiMonteCarloSampling, T::Type
     random_inputs = filter(i -> isa(i, RandomUQInput) || isa(i, ProbabilityBox), inputs)
     deterministic_inputs = filter(i -> isa(i, Parameter) || isa(i, Interval), inputs)
 
+    if isempty(random_inputs)
+        return sample(inputs, sim.n)
+    end
     n_rv = count_rvs(random_inputs)
 
     u = QuasiMonteCarlo.sample(sim.n, n_rv, sim.m, T)
@@ -48,19 +51,17 @@ function sample(inputs::Vector{<:UQInput}, sim::QuasiMonteCarloSampling, T::Type
     end
     to_physical_space!(inputs, samples)
 
-    return samples
-end
-
-function sample(input::RandomUQInput, sim::QuasiMonteCarloSampling, T::Type = Float64)
-    u = QuasiMonteCarlo.sample(sim.n, 1, sim.m, T)
-
-    samples = quantile.(Normal(), u)
-    samples = DataFrame(getproperty(input, :name) .=> eachrow(samples))
-
-    to_physical_space!(input, samples)
+    DataFrames.select!(samples, names(inputs))
 
     return samples
 end
+
+
+sample(input::UQInput, sim::AbstractMonteCarlo) =
+    sample([input], sim)
+
+sample(input::UQInput, sim::QuasiMonteCarloSampling, T::Type) =
+    sample([input], sim, T)
 
 double_samples(sim::MonteCarlo) = MonteCarlo(2 * sim.n)
 double_samples(sim::QuasiMonteCarloSampling) = QuasiMonteCarloSampling(2 * sim.n, sim.m)
